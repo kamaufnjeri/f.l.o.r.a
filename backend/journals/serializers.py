@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 import decimal
+from datetime import date
 from django.db import transaction, models
 from .models import Bill, Invoice, Supplier
 from .models import SalesEntries, Journal, JournalEntries, Account, Stock, PurchaseEntries, Customer, Payment
@@ -56,7 +57,7 @@ class AccountSerializer(serializers.ModelSerializer):
             data.get('opening_balance_type') and not data.get('opening_balance')
         ):
             raise serializers.ValidationError(
-                f'Both the opening balance and opening balance type are required'
+                f'If account has opening balance opening balance type must be given'
             )
         return data
 
@@ -140,43 +141,6 @@ class PurchaseEntriesSerializer(serializers.ModelSerializer):
 
     def get_stock_name(self, obj):
         return obj.stock.name
-
-class StockSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = Stock
-        fields = ['id', 'name', 'unit_name', 'unit_alias']
-       
-class StockDetailsSerializer(StockSerializer):
-    purchase_entries = serializers.SerializerMethodField(read_only=True)
-    
-    total_quantity = serializers.SerializerMethodField(read_only=True)
-    
-    class Meta:
-        model = Stock
-        fields = StockSerializer.Meta.fields + ['purchase_entries', 'total_quantity']
-
-    def get_total_quantity(self, obj):
-        purchase_entries = PurchaseEntries.objects.filter(
-            stock=obj,
-            remaining_quantity__gt=0
-        ).order_by('purchase__date')
-
-        total_quantity = sum(entry.remaining_quantity for entry in purchase_entries)
-
-        return total_quantity
-    
-    def get_purchase_entries(self, obj):
-        # Filter purchase entries related to the stock
-        purchase_entries = PurchaseEntries.objects.filter(
-            stock=obj,
-            remaining_quantity__gt=0  # Example condition: only include entries with remaining quantity greater than 0
-        ).order_by('purchase__date')  # Adjust ordering if needed
-
-        serializer = PurchaseEntriesSerializer(purchase_entries, many=True)
-        return serializer.data
-    
 class PurchaseSerializer(serializers.ModelSerializer):
 
     id = serializers.CharField(read_only=True)
@@ -218,6 +182,75 @@ class PurchaseSerializer(serializers.ModelSerializer):
             create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
 
         return purchase
+    
+class StockSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    opening_stock_rate = serializers.DecimalField(max_digits=15, decimal_places=2, required=False)
+    opening_stock_quantity = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Stock
+        fields = ['id', 'name', 'unit_name', 'unit_alias', 'opening_stock_quantity', 'opening_stock_rate']
+    def create(self, validated_data):
+        with transaction.atomic():
+            opening_stock_account = Account.objects.get(name='Opening Stock')
+            
+            stock =Stock.objects.create(**validated_data)
+            if stock.opening_stock_quantity > 0:
+                opening_stock_data = {
+                    'date': date.today().strftime('%Y-%m-%d'),
+                    'description': f'Opening stock for {stock.name}',
+                    'purchase_entries': [{
+                        'purchased_quantity': stock.opening_stock_quantity,
+                        'purchase_price': stock.opening_stock_rate,
+                        'stock': stock.id
+                    }],
+                    'journal_entries': [{
+                        'account': opening_stock_account.id,
+                        'debit_credit': 'credit',
+                        'amount': stock.opening_stock_quantity * stock.opening_stock_rate,
+                    }]
+                }
+
+
+                purchase_serializer = PurchaseSerializer(data=opening_stock_data)
+
+                if purchase_serializer.is_valid():
+                    purchase_serializer.save()
+                    return stock
+            return stock
+                
+       
+class StockDetailsSerializer(StockSerializer):
+    purchase_entries = serializers.SerializerMethodField(read_only=True)
+    
+    total_quantity = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = Stock
+        fields = StockSerializer.Meta.fields + ['purchase_entries', 'total_quantity']
+
+    def get_total_quantity(self, obj):
+        purchase_entries = PurchaseEntries.objects.filter(
+            stock=obj,
+            remaining_quantity__gt=0
+        ).order_by('purchase__date')
+
+        total_quantity = sum(entry.remaining_quantity for entry in purchase_entries)
+
+        return total_quantity
+    
+    def get_purchase_entries(self, obj):
+        # Filter purchase entries related to the stock
+        purchase_entries = PurchaseEntries.objects.filter(
+            stock=obj,
+            remaining_quantity__gt=0  # Example condition: only include entries with remaining quantity greater than 0
+        ).order_by('purchase__date')  # Adjust ordering if needed
+
+        serializer = PurchaseEntriesSerializer(purchase_entries, many=True)
+        return serializer.data
+    
+
 
 class PurchaseReturnEntriesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)

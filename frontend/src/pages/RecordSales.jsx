@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { notification, Form, Input, DatePicker, Row, Col, Select, InputNumber, Button } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { Form, Input, DatePicker, Row, Col, Select, InputNumber, Button } from 'antd';
 import axios from 'axios';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import moment from 'moment';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import { postRequest } from '../lib/helpers';
+import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
@@ -39,7 +41,14 @@ const validationSchema = Yup.object({
 const RecordSales = () => {
   const [stocks, setStocks] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [totalSalesPrice, setTotalSalesPrice] = useState(0);
+  const scrollRef = useRef(null);
+
+
+  const scrollBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }
 
   const getTotalSalesPrice = (items) => {
     if (items) {
@@ -61,10 +70,7 @@ const RecordSales = () => {
           setStocks(response.data);
         }
       })
-      .catch((error) => notification.error({
-        message: 'Error',
-        description: `Error fetching ${name}`
-      }));
+      .catch((error) => toast.error(`Error': Error fetching ${name}`))
   };
 
   useEffect(() => {
@@ -74,6 +80,8 @@ const RecordSales = () => {
 
   return (
     <div className='flex-1 flex flex-col items-center justify-center'>
+
+
       <Formik
         initialValues={{
           date: null,
@@ -86,59 +94,41 @@ const RecordSales = () => {
           ]
         }}
         validationSchema={validationSchema}
-        onSubmit={(values, { resetForm }) => {
+        onSubmit={async (values, { resetForm }) => {
           const debitTotalAmount = values.journal_entries.reduce((sum, entry) => {
             return sum + parseFloat(entry.amount || 0);
           }, 0);
           const salesPriceTotal = getTotalSalesPrice(values.sales_entries);
           if (salesPriceTotal === debitTotalAmount) {
-            axios
-              .post(`${BACKEND_URL}/sales/`, values)
-              .then(response => {
-                if (response.status === 201) {
-                  resetForm();
-                  console.log(response)
-                  notification.success({
-                    message: 'Success',
-                    description: 'Sales recorded successfully!',
-                  });
-                }
-              })
-              .catch(error => {
-                
-                const errorData = error.response.data.detail ? error.response.data.detail : error.response.data ? error.response.data : 'An error occurred';
-                let newError = '';
-                if (errorData === Array.isArray()) {
-                  newError = errorData.join('/n');
-                } else {
-                  newError = errorData;
-                }
-                notification.error({
-                  message: 'Error',
-                  description: newError,
-                });
-              });
+            const response = await postRequest(values, 'sales', resetForm);
+
+            if (response.success) {
+              toast.success('Recorded: Sales recorded successfully')
+            } else {
+              toast.error(`Error: ${response.error}`)
+            }
           } else {
-            notification.error({
-              message: 'Validation Error',
-              description: 'Amount to be received  and discount must be equal total sales price',
-            });
+            let description = 'Amount to be received  and discount must be equal total sales price';
+            toast.error(`Validation Error: ${description}`)
+
           }
         }}
       >
         {({ values, setFieldValue, handleChange, handleSubmit }) => {
           useEffect(() => {
             const salesPriceTotal = getTotalSalesPrice(values.sales_entries) || 0.00;
-            setTotalSalesPrice(salesPriceTotal);
             const updatedJournalEntries = values.journal_entries.map(entry => ({
               ...entry,
               amount: salesPriceTotal
             }));
             setFieldValue('journal_entries', updatedJournalEntries);
           }, [values.sales_entries]);
+          useEffect(() => {
+            scrollBottom();
+          }, [values.journal_entries, values.sales_entries])
 
           return (
-            <div className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
+            <div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
               <h2 className='text-black-700 text-2xl font-medium mb-5'>Record Sales</h2>
 
               <Form
@@ -187,8 +177,11 @@ const RecordSales = () => {
                     </Row>
                     <Row className='flex flex-row w-full gap-2'>
                       <Col className='w-[40%]'><span>Account</span></Col>
-                      <Col className='w-[40%]'><span>Amount</span></Col>
+                      {values.journal_entries > 1 && <>
+                        <Col className='w-[40%]'><span>Amount</span></Col>
                       <Col className='w-[10%]'>Remove</Col>
+                      </>}
+                      
                     </Row>
                     {values.journal_entries.map((entry, index) => (
                       <Row key={index} className='flex flex-row w-full gap-2'>
@@ -213,13 +206,17 @@ const RecordSales = () => {
                             </Select>
                           </Form.Item>
                         </Col>
-                        <Col className='w-[40%]'>
+                        
+                        <Col className='w-[10%]'>
+                          {values.journal_entries.length > 1 && (
+                            <>
+                            <Col className='w-[40%]'>
                           <Form.Item
                             validateStatus={entry.amount > 0 ? '' : 'error'}
                             help={entry.amount > 0 ? '' : 'Amount must be positive'}
                           >
                             <InputNumber
-                              value={totalSalesPrice}
+                              value={entry.amount}
                               step={0.01}
                               placeholder='Enter amount'
                               min={0}
@@ -230,8 +227,6 @@ const RecordSales = () => {
                             />
                           </Form.Item>
                         </Col>
-                        <Col className='w-[10%]'>
-                          {values.journal_entries.length > 1 && (
                             <Button
                               type="danger"
                               onClick={() => {
@@ -240,7 +235,7 @@ const RecordSales = () => {
                               }}
                             >
                               <FaTimes className='text-red-500 text-xl' />
-                            </Button>
+                            </Button></>
                           )}
                         </Col>
                       </Row>
@@ -252,7 +247,7 @@ const RecordSales = () => {
                             type="dashed"
                             className='w-[80%]'
                             onClick={() => {
-                              const updatedEntries = [...values.journal_entries, { account: '', debit_credit: 'debit', amount: totalSalesPrice }];
+                              const updatedEntries = [...values.journal_entries, { account: '', debit_credit: 'debit', amount: 0.00 }];
                               setFieldValue('journal_entries', updatedEntries);
                             }}
                           >
@@ -269,7 +264,7 @@ const RecordSales = () => {
                     <Col className='w-[25%]'><span>Item</span></Col>
                     <Col className='w-[25%]'><span>Quantity</span></Col>
                     <Col className='w-[25%]'><span>Sales Price</span></Col>
-                    <Col className='w-[15%]'>Remove</Col>
+                    <Col className='w-[10%]'>Remove</Col>
                   </Row>
                   {values.sales_entries.map((entry, index) => (
                     <Row key={index} className='flex flex-row w-full gap-2'>
@@ -301,6 +296,7 @@ const RecordSales = () => {
                           <InputNumber
                             value={entry.sold_quantity}
                             min={0}
+                            step={1}
                             onChange={(value) => setFieldValue(`sales_entries[${index}].sold_quantity`, value)}
                             className='w-full'
                           />
@@ -315,12 +311,12 @@ const RecordSales = () => {
                             value={entry.sales_price}
                             step={0.01}
                             min={0}
-                            onChange={(value) => setFieldValue(`sales_entries[${index}].sales_price`, value)}
+                            onChange={(value) => { setFieldValue(`sales_entries[${index}].sales_price`, value) }}
                             className='w-full'
                           />
                         </Form.Item>
                       </Col>
-                      <Col className='w-[15%]'>
+                      <Col className='w-[10%]'>
                         {values.sales_entries.length > 1 && (
                           <Button
                             type="danger"
@@ -349,17 +345,12 @@ const RecordSales = () => {
                           <FaPlus /> Add Item
                         </Button>
                       </Col>
-                      <Col className='w-[30%]'>
-                        <Button
-                          type="primary"
-                          className='w-[80%]'
-                          htmlType="submit"
-                        >
-                          Submit
-                        </Button>
-                      </Col>
+
                     </Row>
                   </div>
+                  <Button type="primary" className='w-[30%] self-center' htmlType="submit">
+                    Record
+                  </Button>
                 </div>
               </Form>
             </div>

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { Input, InputNumber, Select, DatePicker, Form, Button, notification, Row, Col } from 'antd';
+import { Input, InputNumber, Select, DatePicker, Form, Button, Row, Col } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import { FaTimes, FaPlus } from 'react-icons/fa';
+import { postRequest } from '../lib/helpers';
+import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 const { Option } = Select;
@@ -29,17 +31,15 @@ const RecordJournal = () => {
   const [accounts, setAccounts] = useState([]);
   const [entryTypes] = useState(['debit', 'credit']);
   const [debitCreditDiff, setDebitCreditDiff] = useState(0);
+  const scrollRef = useRef(null);
+
 
   useEffect(() => {
     axios
       .get(`${BACKEND_URL}/accounts/`)
       .then(response => setAccounts(response.data))
-      .catch(error => {
-        notification.error({
-          message: 'Error',
-          description: 'Failed to fetch accounts.',
-        });
-      });
+      .catch((error) => toast.error(`Error': Error fetching ${name}`))
+
 
   }, []);
 
@@ -54,7 +54,11 @@ const RecordJournal = () => {
 
     setDebitCreditDiff(totalDebitAmount - totalCreditAmount);
   };
-
+  const scrollBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }
   return (
     <div className='flex-1 flex flex-col items-center justify-center'>
       <Formik
@@ -67,7 +71,7 @@ const RecordJournal = () => {
           ],
         }}
         validationSchema={validationSchema}
-        onSubmit={(values, { resetForm }) => {
+        onSubmit={async (values, { resetForm }) => {
           const totalDebitAmount = values.journal_entries.reduce((sum, entry) => {
             return entry.debit_credit === 'debit' ? sum + parseFloat(entry.amount || 0) : sum;
           }, 0);
@@ -77,48 +81,31 @@ const RecordJournal = () => {
           }, 0);
 
           if (totalDebitAmount === totalCreditAmount) {
-            axios
-              .post(`${BACKEND_URL}/journals/`, values)
-              .then(response => {
-                if (response.status === 201) {
-                  resetForm();
-                  notification.success({
-                    message: 'Success',
-                    description: 'Journal recorded successfully!',
-                  });
-                }
-              })
-              .catch(error => {
-                
-                const errorData = error.response.data.detail ? error.response.data.detail : error.response.data ? error.response.data : 'An error occurred';
-                let newError = '';
-                if (errorData === Array.isArray()) {
-                  newError = errorData.join('/n');
-                } else {
-                  newError = errorData;
-                }
-                notification.error({
-                  message: 'Error',
-                  description: newError,
-                });
-              });
+            const response = await postRequest(values, 'journals', resetForm)
+            if (response.success) {
+              toast.success('Recorded: Journal recorded successfully')
+            } else {
+              toast.error(`Error: ${response.error}`)
+            }
           } else {
-            notification.error({
-              message: 'Validation Error',
-              description: 'Debit and credit amounts need to be equal',
-            });
+            let description = 'Debit and credit amounts need to be equal';
+            toast.error(`Validation Error: ${description}`)
           }
         }}
       >
         {({ values, setFieldValue, handleChange, handleSubmit }) => {
           useEffect(() => {
             getDebitCreditDiff(values.journal_entries);
+            scrollBottom();
+
           }, [values.journal_entries]);
 
           return (
             <div
+              ref={scrollRef}
               className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'
             >
+
               <h2 className='text-black-700 text-2xl font-medium mb-5'>Record journal</h2>
               <Form
                 className='flex-1 flex flex-col w-full h-full gap-2'

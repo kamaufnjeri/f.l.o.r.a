@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { notification, Form, Input, DatePicker, Row, Col, Select, InputNumber, Button } from 'antd';
 import axios from 'axios';
 import * as Yup from 'yup'
 import { Formik } from 'formik';
 import moment from 'moment';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import { postRequest } from '../lib/helpers';
+import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 const validationSchema = Yup.object({
@@ -36,7 +38,13 @@ const validationSchema = Yup.object({
 const RecordPurchase = () => {
     const [stocks, setStocks] = useState([]);
     const [accounts, setAccounts] = useState([]);
-    const [totalPurchasePrice, setTotalPurchasePrice] = useState(0);
+    const scrollRef = useRef(null);
+
+    const scrollBottom = () => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -59,10 +67,7 @@ const RecordPurchase = () => {
                     setStocks(response.data)
                 }
             })
-            .catch((error) => notification.error({
-                message: 'Error',
-                description: `Error fetching ${name}`
-            }))
+            .catch((error) => toast.error(`Error': Error fetching ${name}`))
     }
 
     useEffect(() => {
@@ -72,6 +77,7 @@ const RecordPurchase = () => {
 
     return (
         <div className='flex-1 flex flex-col items-center justify-center'>
+
             <Formik
                 initialValues={{
                     date: null,
@@ -84,56 +90,38 @@ const RecordPurchase = () => {
                     ]
                 }}
                 validationSchema={validationSchema}
-                onSubmit={(values, { resetForm }) => {
+                onSubmit={async (values, { resetForm }) => {
                     const creditTotalAmount = values.journal_entries.reduce((sum, entry) => {
                         return sum + parseFloat(entry.amount || 0);
-                      }, 0);
+                    }, 0);
                     const purchasePriceTotal = getTotalPurchasePrice(values.purchase_entries);
-                      if (purchasePriceTotal === creditTotalAmount) {
-                        axios
-                          .post(`${BACKEND_URL}/purchases/`, values)
-                          .then(response => {
-                            if (response.status === 201) {
-                              resetForm();
-                              notification.success({
-                                message: 'Success',
-                                description: 'Purchase recorded successfully!',
-                              });
-                            }
-                          })
-                          .catch(error => {
-                            const errorData = error.response.data.detail ? error.response.data.detail : error.response.data ? error.response.data : 'An error occurred';
-                            let newError = '';
-                            if (errorData === Array.isArray()) {
-                              newError = errorData.join('/n');
-                            } else {
-                              newError = errorData;
-                            }
-                            notification.error({
-                              message: 'Error',
-                              description: newError,
-                            });
-                          });
-                      } else {
-                        notification.error({
-                          message: 'Validation Error',
-                          description: 'Amount to be paid and discount must be equal to total purchase price',
-                        });
-                      }
-                    }}
-                  >
-                  
+                    if (purchasePriceTotal === creditTotalAmount) {
+                        const response = await postRequest(values, 'purchases', resetForm)
+                        if (response.success) {
+                            toast.success('Recorded: Purchase recorded successfully')
+                        } else {
+                            toast.error(`Error: ${response.error}`)
+                        }
+                    } else {
+                        let description = 'Amount to be paid and discount must be equal to total purchase price'
+                        toast.error(`Validation Error: ${description}`)
+                    }
+                }}
+            >
+
                 {({ values, setFieldValue, handleChange, handleSubmit }) => {
-                     useEffect(() => {
+                    useEffect(() => {
                         const purchasePriceTotal = getTotalPurchasePrice(values.purchase_entries) || 0.00;
-                        setTotalPurchasePrice(purchasePriceTotal);
                         const updatedJournalEntries = values.journal_entries.map(entry => ({
                             ...entry,
                             amount: purchasePriceTotal
                         }));
                         setFieldValue('journal_entries', updatedJournalEntries);
                     }, [values.purchase_entries]);
-                    return (<div className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
+                    useEffect(() => {
+                        scrollBottom();
+                    }, [values.journal_entries, values.purchase_entries])
+                    return (<div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
                         <h2 className='text-black-700 text-2xl font-medium mb-5'>Record Purchase</h2>
 
                         <Form
@@ -182,8 +170,13 @@ const RecordPurchase = () => {
                                     </Col></Row>
                                     <Row className='flex flex-row w-full gap-2'>
                                         <Col className='w-[40%]'><span>Account</span></Col>
-                                        <Col className='w-[40%]'><span>Amount</span></Col>
+                                        {values.journal_entries > 1 && (
+                                            <>
+                                            <Col className='w-[40%]'><span>Amount</span></Col>
                                         <Col className='w-[10%]'>Remove</Col>
+                                            </>
+                                        )}
+                                        
 
                                     </Row>
                                     {values.journal_entries.map((entry, index) => (
@@ -209,7 +202,9 @@ const RecordPurchase = () => {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col className='w-[40%]'>
+                                            {values.journal_entries.length > 1 && (
+                                            <><Col className='w-[40%]'>
+
                                                 <Form.Item
                                                     validateStatus={entry.amount > 0 ? '' : 'error'}
                                                     help={entry.amount > 0 ? '' : 'Amount must be positive'}
@@ -227,7 +222,6 @@ const RecordPurchase = () => {
                                                 </Form.Item>
                                             </Col>
                                             <Col className='w-[10%]'>
-                                                {values.journal_entries.length > 1 && (
                                                     <Button
                                                         type="danger"
                                                         onClick={() => {
@@ -237,8 +231,9 @@ const RecordPurchase = () => {
                                                     >
                                                         <FaTimes className='text-red-500 text-xl' />
                                                     </Button>
-                                                )}
                                             </Col>
+                                            </>)}
+                                            
                                         </Row>
 
                                     ))}

@@ -141,7 +141,9 @@ def get_payment_account(journal_entries, AccountDetailsSerializer):
         if account:
             account_serializer = AccountDetailsSerializer(account).data
 
-            if account_serializer.get('category') == "asset" and account_serializer.get('sub_category') == "current_asset":
+            if (account_serializer.get('category') == "asset" and account_serializer.get('sub_category') == "current_asset") or (
+                account_serializer.get('name') == 'Opening Stock'
+            ):
                 return account
             else:
                 raise serializers.ValidationError("No payment account or Accounts Payable account found")
