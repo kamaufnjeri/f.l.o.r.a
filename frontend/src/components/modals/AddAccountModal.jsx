@@ -4,10 +4,11 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
-import { accountCategories, accountSubCategories } from '../../lib/constants';
+import { accountCategories, accountSubCategories, accountGroups } from '../../lib/constants';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Account name is required'),
+  group: Yup.string().required('Account group is required'),
   category: Yup.string().required('Category is required'),
   sub_category: Yup.string().required('Sub category is required'),
   opening_balance: Yup.string().nullable(),
@@ -18,18 +19,35 @@ const { Option } = Select;
 
 const AddAccountModal = ({ openModal, setOpenModal }) => {
   const [entryTypes] = useState(['debit', 'credit']);
-  const [subCategories, setSubCategories] = useState(accountSubCategories['asset']); // Default to 'asset' sub-categories
+  const [categories, setCategories] = useState(accountCategories['asset']);
+  const [subCategories, setSubCategories] = useState(accountSubCategories['current_asset'])
 
   const handleCancel = () => {
     setOpenModal(false);
   };
 
-  const handleCategoryChange = (category, setFieldValue) => {
-    const subCategories = accountSubCategories[category] || [];
-    setSubCategories(subCategories);
-    console.log(subCategories)
-    setFieldValue('sub_category', subCategories[0].value);
+  const handleSelectionChange = (type, value, setFieldValue) => {
+    if (type === 'group') {
+      const newCategories = accountCategories[value] || [];
+      setCategories(newCategories);
+      if (newCategories.length > 0) {
+        const firstCategoryValue = newCategories[0].value;
+        setFieldValue('category', firstCategoryValue);
+        const newSubCategories = accountSubCategories[firstCategoryValue] || [];
+        setSubCategories(newSubCategories);
+        if (newSubCategories.length > 0) {
+          setFieldValue('sub_category', newSubCategories[0].value);
+        }
+      }
+    } else {
+      const newSubCategories = accountSubCategories[value] || [];
+      setSubCategories(newSubCategories);
+      if (newSubCategories.length > 0) {
+        setFieldValue('sub_category', newSubCategories[0].value);
+      }
+    }
   };
+  
 
   return (
     <>
@@ -48,14 +66,18 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
           validationSchema={validationSchema}
           initialValues={{
             name: '',
-            category: 'asset', // Default category
-            sub_category: 'current_asset', // Default sub-category
+            group: 'asset',
+            category: 'current_asset',
+            sub_category: 'cash_and_cash_equivalents',
             opening_balance: 0.00,
             opening_balance_type: '',
           }}
           onSubmit={async (values, { resetForm }) => {
             const response = await postRequest(values, 'accounts', resetForm);
+            
             if (response.success) {
+              setCategories(accountCategories['asset'])
+              setSubCategories(accountSubCategories['current_asset'])
               toast.success('Recorded: Account added successfully');
             } else {
               toast.error(`Error: ${response.error}`);
@@ -81,6 +103,31 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
               </div>
 
               <div className="flex flex-row gap-5 items-start">
+                <label htmlFor="group" className="w-[20%]">Group</label>
+                <Form.Item
+                  validateStatus={values.group ? '' : 'error'}
+                  className="w-[60%]"
+                  help={values.group ? '' : 'Group is required'}
+                >
+                  <Select
+                    name="group"
+                    value={values.group}
+                    defaultValue={values.group}
+                    onChange={(value) => {
+                      setFieldValue('group', value);
+                      handleSelectionChange('group', value, setFieldValue);
+                    }}
+                    placeholder="Enter Group"
+                  >
+                    {accountGroups && accountGroups.map((group) => (
+                      <Option key={group.value} value={group.value}>
+                        {group.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </div>
+              <div className="flex flex-row gap-5 items-start">
                 <label htmlFor="category" className="w-[20%]">Category</label>
                 <Form.Item
                   validateStatus={values.category ? '' : 'error'}
@@ -93,11 +140,11 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                     defaultValue={values.category}
                     onChange={(value) => {
                       setFieldValue('category', value);
-                      handleCategoryChange(value, setFieldValue);
+                      handleSelectionChange('category', value, setFieldValue);
                     }}
                     placeholder="Enter category"
                   >
-                    {accountCategories.map((category) => (
+                    {categories && categories.map((category) => (
                       <Option key={category.value} value={category.value}>
                         {category.name}
                       </Option>
@@ -105,13 +152,12 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                   </Select>
                 </Form.Item>
               </div>
-
               <div className="flex flex-row gap-5 items-start">
                 <label htmlFor="sub_category" className="w-[20%]">Sub category</label>
                 <Form.Item
                   validateStatus={values.sub_category ? '' : 'error'}
                   className="w-[60%]"
-                  help={values.sub_category ? '' : 'Sub Category is required'}
+                  help={values.sub_category ? '' : 'Sub category is required'}
                 >
                   <Select
                     name="sub_category"
@@ -120,7 +166,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                     onChange={(value) => setFieldValue('sub_category', value)}
                     placeholder="Enter sub category"
                   >
-                    {subCategories.map((subCategory) => (
+                    {subCategories && subCategories.map((subCategory) => (
                       <Option key={subCategory.value} value={subCategory.value}>
                         {subCategory.name}
                       </Option>
@@ -157,12 +203,12 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                 >
                   <Select
                     placeholder="Select opening balance type"
-                    value={values.opening_balance_type || undefined}
+                    value={values.opening_balance_type || ''}
                     onChange={(value) => {
                       setFieldValue('opening_balance_type', value);
                     }}
                   >
-                    <Option value={null}>None</Option>
+                    <Option value=''>None</Option>
                     {entryTypes.map((type, i) => (
                       <Option key={i} value={type}>
                         {type}

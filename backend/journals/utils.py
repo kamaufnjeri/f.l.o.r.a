@@ -11,13 +11,13 @@ def create_journal_entries(journal_entries_data, type: str, table, AccountDetail
             account = Account.objects.get(id=account_id)
             account_serializer = AccountDetailsSerializer(account).data
             current_balance = account_serializer.get('account_balance')
-            category = account_serializer.get('category')
+            group = account_serializer.get('group')
 
             if (
                 (
-                    category in ("asset", "expense") and entry_data.get('debit_credit') == "credit"
+                    group in ("asset", "expense") and entry_data.get('debit_credit') == "credit"
                 ) or (
-                        category in ("liability", "capital", "income") and entry_data.get('debit_credit') == "debit"
+                        group in ("liability", "capital", "income") and entry_data.get('debit_credit') == "debit"
                     )
             ) and current_balance < entry_data.get('amount'):
                 raise serializers.ValidationError(
@@ -246,30 +246,31 @@ def get_receipt_account(journal_entries, AccountDetailsSerializer):
                 return account
             else:
                 raise serializers.ValidationError("No payment account or Accounts Payable account found")
+            
+def create_journal_entry(account, amount, type):
+    return {
+        "account": account.id,
+        "amount": amount,
+        "debit_credit": type
+    }
 
-def journal_entries_dict(journal_entries, cogs, total_sales_price):
+def journal_entries_dict(journal_entries, cogs, total_sales_price, discount=None):
     inventory_account = Account.objects.get(name="Inventory")
     cogs_account = Account.objects.get(name="Cost of goods sold")
     sales_revenue_account = Account.objects.get(name="Sales Revenue")
+   
 
+    inventory_account_data = create_journal_entry(inventory_account, decimal.Decimal(cogs), "credit")
 
-    inventory_account_data = {
-        "account": inventory_account.id,
-        "amount": decimal.Decimal(cogs),
-        "debit_credit": "credit"
-    }
+    sales_revenue_data = create_journal_entry(sales_revenue_account, decimal.Decimal(total_sales_price),"credit")
 
-    sales_revenue_data = {
-        "account": sales_revenue_account.id,
-        "amount": decimal.Decimal(total_sales_price),
-        "debit_credit": "credit"
-    }
+    if discount:
+        discount_account = Account.objects.get(name='Discount allowed')
 
-    cogs_data = {
-        "account": cogs_account.id,
-        "amount": decimal.Decimal(cogs),
-        "debit_credit": "debit"
-    }
+        discount_account_data = create_journal_entry(discount_account, decimal.Decimal(discount), 'debit')
+        journal_entries.append(discount_account_data)
+
+    cogs_data = create_journal_entry(cogs_account, decimal.Decimal(cogs), "debit")
     journal_entries.append(inventory_account_data)
     journal_entries.append(sales_revenue_data)
     journal_entries.append(cogs_data)

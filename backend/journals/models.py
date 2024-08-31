@@ -1,31 +1,16 @@
 from django.db import models
+from .variables import GROUPS, CATEGORIES, SUB_CATEGORIES
 
 # Create your models here.
 class Account(models.Model):
-    CATEGORIES = (
-        ("asset", "Asset"),
-        ("liability", "Liabilities"),
-        ("income", "Income"),
-        ("expense", "Expense"),
-        ("capital", "Capital"),
-    )
-    SUB_CATEGORIES = (
-        ("current_asset", "Current Asset"),
-        ("non-current_asset", "Non-current Asset"),
-        ("current_liability", "Current Liability"),
-        ("long-term_loan", "Long-Term Liability"),
-        ("capital", "Capital"),
-        ("indirect_expense", "Indirect Expense"),
-        ("cost_of_goods_sold", "Cost of Goods Sold"),
-        ("sales_revenue", "Sales Revenue"),
-        ("indirect_income", "Indirect Income")
-    )
+
 
     OPENING_BALANCE = (
         ("debit", "Debit"),
         ("credit", "Credit")
     )
     name = models.CharField(max_length=200)
+    group = models.CharField(max_length=200, choices=GROUPS)
     category = models.CharField(max_length=200, choices=CATEGORIES)
     sub_category = models.CharField(max_length=200, choices=SUB_CATEGORIES)
     opening_balance = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
@@ -44,7 +29,6 @@ class Journal(models.Model):
 class Purchase(models.Model):
     date = models.DateField()
     description = models.TextField()
-    account = models.ForeignKey(Account, related_name='purchase', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.description
@@ -52,10 +36,22 @@ class Purchase(models.Model):
 class Sales(models.Model):
     date = models.DateField()
     description = models.TextField()
-    account = models.ForeignKey(Account, related_name='sales', on_delete=models.CASCADE)
+
 
     def __str__(self):
         return self.description
+      
+class Discount(models.Model):
+    DISCOUNT_TYPES = (
+        ('purchase', 'Purchase'),
+        ('sales', 'Sales')
+    )
+    discount_type = models.CharField(max_length=120, choices=DISCOUNT_TYPES)
+    purchase = models.OneToOneField(Purchase, related_name='discount_received', on_delete=models.CASCADE, null=True, blank=True)
+    sales = models.OneToOneField(Sales, related_name='discount_allowed', on_delete=models.CASCADE, null=True, blank=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=15, decimal_places=2)
+
     
 class PurchaseReturn(models.Model):
     date = models.DateField()

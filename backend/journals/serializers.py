@@ -3,14 +3,15 @@ from django.utils import timezone
 import decimal
 from datetime import date
 from django.db import transaction, models
-from .models import Bill, Invoice, Supplier
+from .variables import ACCOUNT_STRUCTURE
+from .models import Bill, Invoice, Supplier, Discount
 from .models import SalesEntries, Journal, JournalEntries, Account, Stock, PurchaseEntries, Customer, Payment
 from .models import Sales, Purchase, SalesReturnEntries, PurchaseReturnEntries, PurchaseReturn, SalesReturn
 from .utils import journal_entries_dict, validate_sales_entries, create_sales_entries
 from .utils import create_purchase_return_entries, validate_purchase_return_entries
 from .utils import create_journal_entries, create_purchase_entries, validate_journal_entries
 from .utils import validate_purchase_entries, validate_double_entry, validate_sales_return_entries
-from .utils import create_sales_return_entries, get_payment_account, get_receipt_account
+from .utils import create_sales_return_entries, create_journal_entry
 
 class JournalEntrySerializer(serializers.ModelSerializer):
     account = serializers.CharField(write_only=True)
@@ -28,27 +29,32 @@ class AccountSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
 
     class Meta:
-        fields = ['id', 'name', 'category', 'sub_category', 'opening_balance', 'opening_balance_type']
+        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type']
         required_fields = ['name', 'category', 'sub_category']
         model = Account
 
     def validate(self, data):
-        categories = {
-            "asset": ["current_asset", "non-current_asset"],
-            "liability": ["current_liability", "long-term_liability"],
-            "capital": ["capital"],
-            "expense": ["indirect_expense", "cost_of_goods_sold"],
-            "income": ["sales_revenue", "indirect_income"]
-        }
+        group = data.get('group')
+        category = data.get('category')
+        sub_category = data.get('sub_category')
 
-        opening_balance_type = ['debit', 'credit']
-        if data.get('category') not in categories.keys():
-            raise serializers.ValidationError(f'{data.get("category")} category not one of the following: {", ".join(categories.keys())}')
-
-        if data.get('sub_category') not in categories[data.get('category')]:
+        if group not in ACCOUNT_STRUCTURE:
+            raise serializers.ValidationError(f'Group "{group}" is not valid. Valid groups are: {", ".join(ACCOUNT_STRUCTURE.keys())}')
+        
+        categories = ACCOUNT_STRUCTURE[group]
+        if category not in categories:
             raise serializers.ValidationError(
-                f'{data.get("category")} can only have the following sub categories: {", ".join(categories[data.get("category")])}'
+                f'Category "{category}" under group "{group}" is not valid. Valid categories are: {", ".join(categories.keys())}'
             )
+        
+        sub_categories = categories[category]
+        
+        if sub_category not in sub_categories:
+            raise serializers.ValidationError(
+                f'Subcategory "{sub_category}" under category "{category}" is not valid. Valid subcategories are: {", ".join(sub_categories)}'
+            )
+        
+        opening_balance_type = ['debit', 'credit']
         
         if data.get('opening_balance_type') and data.get('opening_balance_type') not in opening_balance_type:
             raise serializers.ValidationError(f'Opening balance type can only be: {" and ".join(opening_balance_type)}')
@@ -60,6 +66,8 @@ class AccountSerializer(serializers.ModelSerializer):
                 f'If account has opening balance opening balance type must be given'
             )
         return data
+    
+
 
 class AccountDetailsSerializer(AccountSerializer):
     account_balance = serializers.SerializerMethodField(read_only=True)
@@ -73,7 +81,6 @@ class AccountDetailsSerializer(AccountSerializer):
     def get_account_balance(self, obj):
         to_date = self.context.get('to_date', None)
         
-        # Determine whether to use a date filter or not
         if to_date:
             journal_entries = JournalEntries.objects.filter(
                 models.Q(account=obj) &
@@ -88,7 +95,6 @@ class AccountDetailsSerializer(AccountSerializer):
         else:
             journal_entries = JournalEntries.objects.filter(account=obj)
         
-        # Calculate balance
         debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
         credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')
 
@@ -97,8 +103,8 @@ class AccountDetailsSerializer(AccountSerializer):
                 debit_total += obj.opening_balance
             else:
                 credit_total += obj.opening_balance
-
-        if obj.category in ('asset', 'expense'):
+        
+        if obj.group in ('asset', 'expense'):
             return debit_total - credit_total
         else:
             return credit_total - debit_total  
@@ -127,6 +133,7 @@ class JournalSerializer(serializers.ModelSerializer):
 
         return journal
 
+
 class PurchaseEntriesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     stock = serializers.CharField(write_only=True)
@@ -141,15 +148,23 @@ class PurchaseEntriesSerializer(serializers.ModelSerializer):
 
     def get_stock_name(self, obj):
         return obj.stock.name
+class DiscountSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    discount_type = serializers.CharField(read_only=True)
+    class Meta:
+        model = Discount
+        fields = ['id', 'discount_type', 'discount_percentage', 'discount_amount']
+
 class PurchaseSerializer(serializers.ModelSerializer):
 
     id = serializers.CharField(read_only=True)
     purchase_entries = PurchaseEntriesSerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
+    discount_received = DiscountSerializer(allow_null=True, required=False)
  
     class Meta:
         model = Purchase
-        fields = ['id', 'date', 'description', 'purchase_entries', 'journal_entries']
+        fields = ['id', 'date', 'description', 'purchase_entries', 'journal_entries', 'discount_received']
 
     def validate(self, data):
         purchase_entries = data.get('purchase_entries')
@@ -164,19 +179,22 @@ class PurchaseSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             purchase_entries_data = validated_data.pop('purchase_entries')
             journal_entries = validated_data.pop('journal_entries')
-            
-            account = get_payment_account(journal_entries, AccountDetailsSerializer)
-            purchase = Purchase.objects.create(account=account, **validated_data)
+            discount_received = validated_data.pop('discount_received', None)
+            purchase = Purchase.objects.create(**validated_data)
             cogs = create_purchase_entries(purchase_entries_data, purchase)
-
-            inventory_account = Account.objects.get(name="Inventory")
-
-            inventory_account_data = {
-                "account": inventory_account.id,
-                "amount": cogs,
-                "debit_credit": "debit"
-            }
-           
+            try:
+                inventory_account = Account.objects.get(name="Inventory")
+            except Account.DoesNotExist:
+                raise serializers.ValidationError('Inventory Account not found')
+            if discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00:
+                discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
+                try:
+                    discount_account = Account.objects.get(name='Discount received')
+                except Account.DoesNotExist:
+                    raise serializers.ValidationError('Discount received account not found')
+                discount_account_data = create_journal_entry(discount_account, discount.discount_amount, 'credit')
+                journal_entries.append(discount_account_data)
+            inventory_account_data = create_journal_entry(inventory_account, cogs, "debit")
             journal_entries.append(inventory_account_data)
             validate_double_entry(journal_entries)
             create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
@@ -193,7 +211,10 @@ class StockSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'unit_name', 'unit_alias', 'opening_stock_quantity', 'opening_stock_rate']
     def create(self, validated_data):
         with transaction.atomic():
-            opening_stock_account = Account.objects.get(name='Opening Stock')
+            try:
+                opening_stock_account = Account.objects.get(name='Opening Stock')
+            except Account.DoesNotExist:
+                serializers.ValidationError(f'Opening stock account does not exist')
             
             stock =Stock.objects.create(**validated_data)
             if stock.opening_stock_quantity > 0:
@@ -211,19 +232,14 @@ class StockSerializer(serializers.ModelSerializer):
                         'amount': stock.opening_stock_quantity * stock.opening_stock_rate,
                     }]
                 }
-
-
                 purchase_serializer = PurchaseSerializer(data=opening_stock_data)
-
                 if purchase_serializer.is_valid():
                     purchase_serializer.save()
                     return stock
             return stock
-                
-       
+                  
 class StockDetailsSerializer(StockSerializer):
     purchase_entries = serializers.SerializerMethodField(read_only=True)
-    
     total_quantity = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
@@ -235,22 +251,18 @@ class StockDetailsSerializer(StockSerializer):
             stock=obj,
             remaining_quantity__gt=0
         ).order_by('purchase__date')
-
         total_quantity = sum(entry.remaining_quantity for entry in purchase_entries)
-
         return total_quantity
     
     def get_purchase_entries(self, obj):
-        # Filter purchase entries related to the stock
         purchase_entries = PurchaseEntries.objects.filter(
             stock=obj,
-            remaining_quantity__gt=0  # Example condition: only include entries with remaining quantity greater than 0
-        ).order_by('purchase__date')  # Adjust ordering if needed
+            remaining_quantity__gt=0  
+        ).order_by('purchase__date')  
 
         serializer = PurchaseEntriesSerializer(purchase_entries, many=True)
         return serializer.data
     
-
 
 class PurchaseReturnEntriesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -278,7 +290,6 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         with transaction.atomic():
             return_entries = validated_data.pop('return_entries')
-
             try:
                 purchase_return_account = Account.objects.get(name="Purchase Return")
             except Account.DoesNotExist:
@@ -301,17 +312,9 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
             if bill :
                 bill.amount_due -= decimal.Decimal(cogs)
                 bill.save()
-            purchase_return_account_data = {
-                "account": purchase_return_account.id,
-                "amount": cogs,
-                "debit_credit": "credit"
-            }
+            purchase_return_account_data =create_journal_entry(purchase_return_account, cogs, "credit")
 
-            payment_account = {
-                "account": account.id,
-                "amount": cogs,
-                "debit_credit": "debit"
-            }
+            payment_account = create_journal_entry(account, cogs, "debit")
 
             journal_entries_data =[purchase_return_account_data, payment_account]
             validate_double_entry(journal_entries_data)
@@ -339,10 +342,10 @@ class SalesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     sales_entries = SalesEntriesSerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
- 
+    discount_allowed = DiscountSerializer(required=False, allow_null=True)
     class Meta:
         model = Sales
-        fields = ['id', 'date', 'description', 'sales_entries', 'journal_entries']
+        fields = ['id', 'date', 'description', 'sales_entries', 'journal_entries', 'discount_allowed']
 
     def validate(self, data):
         sales_entries = data.get('sales_entries')
@@ -354,14 +357,18 @@ class SalesSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         with transaction.atomic():
             sales_entries = validated_data.pop('sales_entries')
-
             journal_entries = validated_data.pop('journal_entries')
-            
-            account = get_receipt_account(journal_entries, AccountDetailsSerializer)
-            sales = Sales.objects.create(account=account, **validated_data)
+            discount_allowed = validated_data.pop('discount_allowed')
+            sales = Sales.objects.create(**validated_data)
+            print(discount_allowed)
             cogs, total_sales_price = create_sales_entries(sales_entries, sales, StockDetailsSerializer)
-
+            if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
+                discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
+                discount_account = Account.objects.get(name='Discount allowed')
+                discount_account_data = create_journal_entry(discount_account, discount.discount_amount, 'debit')
+                journal_entries.append(discount_account_data)
             journal_entries = journal_entries_dict(journal_entries, cogs, total_sales_price)
+            print(journal_entries)
             validate_double_entry(journal_entries)
             create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
 
@@ -416,30 +423,13 @@ class SalesReturnSerializer(serializers.ModelSerializer):
                 invoice.amount_due -= decimal.Decimal(total_sales_price)
                 invoice.save()
                 
-            sales_return_account_data = {
-                "account": sales_return_account.id,
-                "amount": total_sales_price,
-                "debit_credit": "debit"
-            }
+            sales_return_account_data = create_journal_entry(sales_return_account, total_sales_price, "debit")
 
-            receipt_account = {
-                "account": account.id,
-                "amount": total_sales_price,
-                "debit_credit": "credit"
-            }
+            receipt_account = create_journal_entry(account, total_sales_price, "credit")
 
-            inventory_account_data = {
-                "account": inventory_account.id,
-                "amount": cogs,
-                "debit_credit": "debit"
-            }
+            inventory_account_data =create_journal_entry(inventory_account, cogs, "debit")
 
-            cogs_account_data = {
-                "account": cogs_account.id,
-                "amount": cogs,
-                "debit_credit": "credit"
-            }
-
+            cogs_account_data = create_journal_entry(cogs_account, cogs, "credit")
             journal_entries_data = [sales_return_account_data, receipt_account, cogs_account_data, inventory_account_data]
             validate_double_entry(journal_entries_data)
 
@@ -479,6 +469,7 @@ class JournalInvoiceSerializer(JournalSerializer):
     
     def create(self, validated_data):
         with transaction.atomic():
+            
             journal_entries = validated_data.pop('journal_entries')
             invoice = validated_data.pop('invoice')
             customer_id = invoice.get('customer')
@@ -536,20 +527,28 @@ class PurchaseBillSerializer(PurchaseSerializer):
     
     def create(self, validated_data):
         with transaction.atomic():
-            journal_entries = validated_data.pop('journal_entries')
+            journal_entries = []
             purchase_entries_data = validated_data.pop('purchase_entries')
-
             bill = validated_data.pop('bill')
+            discount_received = validated_data.pop('discount_received')
             supplier_id = bill.get('supplier')
             try:
                 supplier = Supplier.objects.get(id=supplier_id.id)
             except Supplier.DoesNotExist:
                 raise serializers.ValidationError(f"Supplier with ID {supplier_id} not found")
+            if discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00:
+                discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
+                try:
+                    discount_account = Account.objects.get(name='Discount received')
+                except Account.DoesNotExist:
+                    raise serializers.ValidationError('Discount received account not found')
+                discount_account_data = create_journal_entry(discount_account, discount.discount_amount, 'credit')
+                journal_entries.append(discount_account_data)
             bill['supplier'] = supplier
             amount_due = bill.get('amount_due')
-            account = supplier.account
 
-            purchase = Purchase.objects.create(account=account, **validated_data)
+            purchase = Purchase.objects.create(**validated_data)
+            payables_account = supplier.account
 
             bill = Bill.objects.create(purchase=purchase, total_amount=amount_due, status="unpaid", **bill)
  
@@ -557,16 +556,9 @@ class PurchaseBillSerializer(PurchaseSerializer):
 
             inventory_account = Account.objects.get(name="Inventory")
 
-            inventory_account_data = {
-                "account": inventory_account.id,
-                "amount": cogs,
-                "debit_credit": "debit"
-            }
-            journal_entries.append({
-                "amount": amount_due,
-                "debit_credit": "credit",
-                "account": account.id
-            })
+            inventory_account_data = create_journal_entry(inventory_account, cogs, "debit")
+            payables_account_data = create_journal_entry(payables_account, amount_due, "credit")
+            journal_entries.append(payables_account_data)
             journal_entries.append(inventory_account_data)
             validate_double_entry(journal_entries)
             create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
@@ -577,6 +569,8 @@ class PurchaseBillSerializer(PurchaseSerializer):
 
 class SalesInvoiceSerializer(SalesSerializer):
     invoice = InvoiceSerializer()
+    journal_entries = JournalEntrySerializer(many=True, required=False)
+
     class Meta:
         model = Sales
         fields = SalesSerializer.Meta.fields + ['invoice']
@@ -589,9 +583,11 @@ class SalesInvoiceSerializer(SalesSerializer):
     def create(self, validated_data):
         
         with transaction.atomic():
+            print(validated_data)
             sales_entries = validated_data.pop('sales_entries')
-            journal_entries = validated_data.pop('journal_entries')
+            journal_entries = []
             invoice = validated_data.pop('invoice')
+            discount_allowed = validated_data.pop('discount_allowed')
             customer_id = invoice.get('customer')
             try:
                 customer = Customer.objects.get(id=customer_id.id)
@@ -599,25 +595,26 @@ class SalesInvoiceSerializer(SalesSerializer):
                 raise serializers.ValidationError(f"Customer with ID {customer_id} not found")
             invoice['customer'] = customer
             amount_due = invoice.get('amount_due')
-            account = customer.account
+            receivables_account = customer.account
 
-            sales = Sales.objects.create(account=account, **validated_data)
+            sales = Sales.objects.create(**validated_data)
             invoice = Invoice.objects.create(sales=sales, total_amount=amount_due, status="unpaid", **invoice)
+            if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
+                discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
+                discount_account = Account.objects.get(name='Discount allowed')
+                discount_account_data = create_journal_entry(discount_account, discount.discount_amount, 'debit')
+                journal_entries.append(discount_account_data)
 
             cogs, total_sales_price = create_sales_entries(sales_entries, sales, StockDetailsSerializer)
-
-            journal_entries.append({
-                "amount": amount_due,
-                "debit_credit": "debit",
-                "account": account.id
-            })
+            receivables_account_data = create_journal_entry(receivables_account, amount_due, "debit")
+            journal_entries.append(receivables_account_data)
             journal_entries = journal_entries_dict(journal_entries, cogs, total_sales_price)
             validate_double_entry(journal_entries)
             create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
         return sales
 
 class JournalBillSerializer(JournalSerializer):
-    bill = BillSerializer(many=True, write_only=True)
+    bill = BillSerializer(write_only=True)
     class Meta:
         model = Journal
         fields = JournalSerializer.Meta.fields + ['bill']

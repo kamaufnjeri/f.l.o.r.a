@@ -2,7 +2,7 @@ import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, Fa
 import { IoMdSettings, IoMdHelp  } from "react-icons/io";
 
 
-export const accountCategories = [
+export const accountGroups = [
 {
     name: 'Asset',
     value: 'asset'
@@ -24,7 +24,7 @@ export const accountCategories = [
     value: 'income'
 }
 ];
-export const accountSubCategories = {
+export const accountCategories = {
     asset: [
       {
         name: 'Current Asset',
@@ -32,7 +32,7 @@ export const accountSubCategories = {
       },
       {
         name: 'Non-current Asset',
-        value: 'non-current_asset'
+        value: 'non_current_asset'
       }
     ],
     liability: [
@@ -41,26 +41,146 @@ export const accountSubCategories = {
         value: 'current_liability'
       },
       {
-        name: 'Long-Term Loan',
-        value: 'long-term_loan'
+        name: 'Long-Term Liability',
+        value: 'long_term_liability'
       }
     ],
     capital: [
       {
-        name: 'Capital',
-        value: 'capital'
+        name: 'Other Equity',
+        value: 'other_equity'
+      },
+      {
+        name: 'Owner Equity',
+        value: 'owner_equity'
       }
     ],
     expense: [
-      {value: "indirect_expense", name: "Indirect Expense"},
+      {value: "operating_expenses", name: "Operatings Expense"},
       {value: "cost_of_goods_sold", name: "Cost of Goods Sold"},
      
     ],
     income: [
       {value: "sales_revenue", name: "Sales Revenue"},
-      {value: "indirect_income", name: "Indirect Income"}
+      {value: "other_income", name: "Other Income"}
     ]
   }
+
+export const accountSubCategories = {
+    current_asset: [
+        {
+            name: 'Cash and Cash Equivalents',
+            value: 'cash_and_cash_equivalents'
+        },
+        {
+            name: 'Accounts Receivable',
+            value: 'accounts_receivable'
+        },
+        {
+            name: 'Inventory',
+            value: 'inventory'
+        }
+    ],
+    non_current_asset: [
+        {
+            name: 'Property, Plant, and Equipment',
+            value: 'property_plant_equipment'
+        },
+        {
+            name: 'Intangible Assets',
+            value: 'intangible_assets'
+        }
+    ],
+    current_liability: [
+        {
+            name: 'Accounts Payable',
+            value: 'accounts_payable'
+        },
+        {
+            name: 'Short-term Loans',
+            value: 'short_term_loans'
+        }
+    ],
+    long_term_liability: [
+        {
+            name: 'Long-term Loans',
+            value: 'long_term_loans'
+        },
+        {
+            name: 'Mortgage Payable',
+            value: 'mortgage_payable'
+        }
+    ],
+    owner_equity: [
+        {
+            name: 'Retained Earnings',
+            value: 'retained_earnings'
+        },
+        {
+            name: 'Owner Investment',
+            value: 'owner_investment'
+        },
+        {
+            name: 'Additional Contributions',
+            value: 'additional_contributions'
+        },
+        {
+            name: 'Drawings',
+            value: 'drawings'
+        }
+    ],
+    other_equity: [
+        {
+            name: 'Equity from Loans',
+            value: 'equity_from_loans'
+        },
+        {
+            name: 'Subordinated Debt',
+            value: 'subordinated_debt'
+        }
+    ],
+    operating_expenses: [
+        {
+            name: 'Rent and Utilities',
+            value: 'rent_and_utilities'
+        },
+        {
+            name: 'Salaries and Wages',
+            value: 'salaries_and_wages'
+        },
+        {
+            name: 'Marketing and Advertising',
+            value: 'marketing_and_advertising'
+        }
+    ],
+    cost_of_goods_sold: [
+      {
+            name: 'Cost of Goods Sold',
+            value: 'cost_of_goods_sold'
+        },
+       
+    ],
+    sales_revenue: [
+        {
+            name: 'Product Sales',
+            value: 'product_sales'
+        },
+        {
+            name: 'Service Revenue',
+            value: 'service_revenue'
+        }
+    ],
+    other_income: [
+        {
+            name: 'Interest Income',
+            value: 'interest_income'
+        },
+        {
+            name: 'Investment Income',
+            value: 'investment_income'
+        }
+    ]
+};
 
 
 export const sidebarIcons = [
@@ -128,7 +248,7 @@ export const sidebarIcons = [
         },
         {
             name: 'Journal bill',
-            url: '/journal/bill'
+            url: '/journals/bill'
         },
         {
             name: 'View journals',

@@ -1,14 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Form, Input, DatePicker, Row, Col, Select, InputNumber, Button } from 'antd';
-import axios from 'axios';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Form } from 'antd';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import moment from 'moment';
-import { FaPlus, FaTimes } from 'react-icons/fa';
-import { postRequest } from '../lib/helpers';
+import { getItems, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
+import FormHeader from '../components/forms/FormHeader';
+import FormInitialField from '../components/forms/FormInitialField';
+import AccountsField from '../components/forms/AccountsField';
+import SalesEntriesField from '../components/forms/SalesEntriesField';
+import DiscountContainer from '../components/forms/DiscountContainer';
 
-const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 const validationSchema = Yup.object({
   date: Yup.date().required('Date is required'),
@@ -35,20 +36,19 @@ const validationSchema = Yup.object({
           .min(0, 'Amount must be positive'),
         debit_credit: Yup.string().required('Debit/Credit is required')
       })
-    ).min(1, 'At least one journal entry is required')
+    ).min(1, 'At least one journal entry is required'),
+    discount_allowed: Yup.object({
+      discount_amount: Yup.number().required('Discount amount is required')
+          .min(0, 'Amount must be positive'),
+      discount_percentage: Yup.number().required('Discount percentage is required')
+          .min(0, 'Amount must be positive')
+  }).nullable()
 });
 
 const RecordSales = () => {
   const [stocks, setStocks] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const scrollRef = useRef(null);
-
-
-  const scrollBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }
 
   const getTotalSalesPrice = (items) => {
     if (items) {
@@ -61,21 +61,17 @@ const RecordSales = () => {
     return 0;
   };
 
-  const getItems = (name) => {
-    axios.get(`${BACKEND_URL}/${name}/`)
-      .then((response) => {
-        if (name === 'accounts') {
-          setAccounts(response.data);
-        } else {
-          setStocks(response.data);
-        }
-      })
-      .catch((error) => toast.error(`Error': Error fetching ${name}`))
-  };
+
 
   useEffect(() => {
-    getItems('accounts');
-    getItems('stocks');
+    const getData = async () => {
+      const subCategory = 'cash_and_cash_equivalents'
+      const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
+      const newStocks = await getItems('stocks');
+      setAccounts(newAccounts)
+      setStocks(newStocks)
+    }
+    getData()
   }, []);
 
   return (
@@ -87,18 +83,23 @@ const RecordSales = () => {
           date: null,
           description: '',
           sales_entries: [
-            { stock: '', sold_quantity: 0, sales_price: 0.0 }
+            { stock: null, sold_quantity: 0, sales_price: 0.0 }
           ],
           journal_entries: [
-            { account: '', debit_credit: 'debit', amount: 0.0 }
-          ]
+            { account: null, debit_credit: 'debit', amount: 0.0 }
+          ],
+          discount_allowed: {
+            discount_amount: 0.00,
+            discount_percentage: 0,
+        }
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { resetForm }) => {
           const debitTotalAmount = values.journal_entries.reduce((sum, entry) => {
             return sum + parseFloat(entry.amount || 0);
           }, 0);
-          const salesPriceTotal = getTotalSalesPrice(values.sales_entries);
+          const salesPriceTotal = getTotalSalesPrice(values.sales_entries) - values.discount_allowed.discount_amount;
+          
           if (salesPriceTotal === debitTotalAmount) {
             const response = await postRequest(values, 'sales', resetForm);
 
@@ -115,21 +116,24 @@ const RecordSales = () => {
         }}
       >
         {({ values, setFieldValue, handleChange, handleSubmit }) => {
+          const salesPriceTotal = useMemo(() => getTotalSalesPrice(values.sales_entries) || 0.00, [values.sales_entries]);
           useEffect(() => {
-            const salesPriceTotal = getTotalSalesPrice(values.sales_entries) || 0.00;
+            if (!values.journal_entries.length) return;
+
+            const salesPrice = salesPriceTotal - values.discount_allowed.discount_amount;
             const updatedJournalEntries = values.journal_entries.map(entry => ({
               ...entry,
-              amount: salesPriceTotal
+              amount: (salesPrice / values.journal_entries.length)
             }));
             setFieldValue('journal_entries', updatedJournalEntries);
-          }, [values.sales_entries]);
+          }, [values.discount_allowed, salesPriceTotal]);
           useEffect(() => {
-            scrollBottom();
-          }, [values.journal_entries, values.sales_entries])
+            scrollBottom(scrollRef);
+          }, [salesPriceTotal, values.sales_entries])
 
           return (
             <div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
-              <h2 className='text-black-700 text-2xl font-medium mb-5'>Record Sales</h2>
+              <FormHeader header='Record sales' />
 
               <Form
                 className='flex-1 flex flex-col w-full h-full gap-2'
@@ -137,221 +141,17 @@ const RecordSales = () => {
               >
                 <div className='flex flex-row gap-2 w-full'>
                   <div className='flex flex-col gap-2 w-[50%]'>
-                    <div className='flex flex-row gap-5 items-start w-full'>
-                      <label htmlFor="description" className='w-[15%]'>Description</label>
-                      <Form.Item
-                        className='w-[80%]'
-                        help={values.description ? '' : 'Description is required'}
-                        validateStatus={values.description ? '' : 'error'}
-                      >
-                        <Input.TextArea
-                          name='description'
-                          value={values.description}
-                          onChange={handleChange}
-                          placeholder='Enter description'
-                        />
-                      </Form.Item>
-                    </div>
-                    <div className='flex flex-row gap-5 items-start w-full'>
-                      <label htmlFor="date" className='w-[15%]'>Date</label>
-                      <Form.Item
-                        className='w-[80%]'
-                        help={values.date ? '' : 'Date is required'}
-                        validateStatus={values.date ? '' : 'error'}
-                      >
-                        <DatePicker
-                          name='date'
-                          placeholder='Select date'
-                          format='YYYY-MM-DD'
-                          value={values.date ? moment(values.date) : null}
-                          onChange={(date) => setFieldValue('date', date ? date.format('YYYY-MM-DD') : null)}
-                        />
-                      </Form.Item>
-                    </div>
+                    <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue}/>
                   </div>
-                  <div className='flex flex-col gap-2 w-[50%]'>
-                    <Row className='flex flex-row w-full text-xl font-bold'>
-                      <Col className='w-full'>
-                        <span>Sales Receipt and Discount Accounts</span>
-                      </Col>
-                    </Row>
-                    <Row className='flex flex-row w-full gap-2'>
-                      <Col className='w-[40%]'><span>Account</span></Col>
-                      {values.journal_entries > 1 && <>
-                        <Col className='w-[40%]'><span>Amount</span></Col>
-                      <Col className='w-[10%]'>Remove</Col>
-                      </>}
-                      
-                    </Row>
-                    {values.journal_entries.map((entry, index) => (
-                      <Row key={index} className='flex flex-row w-full gap-2'>
-                        <Col className='w-[40%]'>
-                          <Form.Item
-                            validateStatus={entry.account ? '' : 'error'}
-                            help={entry.account ? '' : 'Account is required'}
-                          >
-                            <Select
-                              placeholder="Select account"
-                              value={entry.account}
-                              onChange={(value) => {
-                                setFieldValue(`journal_entries[${index}].account`, value);
-                              }}
-                            >
-                              {accounts.map((account) => (
-                                <Select.Option
-                                  key={account.id}
-                                  value={account.id}
-                                >{account.name}</Select.Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        
-                        <Col className='w-[10%]'>
-                          {values.journal_entries.length > 1 && (
-                            <>
-                            <Col className='w-[40%]'>
-                          <Form.Item
-                            validateStatus={entry.amount > 0 ? '' : 'error'}
-                            help={entry.amount > 0 ? '' : 'Amount must be positive'}
-                          >
-                            <InputNumber
-                              value={entry.amount}
-                              step={0.01}
-                              placeholder='Enter amount'
-                              min={0}
-                              onChange={(value) => {
-                                setFieldValue(`journal_entries[${index}].amount`, value)
-                              }}
-                              className='w-full'
-                            />
-                          </Form.Item>
-                        </Col>
-                            <Button
-                              type="danger"
-                              onClick={() => {
-                                const updatedEntries = values.journal_entries.filter((_, i) => i !== index);
-                                setFieldValue('journal_entries', updatedEntries);
-                              }}
-                            >
-                              <FaTimes className='text-red-500 text-xl' />
-                            </Button></>
-                          )}
-                        </Col>
-                      </Row>
-                    ))}
-                    <div className='flex flex-col gap-2 w-full'>
-                      <Row className='flex flex-row w-full gap-2'>
-                        <Col className='w-[30%]'>
-                          <Button
-                            type="dashed"
-                            className='w-[80%]'
-                            onClick={() => {
-                              const updatedEntries = [...values.journal_entries, { account: '', debit_credit: 'debit', amount: 0.00 }];
-                              setFieldValue('journal_entries', updatedEntries);
-                            }}
-                          >
-                            <FaPlus /> Add Entry
-                          </Button>
-                        </Col>
-                      </Row>
-                    </div>
+                  <div className="w-[50%]">
+                  <AccountsField type='debit' values={values} setFieldValue={setFieldValue} header={'Sales Receipt Accounts'} accounts={accounts}/>
                   </div>
                 </div>
-                <div className='flex-1 flex flex-col gap-2'>
-                  <Row className='flex flex-row w-[100%] justify-between items-start'>
-                    <Col className='w-[10%]'><span>No. </span></Col>
-                    <Col className='w-[25%]'><span>Item</span></Col>
-                    <Col className='w-[25%]'><span>Quantity</span></Col>
-                    <Col className='w-[25%]'><span>Sales Price</span></Col>
-                    <Col className='w-[10%]'>Remove</Col>
-                  </Row>
-                  {values.sales_entries.map((entry, index) => (
-                    <Row key={index} className='flex flex-row w-full gap-2'>
-                      <Col className='w-[10%]'>{index + 1}</Col>
-                      <Col className='w-[25%]'>
-                        <Form.Item
-                          validateStatus={entry.stock ? '' : 'error'}
-                          help={entry.stock ? '' : 'Stock item is required'}
-                        >
-                          <Select
-                            placeholder="Select stock item"
-                            value={entry.stock}
-                            onChange={(value) => setFieldValue(`sales_entries[${index}].stock`, value)}
-                          >
-                            {stocks.map((stock) => (
-                              <Select.Option
-                                key={stock.id}
-                                value={stock.id}
-                              >{stock.name}</Select.Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col className='w-[25%]'>
-                        <Form.Item
-                          validateStatus={entry.sold_quantity > 0 ? '' : 'error'}
-                          help={entry.sold_quantity > 0 ? '' : 'Quantity must be positive'}
-                        >
-                          <InputNumber
-                            value={entry.sold_quantity}
-                            min={0}
-                            step={1}
-                            onChange={(value) => setFieldValue(`sales_entries[${index}].sold_quantity`, value)}
-                            className='w-full'
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col className='w-[25%]'>
-                        <Form.Item
-                          validateStatus={entry.sales_price > 0 ? '' : 'error'}
-                          help={entry.sales_price > 0 ? '' : 'Sales price must be positive'}
-                        >
-                          <InputNumber
-                            value={entry.sales_price}
-                            step={0.01}
-                            min={0}
-                            onChange={(value) => { setFieldValue(`sales_entries[${index}].sales_price`, value) }}
-                            className='w-full'
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col className='w-[10%]'>
-                        {values.sales_entries.length > 1 && (
-                          <Button
-                            type="danger"
-                            onClick={() => {
-                              const updatedEntries = values.sales_entries.filter((_, i) => i !== index);
-                              setFieldValue('sales_entries', updatedEntries);
-                            }}
-                          >
-                            <FaTimes className='text-red-500 text-xl' />
-                          </Button>
-                        )}
-                      </Col>
-                    </Row>
-                  ))}
-                  <div className='flex flex-col gap-2 w-full'>
-                    <Row className='flex flex-row w-full gap-2'>
-                      <Col className='w-[30%]'>
-                        <Button
-                          type="dashed"
-                          className='w-[80%]'
-                          onClick={() => {
-                            const updatedEntries = [...values.sales_entries, { stock: '', sold_quantity: 0, sales_price: 0.0 }];
-                            setFieldValue('sales_entries', updatedEntries);
-                          }}
-                        >
-                          <FaPlus /> Add Item
-                        </Button>
-                      </Col>
-
-                    </Row>
-                  </div>
-                  <Button type="primary" className='w-[30%] self-center' htmlType="submit">
+                <SalesEntriesField values={values} setFieldValue={setFieldValue} stocks={stocks} />
+                <DiscountContainer values={values.discount_allowed} setFieldValue={setFieldValue} type='discount_allowed' totalPrice={salesPriceTotal} />
+                <Button type="primary" className='w-[30%] self-center' htmlType="submit">
                     Record
                   </Button>
-                </div>
               </Form>
             </div>
           );

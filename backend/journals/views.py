@@ -13,8 +13,26 @@ from .serializers import CustomerSerializer, JournalInvoiceSerializer, PurchaseB
 # Create your views here.
 
 class AccountCreateAPIView(generics.ListCreateAPIView):
-    queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+    def get_queryset(self):
+        queryset = Account.objects.all()
+
+        sub_category = self.request.query_params.get('sub_category')
+        group = self.request.query_params.get('group')
+        if sub_category:
+            sub_category_cleaned = sub_category.strip().replace('"', '').replace("'", "")
+            queryset = queryset.filter(
+                Q(sub_category__icontains=sub_category_cleaned)
+            )
+        if group:
+            group_cleaned = group.strip().replace('"', '').replace("'", "")
+            queryset = queryset.filter(
+                Q(group__icontains=group_cleaned)
+            )
+
+        return queryset
+
 
 class AccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()

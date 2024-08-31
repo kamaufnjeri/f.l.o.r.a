@@ -8,7 +8,7 @@ from django.urls import path
 
 urlpatterns = [
     path('accounts/', AccountCreateAPIView.as_view(), name="Accounts"),
-    path('accounts/<pk>', AccountDetailAPIView.as_view()),
+    path('accounts/<pk>/', AccountDetailAPIView.as_view()),
     path('journals/', JournalAPIView.as_view()),
     path('stocks/', StockAPIView.as_view()),
     path('stocks/<pk>', StockDetailAPIView.as_view()),
