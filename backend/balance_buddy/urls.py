@@ -16,8 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from journals.urls import urlpatterns as app_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('journals.urls'))
+    path('api/', include(app_urls))
 ]

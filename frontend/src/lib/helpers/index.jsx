@@ -7,6 +7,10 @@ export const scrollBottom = (scrollRef) => {
   }
 }
 
+const isObject = (item) => {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}
+
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 export const postRequest = async (values, url, resetForm) => {
@@ -21,23 +25,30 @@ export const postRequest = async (values, url, resetForm) => {
       return { success: false, error: 'Unexpected error' }
     }
   } catch (error) {
-    console.log('error', error.response.data)
     let errorMessage = 'An error occurred';
 
     if (error.response && error.response.data) {
-      const errorData = error.response.data.detail || error.response.data;
+      const errorData = error?.response?.data?.details || error.response.data;
 
       if (Array.isArray(errorData)) {
         errorMessage = errorData.join('\n');
-      } else if (errorData.non_field_errors) {
-        errorMessage = errorData.non_field_errors;
+      } else if (isObject(errorData)) {
+        console.log(errorData)
+        const errorList = [] 
+        Object.entries(errorData).forEach(([key, value]) => {
+          errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
+        })
+        errorMessage = errorList.join('\n');
       } else {
         errorMessage = errorData;
       }
     } else if (error.message) {
       errorMessage = error.message;
+    } else {
+      errorMessage = errorMessage;
     }
-    return { success: false, error: errorMessage }
+    
+    return { success: false, error: replaceDash(errorMessage) }
   }
 };
 

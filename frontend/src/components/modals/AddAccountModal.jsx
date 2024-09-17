@@ -84,14 +84,15 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
             }
           }}
         >
-          {({ values, setFieldValue, handleChange, handleSubmit }) => (
+          {({ values, setFieldValue, handleChange, handleSubmit, touched, errors }) => (
             <Form onFinish={handleSubmit} className="flex flex-col gap-2">
               <div className="flex flex-row gap-5 items-start">
                 <label htmlFor="name" className="w-[20%]">Account name</label>
                 <Form.Item
-                  validateStatus={values.name ? '' : 'error'}
+                   validateStatus={touched.name && errors.name ? 'error' : ''}
+                   help={touched.name && errors.name ? errors.name : ''}
                   className="w-[60%]"
-                  help={values.name ? '' : 'Name is required'}
+                 
                 >
                   <Input
                     name="name"

@@ -57,7 +57,7 @@ const AddSupplierModal = ({ openModal, setOpenModal }) => {
             }
           }}
         >
-          {({ values, handleChange, handleSubmit }) => {
+          {({ values, handleChange, handleSubmit, touched, errors }) => {
             return (
               <Form
                 onFinish={handleSubmit}
@@ -66,9 +66,10 @@ const AddSupplierModal = ({ openModal, setOpenModal }) => {
                 <div className='flex flex-row gap-5 items-start'>
                   <label htmlFor="name" className='w-[20%]'>Supplier name</label>
                   <Form.Item
-                    validateStatus={values.name ? '' : 'error'}
+                    validateStatus={touched.name && errors.name ? 'error' : ''}
+                    help={touched.name && errors.name ? errors.name : ''}
                     className='w-[60%]'
-                    help={values.name ? '' : 'Name is required'}
+                    
                   >
                     <Input
                       name="name"
@@ -81,9 +82,9 @@ const AddSupplierModal = ({ openModal, setOpenModal }) => {
                 <div className='flex flex-row gap-5 items-start'>
                   <label htmlFor="email" className='w-[20%]'>Supplier email</label>
                   <Form.Item
-                    validateStatus={values.email ? '' : 'error'}
+                    validateStatus={touched.email && errors.email ? 'error' : ''}
+                    help={touched.email && errors.email ? errors.email : ''}
                     className='w-[60%]'
-                    help={values.email ? '' : 'Email is required'}
                   >
                     <Input
                       name="email"
@@ -96,9 +97,9 @@ const AddSupplierModal = ({ openModal, setOpenModal }) => {
                 <div className='flex flex-row gap-5 items-start'>
                   <label htmlFor="phone_number" className='w-[20%]'>Supplier phone number</label>
                   <Form.Item
-                    validateStatus={values.phone_number ? '' : 'error'}
+                    validateStatus={touched.phone_number && errors.phone_number ? 'error' : ''}
+                    help={touched.phone_number && errors.phone_number ? errors.phone_number : ''}
                     className='w-[60%]'
-                    help={values.phone_number ? '' : 'Phone number is required'}
                   >
                     <Input
                       name="phone_number"

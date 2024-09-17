@@ -95,6 +95,7 @@ const RecordSales = () => {
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { resetForm }) => {
+          console.log(values)
           const debitTotalAmount = values.journal_entries.reduce((sum, entry) => {
             return sum + parseFloat(entry.amount || 0);
           }, 0);
