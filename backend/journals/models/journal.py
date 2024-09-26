@@ -5,6 +5,7 @@ from django.db import models
 class Journal(BaseModel):
     date = models.DateField()
     description = models.TextField()
+    serial_number = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.description
+        return self.serial_number

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Form } from 'antd';
 import * as Yup from 'yup'
 import { Formik } from 'formik';
-import { getItems, postRequest, scrollBottom } from '../lib/helpers';
+import { getItems, getSerialNumber, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
@@ -43,6 +43,9 @@ const PurchaseBill = () => {
     const [stocks, setStocks] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const scrollRef = useRef(null);
+    const [billNo, setBillNo] = useState('');
+    const [purchaseNo, setPurchaseNo] = useState('');
+
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -55,13 +58,18 @@ const PurchaseBill = () => {
         return 0;
     };
 
+    const getData = async () => {
+        const newStocks = await getItems('stocks');
+        const newSuppliers = await getItems('suppliers')
+        const billNo = await getSerialNumber('BILL')
+        const purchaseNo = await getSerialNumber('PURCH')
+        setBillNo(billNo)
+        setPurchaseNo(purchaseNo)
+        setStocks(newStocks);
+        setSuppliers(newSuppliers);
+    }
     useEffect(() => {
-        const getData = async () => {
-            const newStocks = await getItems('stocks');
-            const newSuppliers = await getItems('suppliers')
-            setStocks(newStocks);
-            setSuppliers(newSuppliers);
-        }
+       
         getData()
     }, [])
 
@@ -72,13 +80,15 @@ const PurchaseBill = () => {
                 initialValues={{
                     date: null,
                     description: '',
+                    serial_number: purchaseNo,
                     purchase_entries: [
                         { stock: null, purchased_quantity: 0, purchase_price: 0.0 }
                     ],
                     bill: {
                         amount_due: 0.00,
                         due_date: null,
-                        supplier: null
+                        supplier: null,
+                        serial_number: billNo
                     },
                     discount_received: {
                         discount_amount: 0.00,
@@ -88,6 +98,7 @@ const PurchaseBill = () => {
                 validationSchema={validationSchema}
                 onSubmit={async (values, { resetForm }) => {
                     console.log(values)
+                    
                     const totalAmountDue = values.bill.amount_due;
 
                     const purchasePriceTotal = getTotalPurchasePrice(values.purchase_entries) - values.discount_received.discount_amount;
@@ -95,6 +106,7 @@ const PurchaseBill = () => {
                         const response = await postRequest(values, 'bills/purchases', resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase bill recorded successfully')
+                            getData()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -113,6 +125,11 @@ const PurchaseBill = () => {
                         setFieldValue('bill.amount_due', purchasePrice)
                     }, [purchasePriceTotal, values.discount_received]);
 
+                    useEffect(() => {
+                        setFieldValue('serial_number', purchaseNo)
+                    setFieldValue('bill.serial_number', billNo)
+                    }, [purchaseNo, billNo])
+
 
                  useEffect(() => {
                         scrollBottom(scrollRef);
@@ -124,6 +141,9 @@ const PurchaseBill = () => {
                             className='flex-1 flex flex-col w-full h-full gap-2'
                             onFinish={handleSubmit}
                         >
+                            <div className='flex flex-row justify-between text-gray-800 mr-2'>
+                                <span>Bill No : {billNo}</span><span>Purchase No : {purchaseNo}</span>
+                                </div>
                             <div className='flex flex-row gap-2 w-full'>
                                 <div className='flex flex-col gap-2 w-[50%]'>
                                     <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue} />

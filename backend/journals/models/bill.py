@@ -15,3 +15,7 @@ class Bill(BaseModel):
     amount_due = models.DecimalField(max_digits=15, decimal_places=2)
     amount_paid = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     supplier = models.ForeignKey(Supplier, related_name='bill', on_delete=models.CASCADE)
+    serial_number = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.serial_number

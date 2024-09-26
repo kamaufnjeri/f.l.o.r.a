@@ -5,35 +5,47 @@ from journals.utils import flatten_errors
 from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES
 from django.db.models import Q
 from journals.models import Account
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
+
+
+class AccountPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 
 class AccountAPIView(generics.ListCreateAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
+    pagination_class = AccountPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'group', 'category', 'sub_category']
+    filterset_fields = ['name', 'group', 'category', 'sub_category']
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        sub_category = self.request.query_params.get('sub_category')
-        group = self.request.query_params.get('group')
-
-        if group:
-            group_cleaned = group.strip().replace('"', '').replace("'", "")
-            if group_cleaned not in ACCOUNT_STRUCTURE:
-                raise serializers.ValidationError(f'Group "{group_cleaned}" is not valid. Valid groups are: {", ".join(ACCOUNT_STRUCTURE.keys())}')
-            queryset = queryset.filter(Q(group__icontains=group_cleaned))
-
-        if sub_category:
-            sub_category_cleaned = sub_category.strip().replace('"', '').replace("'", "")
-            if sub_category_cleaned not in dict(SUB_CATEGORIES):
-                raise serializers.ValidationError(f'Sub category "{sub_category_cleaned}" is not valid. Valid sub categories are: {", ".join(dict(SUB_CATEGORIES).keys())}')
-            queryset = queryset.filter(Q(sub_category__icontains=sub_category_cleaned))
-
-        return queryset
-    
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
-            serializer = self.serializer_class(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            queryset = self.filter_queryset(self.get_queryset())
+
+            paginate = request.query_params.get('paginate')
+
+            if paginate:
+                paginator = self.pagination_class()
+                paginated_queryset = paginator.paginate_queryset(queryset, request)
+                if paginated_queryset is not None:
+                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    return paginator.get_paginated_response({
+                    "status": "success",
+                    "message": "Accounts retrieved successfully with pagination",
+                    "data": serialized_data.data
+                }) 
+
+            else:
+                serializer = self.get_serializer(queryset, many=True)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             return Response({

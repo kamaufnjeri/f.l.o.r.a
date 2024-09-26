@@ -3,16 +3,13 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Form, Button } from 'antd';
 import axios from 'axios';
-import { getItems, postRequest, scrollBottom } from '../lib/helpers';
+import { getItems, getSerialNumber, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
-import JournalEntries from '../components/forms/JournalEntries';
 import BillContainer from '../components/forms/BillContainer';
-import AccountsField from '../components/forms/AccountsField';
 import BillInvoiceAccountsFields from '../components/forms/BillInvoiceAccountsFields';
 
-const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 const validationSchema = Yup.object({
     date: Yup.date().required('Date is required'),
@@ -39,14 +36,22 @@ const JournalBill = () => {
     const [accounts, setAccounts] = useState([]);
     const scrollRef = useRef(null);
     const [suppliers, setSuppliers] = useState([]);
+    const [billNo, setBillNo] = useState('');
+    const [journalNo, setJounalNo] = useState('');
 
+    const getData = async () => {
+        const newAccounts = await getItems('accounts', '?group=expense');
+        const newSuppliers = await getItems('suppliers');
+        
+        const billNo = await getSerialNumber('BILL')
+        const journalNo = await getSerialNumber('JOURN')
+        setBillNo(billNo)
+        setJounalNo(journalNo)
+        setAccounts(newAccounts);
+        setSuppliers(newSuppliers);
+    }
     useEffect(() => {
-        const getData = async () => {
-            const newAccounts = await getItems('accounts', '?group=expense');
-            const newSuppliers = await getItems('suppliers')
-            setAccounts(newAccounts);
-            setSuppliers(newSuppliers);
-        }
+       
         getData()
 
     }, []);
@@ -65,24 +70,28 @@ const JournalBill = () => {
                 initialValues={{
                     date: null,
                     description: '',
+                    serial_number: journalNo,
                     journal_entries: [
                         { account: null, debit_credit: 'debit', amount: 0.0 },
                     ],
                     bill: {
                         amount_due: 0.00,
                         due_date: null,
-                        customer: null
+                        customer: null,
+                        serial_number: billNo
                     }
                 }}
                 validationSchema={validationSchema}
                 onSubmit={async (values, { resetForm }) => {
                     const totalAmountDue = values.bill.amount_due;
                     const totalEntriesAmount = getEntriesTotalAmount(values);
+                    
 
                     if (totalEntriesAmount === totalAmountDue) {
                         const response = await postRequest(values, 'bills/journals', resetForm)
                         if (response.success) {
                             toast.success('Recorded: Journal bill recorded successfully')
+                            getData()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -99,6 +108,10 @@ const JournalBill = () => {
                         scrollBottom(scrollRef);
 
                     }, [values.journal_entries]);
+                    useEffect(() => {
+                        setFieldValue('serial_number', journalNo)
+                    setFieldValue('bill.serial_number', billNo)
+                    }, [journalNo, billNo])
 
                     return (
                         <div
@@ -107,10 +120,14 @@ const JournalBill = () => {
                         >
 
                             <FormHeader header='Record journal bill' />
+                            
                             <Form
                                 className='flex-1 flex flex-col w-full h-full gap-2'
                                 onFinish={handleSubmit}
                             >
+                                <div className='flex flex-row justify-between text-gray-800 mr-2'>
+                                <span>Bill No : {billNo}</span><span>Journal No : {journalNo}</span>
+                            </div>
                                 <div className='flex flex-row gap-2 w-full'>
                                     <div className='flex flex-col gap-2 w-[50%]'>
                                         <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue} />

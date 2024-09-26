@@ -15,14 +15,14 @@ journal_entries_manager = JournalEntriesManager()
 
 class SalesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    sales_entries = SalesEntriesSerializer(many=True)
-    journal_entries = JournalEntrySerializer(many=True)
-    discount_allowed = DiscountSerializer(required=False, allow_null=True)
+    sales_entries = SalesEntriesSerializer(many=True, write_only=True)
+    journal_entries = JournalEntrySerializer(many=True, write_only=True)
+    discount_allowed = DiscountSerializer(required=False, allow_null=True, write_only=True)
     invoice = InvoiceSerializer(required=False)
 
     class Meta:
         model = Sales
-        fields = ['id', 'date', 'description', 'sales_entries', 'journal_entries', 'discount_allowed', 'invoice']
+        fields = ['id', 'date', 'description', 'sales_entries', 'journal_entries', 'discount_allowed', 'invoice', "serial_number"]
 
     def validate(self, data):
         sales_entries = data.get('sales_entries')
@@ -48,3 +48,12 @@ class SalesSerializer(serializers.ModelSerializer):
             journal_entries_manager.create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
 
         return sales
+    
+class SalesDetailSerializer(SalesSerializer):
+    purchase_entries = SalesEntriesSerializer(many=True, read_only=True)
+    journal_entries = JournalEntrySerializer(many=True, read_only=True)
+    discount_allowed = DiscountSerializer(allow_null=True, required=False, read_only=True)
+
+    class Meta:
+        model = Sales
+        fields = SalesSerializer.Meta.fields

@@ -5,7 +5,7 @@ from .stock import Stock
 
 
 class PurchaseEntries(BaseModel):
-    purchase = models.ForeignKey(Purchase, related_name='purchase_entries', on_delete=models.CASCADE)
+    purchase = models.ForeignKey(Purchase, related_name='purchase_entries', on_delete=models.CASCADE, blank=True, null=True)
     stock = models.ForeignKey(Stock, related_name='purchase_entries', on_delete=models.CASCADE)
     purchased_quantity = models.IntegerField()
     remaining_quantity = models.IntegerField()

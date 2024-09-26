@@ -6,10 +6,10 @@ class BillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bill
-        fields = ["id", "due_date", "amount_due", "supplier"]
+        fields = ["id", "due_date", "amount_due", "supplier", "serial_number"]
 
 class InvoiceSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     class Meta:
         model = Invoice
-        fields = ["id", "due_date", "amount_due", "customer"]
+        fields = ["id", "due_date", "amount_due", "customer", "serial_number"]

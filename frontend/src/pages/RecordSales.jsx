@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Form } from 'antd';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { getItems, postRequest, scrollBottom } from '../lib/helpers';
+import { getItems, getSerialNumber, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
@@ -49,6 +49,7 @@ const RecordSales = () => {
   const [stocks, setStocks] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const scrollRef = useRef(null);
+  const [salesNo, setSalesNo] = useState('');
 
   const getTotalSalesPrice = (items) => {
     if (items) {
@@ -62,15 +63,17 @@ const RecordSales = () => {
   };
 
 
-
+  const getData = async () => {
+    const subCategory = 'cash_and_cash_equivalents'
+    const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
+    const newStocks = await getItems('stocks');
+    const saleNo = await getSerialNumber('SALE')
+    setSalesNo(saleNo);
+    setAccounts(newAccounts)
+    setStocks(newStocks)
+  }
   useEffect(() => {
-    const getData = async () => {
-      const subCategory = 'cash_and_cash_equivalents'
-      const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
-      const newStocks = await getItems('stocks');
-      setAccounts(newAccounts)
-      setStocks(newStocks)
-    }
+   
     getData()
   }, []);
 
@@ -82,6 +85,7 @@ const RecordSales = () => {
         initialValues={{
           date: null,
           description: '',
+          serial_number: salesNo,
           sales_entries: [
             { stock: null, sold_quantity: 0, sales_price: 0.0 }
           ],
@@ -106,6 +110,7 @@ const RecordSales = () => {
 
             if (response.success) {
               toast.success('Recorded: Sales recorded successfully')
+              getData()
             } else {
               toast.error(`Error: ${response.error}`)
             }
@@ -131,6 +136,10 @@ const RecordSales = () => {
           useEffect(() => {
             scrollBottom(scrollRef);
           }, [salesPriceTotal, values.sales_entries])
+          useEffect(() => {
+            setFieldValue('serial_number', salesNo)
+
+          }, [salesNo])
 
           return (
             <div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
@@ -140,6 +149,9 @@ const RecordSales = () => {
                 className='flex-1 flex flex-col w-full h-full gap-2'
                 onFinish={handleSubmit}
               >
+                <div className='flex flex-row justify-between text-gray-800 mr-2'>
+                                <span>Sales No : {salesNo}</span>
+                            </div>
                 <div className='flex flex-row gap-2 w-full'>
                   <div className='flex flex-col gap-2 w-[50%]'>
                     <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue}/>

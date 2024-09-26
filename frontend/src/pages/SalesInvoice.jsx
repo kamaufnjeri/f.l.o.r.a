@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Form } from 'antd';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { getItems, postRequest, scrollBottom } from '../lib/helpers';
+import { getItems, getSerialNumber, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
@@ -42,6 +42,8 @@ const SalesInvoice = () => {
     const [stocks, setStocks] = useState([]);
     const [customers, setCustomers] = useState([]);
     const scrollRef = useRef(null);
+    const [invoiceNo, setInvoiceNo] = useState('')
+    const [salesNo, setSalesNo] = useState('')
 
     const getTotalSalesPrice = (items) => {
         if (items) {
@@ -54,14 +56,18 @@ const SalesInvoice = () => {
         return 0;
       };
     
-
+      const getData = async () => {
+        const newStocks = await getItems('stocks');
+        const newCustomers = await getItems('customers')
+        const saleNo = await getSerialNumber('SALE')
+        const invoiceNo = await getSerialNumber('INV')
+        setInvoiceNo(invoiceNo)
+        setSalesNo(saleNo);
+        setStocks(newStocks);
+        setCustomers(newCustomers);
+    }
     useEffect(() => {
-        const getData = async () => {
-            const newStocks = await getItems('stocks');
-            const newCustomers = await getItems('customers')
-            setStocks(newStocks);
-            setCustomers(newCustomers);
-        }
+        
         getData()
     }, [])
   return (
@@ -72,13 +78,15 @@ const SalesInvoice = () => {
       initialValues={{
         date: null,
         description: '',
+        serial_number: salesNo,
         sales_entries: [
           { stock: null, sold_quantity: 0, sales_price: 0.0 }
         ],
         invoice: {
           amount_due: 0.00,
           due_date: null,
-          customer: null
+          customer: null,
+          serial_number: invoiceNo
       },
         discount_allowed: {
           discount_amount: 0.00,
@@ -87,6 +95,7 @@ const SalesInvoice = () => {
       }}
       validationSchema={validationSchema}
       onSubmit={async (values, { resetForm }) => {
+       
         const totalAmountDue = values.invoice.amount_due;
         const salesPriceTotal = getTotalSalesPrice(values.sales_entries) - values.discount_allowed.discount_amount;
         if (salesPriceTotal === totalAmountDue) {
@@ -94,6 +103,7 @@ const SalesInvoice = () => {
 
           if (response.success) {
             toast.success('Recorded: Sales invoice recorded successfully')
+            getData()
           } else {
             toast.error(`Error: ${response.error}`)
           }
@@ -115,6 +125,11 @@ const SalesInvoice = () => {
           scrollBottom(scrollRef);
         }, [salesPriceTotal, values.sales_entries])
 
+        useEffect(() => {
+          setFieldValue('serial_number', salesNo)
+          setFieldValue('invoice.serial_number', invoiceNo)
+        }, [salesNo, invoiceNo])
+
         return (
           <div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
             <FormHeader header='Record sales' />
@@ -122,6 +137,9 @@ const SalesInvoice = () => {
               className='flex-1 flex flex-col w-full h-full gap-2'
               onFinish={handleSubmit}
             >
+              <div className='flex flex-row justify-between text-gray-800 mr-2'>
+                                <span>Invoice No : {invoiceNo}</span><span>Sales No : {salesNo}</span>
+                            </div>
               <div className='flex flex-row gap-2 w-full'>
                 <div className='flex flex-col gap-2 w-[50%]'>
                   <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue}/>

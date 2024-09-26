@@ -11,16 +11,18 @@ from journals.utils import PurchaseEntriesManager, JournalEntriesManager
 purchase_entries_manager = PurchaseEntriesManager()
 journal_entries_manager = JournalEntriesManager()
 
+
+
 class PurchaseSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    purchase_entries = PurchaseEntriesSerializer(many=True)
-    journal_entries = JournalEntrySerializer(many=True)
-    discount_received = DiscountSerializer(allow_null=True, required=False)
+    purchase_entries = PurchaseEntriesSerializer(many=True, write_only=True)
+    journal_entries = JournalEntrySerializer(many=True, write_only=True)
+    discount_received = DiscountSerializer(allow_null=True, required=False, write_only=True)
     bill = BillSerializer(required=False)
  
     class Meta:
         model = Purchase
-        fields = ['id', 'date', 'description', 'purchase_entries', 'journal_entries', 'discount_received', 'bill']
+        fields = ['id', 'date', 'description', 'purchase_entries', 'journal_entries', 'discount_received', 'bill', "serial_number"]
 
     def validate(self, data):
         purchase_entries = data.get('purchase_entries')
@@ -56,3 +58,12 @@ class PurchaseSerializer(serializers.ModelSerializer):
             journal_entries_manager.create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
 
         return purchase
+    
+class PurchaseDetailSerializer(PurchaseSerializer):
+    purchase_entries = PurchaseEntriesSerializer(many=True, read_only=True)
+    journal_entries = JournalEntrySerializer(many=True, read_only=True)
+    discount_received = DiscountSerializer(allow_null=True, required=False, read_only=True)
+
+    class Meta:
+        model = Purchase
+        fields = PurchaseSerializer.Meta.fields

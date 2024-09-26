@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Form } from 'antd';
 import * as Yup from 'yup'
 import { Formik } from 'formik';
-import { getItems, postRequest, scrollBottom } from '../lib/helpers';
+import { getItems, getSerialNumber, postRequest, scrollBottom } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
@@ -47,6 +47,7 @@ const RecordPurchase = () => {
     const [stocks, setStocks] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const scrollRef = useRef(null);
+    const [purchaseNo, setPurchaseNo] = useState('')
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -59,15 +60,16 @@ const RecordPurchase = () => {
         return 0;
     };
 
-
+    const getData = async () => {
+        const subCategory = 'cash_and_cash_equivalents'
+        const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
+        const newStocks = await getItems('stocks');
+        const purchaseNo = await getSerialNumber('PURCH')
+        setPurchaseNo(purchaseNo)
+        setAccounts(newAccounts)
+        setStocks(newStocks)
+    }
     useEffect(() => {
-        const getData = async () => {
-            const subCategory = 'cash_and_cash_equivalents'
-            const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
-            const newStocks = await getItems('stocks');
-            setAccounts(newAccounts)
-            setStocks(newStocks)
-        }
         getData()
     }, [])
 
@@ -78,6 +80,7 @@ const RecordPurchase = () => {
                 initialValues={{
                     date: null,
                     description: '',
+                    serial_number: purchaseNo,
                     purchase_entries: [
                         { stock: null, purchased_quantity: 0, purchase_price: 0.0 }
                     ],
@@ -90,6 +93,7 @@ const RecordPurchase = () => {
                     }
                 }}
                 validationSchema={validationSchema}
+                
                 onSubmit={async (values, { resetForm }) => {
                     console.log(values)
                     const creditTotalAmount = values.journal_entries.reduce((sum, entry) => {
@@ -100,6 +104,7 @@ const RecordPurchase = () => {
                         const response = await postRequest(values, 'purchases', resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase recorded successfully')
+                            getData();
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -111,7 +116,6 @@ const RecordPurchase = () => {
             >
                 {({ values, setFieldValue, handleChange, handleSubmit }) => {
                     const purchasePriceTotal = useMemo(() => getTotalPurchasePrice(values.purchase_entries) || 0.00, [values.purchase_entries]);
-
                     useEffect(() => {
                         if (!values.journal_entries.length) return;
                         const purchasePrice = purchasePriceTotal - values.discount_received.discount_amount;
@@ -125,9 +129,13 @@ const RecordPurchase = () => {
                     }, [purchasePriceTotal, values.discount_received]);
 
 
-                 useEffect(() => {
+                    useEffect(() => {
                         scrollBottom(scrollRef);
                     }, [values.journal_entries, values.purchase_entries])
+
+                    useEffect(() => {
+                        setFieldValue('serial_number', purchaseNo);
+                    }, [purchaseNo])
                     return (<div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
                         <FormHeader header='Record Purchase' />
 
@@ -135,12 +143,15 @@ const RecordPurchase = () => {
                             className='flex-1 flex flex-col w-full h-full gap-2'
                             onFinish={handleSubmit}
                         >
+                            <div className='flex flex-row justify-between text-gray-800 mr-2'>
+                                <span>Purchase No : {purchaseNo}</span>
+                            </div>
                             <div className='flex flex-row gap-2 w-full'>
                                 <div className='flex flex-col gap-2 w-[50%]'>
                                     <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue} />
                                 </div>
                                 <div className='w-[50%]'>
-                                <AccountsField type='credit' values={values} setFieldValue={setFieldValue} header={'Purchase Payment Accounts'} accounts={accounts} />
+                                    <AccountsField type='credit' values={values} setFieldValue={setFieldValue} header={'Purchase Payment Accounts'} accounts={accounts} />
 
                                 </div>
 

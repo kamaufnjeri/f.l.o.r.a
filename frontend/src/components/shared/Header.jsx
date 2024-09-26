@@ -39,7 +39,7 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal }) => {
                 isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
                 <Link to='/profile' className='hover:bg-neutral-200 w-full p-1 rounded-sm'>Your profile</Link>
                 <Link to='/settings' className='hover:bg-neutral-200 w-full p-1 rounded-sm'>Settings</Link>
-                <button className='hover:bg-neutral-200 flex flex-row gap-2 w-full p-1 rounded-sm'>
+                <button className='hover:bg-neutral-200 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                     <MdLogout/>
                     <span>Logout</span>
                 </button>

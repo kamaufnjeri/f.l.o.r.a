@@ -13,7 +13,7 @@ const isObject = (item) => {
 
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
-export const postRequest = async (values, url, resetForm) => {
+export const postRequest = async (values, url, resetForm=null) => {
   try {
     const response = await axios.post(`${BACKEND_URL}/${url}/`, values);
 
@@ -73,6 +73,11 @@ export const getItems = async (name, filterUrl=null) => {
   }
 }
 
+export const getSerialNumber = async(initial_name) => {
+  const data = await getItems('serial_number', `?initial_name=${initial_name}`)
+
+  return data.serial_number
+}
 export const capitalizeFirstLetter = (string) => {
   if (typeof string !== 'string') return '';
   let newString = string.charAt(0).toUpperCase() + string.slice(1);

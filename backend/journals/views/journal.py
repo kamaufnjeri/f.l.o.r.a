@@ -3,16 +3,80 @@ from rest_framework.response import Response
 from journals.utils import flatten_errors
 from journals.models import Journal
 from journals.serializers import JournalSerializer
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
+from django.db import models
+
+
+class JournalPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class JournalFilter(DjangoFilterBackend):
+    class Meta:
+        model = Journal
+
+    def filter_queryset(self, request, queryset, view):
+        try:
+            journals = request.query_params.get('journals')
+            
+            if journals:
+                if journals == "is_invoices":
+                    queryset = Journal.objects.filter(invoice__isnull=False)
+               
+                elif journals == "is_bills":
+                    queryset = Journal.objects.filter(bill__isnull=False)
+               
+                elif journals == "is_bills_or_invoices":
+                    queryset = Journal.objects.filter(models.Q(invoice__isnull=False) | models.Q(bill__isnull=False))
+
+                elif journals == "is_not_bills_or_invoices":
+                    queryset = Journal.objects.filter(models.Q(invoice__isnull=True) & models.Q(bill__isnull=True))
+                
+                elif journals == "all":
+                    queryset = Journal.objects.all()
+                else:
+                    raise Exception("Valid options for journals are 'is_invoices' or 'is_bills' or or 'is_not_bills_or_invoices' or 'is_bills_or_invoices' or 'all'")
+            else:
+                queryset = Journal.objects.all()
+            return queryset
+
+        except Exception as e:
+            raise Exception(str(e))
+
+
 
 class JournalAPIView(generics.ListCreateAPIView):
     queryset = Journal.objects.all()
     serializer_class = JournalSerializer
+    pagination_class = JournalPagination
+    filter_backends = [JournalFilter, SearchFilter]
+    search_fields = ['serial_number', 'description']
+
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
-            serializer = self.serializer_class(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            queryset = self.filter_queryset(self.get_queryset())
+            paginate = request.query_params.get('paginate')
+
+            if paginate:
+                paginator = self.pagination_class()
+                paginated_queryset = paginator.paginate_queryset(queryset, request)
+                if paginated_queryset is not None:
+                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    return paginator.get_paginated_response({
+                    "status": "success",
+                    "message": "Accounts retrieved successfully with pagination",
+                    "data": serialized_data.data
+                }) 
+
+            else:
+                serializer = self.get_serializer(queryset, many=True)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             return Response({

@@ -15,12 +15,44 @@ class AccountSerializer(serializers.ModelSerializer):
     group = serializers.CharField(validators=[lambda value: validate_choice(value, GROUPS)])
     category = serializers.CharField(validators=[lambda value: validate_choice(value, CATEGORIES)])
     sub_category = serializers.CharField(validators=[lambda value: validate_choice(value, SUB_CATEGORIES)]) 
+    account_balance = serializers.SerializerMethodField(read_only=True)
 
 
     class Meta:
-        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type']
+        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type', 'account_balance']
         required_fields = ['name', 'category', 'sub_category']
         model = Account
+
+    def get_account_balance(self, obj):
+        to_date = self.context.get('to_date', None)
+        
+        if to_date:
+            journal_entries = JournalEntries.objects.filter(
+                models.Q(account=obj) &
+                models.Q(
+                    models.Q(journal__date__lte=to_date) |
+                    models.Q(sales__date__lte=to_date) |
+                    models.Q(purchase__date__lte=to_date) |
+                    models.Q(purchase_return__date__lte=to_date) |
+                    models.Q(sales_return__date__lte=to_date)
+                )
+            )
+        else:
+            journal_entries = JournalEntries.objects.filter(account=obj)
+        
+        debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
+        credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')
+
+        if obj.opening_balance and obj.opening_balance_type:
+            if obj.opening_balance_type == 'debit':
+                debit_total += obj.opening_balance
+            else:
+                credit_total += obj.opening_balance
+        
+        if obj.group in ('asset', 'expense'):
+            return debit_total - credit_total
+        else:
+            return credit_total - debit_total 
 
 
        
@@ -58,41 +90,11 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class AccountDetailsSerializer(AccountSerializer):
-    account_balance = serializers.SerializerMethodField(read_only=True)
     journal_entries = JournalEntrySerializer(many=True)
 
     class Meta:
         model = Account
-        fields = AccountSerializer.Meta.fields + ['account_balance', 'journal_entries']
+        fields = AccountSerializer.Meta.fields + ['journal_entries']
 
 
-    def get_account_balance(self, obj):
-        to_date = self.context.get('to_date', None)
-        
-        if to_date:
-            journal_entries = JournalEntries.objects.filter(
-                models.Q(account=obj) &
-                models.Q(
-                    models.Q(journal__date__lte=to_date) |
-                    models.Q(sales__date__lte=to_date) |
-                    models.Q(purchase__date__lte=to_date) |
-                    models.Q(purchase_return__date__lte=to_date) |
-                    models.Q(sales_return__date__lte=to_date)
-                )
-            )
-        else:
-            journal_entries = JournalEntries.objects.filter(account=obj)
-        
-        debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
-        credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')
-
-        if obj.opening_balance and obj.opening_balance_type:
-            if obj.opening_balance_type == 'debit':
-                debit_total += obj.opening_balance
-            else:
-                credit_total += obj.opening_balance
-        
-        if obj.group in ('asset', 'expense'):
-            return debit_total - credit_total
-        else:
-            return credit_total - debit_total 
+    

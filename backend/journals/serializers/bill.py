@@ -19,7 +19,7 @@ class JournalBillSerializer(JournalSerializer):
 
     class Meta:
         model = Journal
-        fields = JournalSerializer.Meta.fields + ['bill']
+        fields = JournalSerializer.Meta.fields
 
     def validate(self, data):
         journal_entries = data.get('journal_entries')
