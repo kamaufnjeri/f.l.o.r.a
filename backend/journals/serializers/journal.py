@@ -18,6 +18,22 @@ class JournalSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', "date", "description", "journal_entries", "serial_number", "invoice", "bill", "type"]
         model = Journal
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        journal_entries = data.get('journal_entries', [])
+        
+        # Sort journal_entries with a key function
+        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
+        
+        # You might want to update the data with the sorted entries
+        data['journal_entries'] = sorted_journal_entries
+        
+        print(sorted_journal_entries)
+
+        return data
+
     
     def get_type(self, obj):
         if hasattr(obj, 'invoice') and obj.invoice is not None:
