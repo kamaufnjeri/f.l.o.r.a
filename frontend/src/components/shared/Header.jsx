@@ -13,7 +13,7 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal }) => {
       setOpenModal(true);
     };
   return (
-    <div className='font-bold h-15 text-gray-800 absolute top-0 right-0 left-[15rem] flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300'>
+    <div className='font-bold h-[60px] text-gray-800 absolute top-0 right-0 left-[15rem] flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300'>
       <div className='flex flex-row gap-2 items-center hover:text-purple-700'>
         <img src="/assets/apple.jpg" alt="Apple Logo" className='w-14 h-14 rounded-full'/>
         <span>Apple Inc.</span>

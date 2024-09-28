@@ -41,7 +41,7 @@ const Layout = () => {
       <AddAccountModal openModal={openAddAccountModal} setOpenModal={setOpenAddAccountModal}/>
       <AddItemModal openModal={openAddItemModal} setOpenModal={setOpenAddItemModal}/>
       {renderItems()}
-      <div className='flex-1 mt-[6rem] ml-[16rem]'
+      <div className='flex-1 mt-[70px] ml-[16rem]'
       style={{ width: 'calc(100vw - 16rem)', height: 'calc(100vh - 6rem)'}}
       >
         <Outlet/>

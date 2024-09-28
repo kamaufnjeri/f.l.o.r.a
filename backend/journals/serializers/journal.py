@@ -10,14 +10,22 @@ journal_entries_manager = JournalEntriesManager()
 
 class JournalSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    journal_entries = JournalEntrySerializer(many=True, write_only=True)
-    bill = BillSerializer(required=False)
-    invoice = InvoiceSerializer(required=False)
+    journal_entries = JournalEntrySerializer(many=True)
+    bill = BillSerializer(required=False, write_only=True)
+    invoice = InvoiceSerializer(required=False, write_only=True)
+    type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        fields = ['id', "date", "description", "journal_entries", "serial_number", "invoice", "bill"]
+        fields = ['id', "date", "description", "journal_entries", "serial_number", "invoice", "bill", "type"]
         model = Journal
     
+    def get_type(self, obj):
+        if hasattr(obj, 'invoice') and obj.invoice is not None:
+            return 'invoice'
+        elif hasattr(obj, 'bill') and obj.bill is not None:
+            return 'bill'
+        return 'regular'
+        
     def validate(self, data):
         journal_entries = data.get('journal_entries')
         journal_entries_manager.validate_journal_entries(journal_entries)
@@ -34,10 +42,3 @@ class JournalSerializer(serializers.ModelSerializer):
 
         return journal
     
-class JournalDetailSerializer(JournalSerializer):
-    
-    journal_entries = JournalEntrySerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Journal
-        fields = JournalSerializer.Meta.fields

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
-import { getItems } from '../lib/helpers';
+import { capitalizeFirstLetter, getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -14,10 +14,10 @@ const Journals = () => {
 
     const [selectOptions, setSelectOptions] = useState([
         { name: "All", value: "all" },
-        { name: "Journals with invoices", value: "is_invoices" },
-        { name: "Journals with bills", value: "is_bills" },
-        { name: "Journals with bills or invoices", value: "is_bills_or_invoices" },
-        { name: "Journals without bills and invoices", value: "is_not_bills_or_invoices" },
+        { name: "Invoice Journals", value: "is_invoices" },
+        { name: "Bill Journals", value: "is_bills" },
+        { name: "Bill and Invoice Journals", value: "is_bills_or_invoices" },
+        { name: "Regular Journals", value: "is_not_bills_or_invoices" },
     ])
 
     const [journals, setJournals] = useState([]);
@@ -41,7 +41,7 @@ const Journals = () => {
     }
     const handleSelectChange = async (e) => {
         setSearchItem({ ...searchItem, journals: e.target.value });
-        const queyParamsUrl = `?paginate=true&search=${searchItem.name}&journals=${e.target.value}`
+        const queyParamsUrl = `?paginate=true&journals=${e.target.value}`
 
         console.log(searchItem)
         console.log(queyParamsUrl)
@@ -93,12 +93,12 @@ const Journals = () => {
     }
 
     return (
-        <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
+        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
             <FormHeader header='Journals List' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[90%] text-black items-center gap-2'>
                     <div className='w-[70%] relative h-[90%] flex flex-row gap-2'>
-                        <input type='name' className='w-[50%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter serial number or description' value={searchItem.name} onChange={e => handleChange(e)} />
+                        <input type='name' className='w-[50%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter journal number or description' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 cursor-pointer w-[50%] h-[90%] font-bold rounded-md border-2 border-gray-800'>
                             <select className='border-none outline-none' value={searchItem.journals} onChange={(e) => handleSelectChange(e)}>
                                 {selectOptions.map((option, index) => (
@@ -119,24 +119,40 @@ const Journals = () => {
             </div>
 
 
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 h-full w-full m-2'>
+            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[20%] border-gray-800 border-r-2 p-1'>Serial No.</span>
-                    <span className='w-[20%] border-gray-800 border-r-2 p-1 '>Date</span>
-                    <span className='w-[40%] border-gray-800 border-r-2 p-1'>Description</span>
-                    <span className='w-[20%] border-gray-800 border-r-2 p-1'>Amount Due</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Journal #</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
+                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
+                    <span className='w-[30%] border-gray-800 border-r-2 p-1'>Account</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Debit</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Credit</span>
+
                 </div>
                 {journalsData?.results?.data && journalsData.results.data.map((journal, index) => (
                     <div className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
-                        <span className='w-[40%] border-gray-800 border-r-2 p-1'>{journal.description}</span>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{journal.invoice ? journal.invoice.amount_due : journal.bill ? journal.bill.amount_due : ''}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(journal.type)}</span>
+
+
+                        <span className='border-gray-800 border-r-2 flex flex-col flex-1'>
+                            {journal.journal_entries.map((entry, index) =>
+                                <div className={`flex flex-row flex-1`} key={index}>
+                                    <div className='w-[57%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
+                                    <span className='w-[21.5%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
+                                    <span className='w-[21.5%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
+                                </div>)}
+                                <div className={`flex flex-row p-1 flex-1`}>
+                                    <i className='text-sm'>({journal.description})</i>
+                                </div>
+                        </span>
+
 
                     </div>
                 ))}
             </div>
-            <div className='absolute bottom-5 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
+            <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
                 {journalsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
                 <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
                 {journalsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}

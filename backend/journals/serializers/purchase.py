@@ -18,12 +18,36 @@ class PurchaseSerializer(serializers.ModelSerializer):
     purchase_entries = PurchaseEntriesSerializer(many=True, write_only=True)
     journal_entries = JournalEntrySerializer(many=True, write_only=True)
     discount_received = DiscountSerializer(allow_null=True, required=False, write_only=True)
-    bill = BillSerializer(required=False)
+    bill = BillSerializer(required=False, write_only=True)
+    type = serializers.SerializerMethodField(read_only=True)
+    item_list = serializers.SerializerMethodField(read_only=True)
+    total_amount = serializers.SerializerMethodField(read_only=True)
  
     class Meta:
         model = Purchase
-        fields = ['id', 'date', 'description', 'purchase_entries', 'journal_entries', 'discount_received', 'bill', "serial_number"]
+        fields = [
+            'id', 'date', 'description', 'purchase_entries', 
+            'journal_entries', 'discount_received', 'bill', 
+            'serial_number', 'type', 'item_list', 'total_amount'
+        ]
 
+    def get_type(self, obj):
+        """Return the type based on the bill attribute."""
+        if hasattr(obj, 'bill') and obj.bill is not None:
+            return 'bill'
+        return 'regular'
+
+    def get_item_list(self, obj):
+        """Return a list of item names from purchase entries using the serializer."""
+        # Use the serializer to get the serialized data of purchase entries
+        purchase_entries = PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True)
+        return [entry['stock_name'] for entry in purchase_entries.data]  # Access item_name from serialized data
+
+    def get_total_amount(self, obj):
+        """Return the total amount of all purchase entries."""
+        total = sum((float(entry['purchase_price']) * float(entry['purchased_quantity']) )for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
+        return total
+    
     def validate(self, data):
         purchase_entries = data.get('purchase_entries')
         journal_entries = data.get('journal_entries')
