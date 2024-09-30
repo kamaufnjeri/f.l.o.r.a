@@ -5,6 +5,7 @@ import { capitalizeFirstLetter, getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Journals = () => {
     const [searchItem, setSearchItem] = useState({
@@ -109,7 +110,7 @@ const Journals = () => {
                         </div>
                         {journals.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {journals.map((journal) => (<span className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{journal.serial_number}</span>))}
+                            {journals.map((journal) => (<Link to={`/journals/${journal.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{journal.serial_number}</Link>))}
                         </div>}
                     </div>
 
@@ -124,32 +125,40 @@ const Journals = () => {
                     <span className='w-[15%] border-gray-800 border-r-2 p-1'>Journal #</span>
                     <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                    <span className='w-[30%] border-gray-800 border-r-2 p-1'>Account</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Debit</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Credit</span>
+                    <span className='w-[60%] border-gray-800 border-r-2 flex flex-col'>
+                        <div className='flex flex-row flex-1'>
+                            <span className='w-[60%] p-1'>Account</span>
+                            <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
+                            <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
+                        </div>
+
+                    </span>
+
 
                 </div>
                 {journalsData?.results?.data && journalsData.results.data.map((journal, index) => (
-                    <div className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
+                    <Link to={`/journals/${journal.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(journal.type)}</span>
 
 
-                        <span className='border-gray-800 border-r-2 flex flex-col flex-1'>
+                        <span className='w-[60%] border-gray-800 border-r-2 flex flex-col'>
                             {journal.journal_entries.map((entry, index) =>
                                 <div className={`flex flex-row flex-1`} key={index}>
-                                    <div className='w-[57%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                                    <span className='w-[21.5%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                                    <span className='w-[21.5%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
+                                    <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
+                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
+                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
                                 </div>)}
-                                <div className={`flex flex-row p-1 flex-1`}>
-                                    <i className='text-sm'>({journal.description})</i>
-                                </div>
+                            <div className={`flex flex-row flex-1`}>
+                                <i className='text-sm w-[60%] p-1'>({journal.description})</i>
+                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
+                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
+                            </div>
                         </span>
 
 
-                    </div>
+                    </Link>
                 ))}
             </div>
             <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>

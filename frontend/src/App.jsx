@@ -15,10 +15,11 @@ import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
 import Sales from "./pages/Sales";
 import Journals from "./pages/Journals";
+import SinglePurchase from "./pages/SinglePurchase";
+import SingleJournal from "./pages/SingleJournal";
+import SingleSale from "./pages/SingleSale";
 
 const App = () => {
-  
-
   return (
     <Router>
       <Routes>
@@ -29,12 +30,15 @@ const App = () => {
         <Route path='suppliers' element={<Suppliers/>}></Route>
         <Route path='customers' element={<Customers/>}></Route>
         <Route path='purchases' element={<Purchases/>}></Route>
+        <Route path='purchases/:id' element={<SinglePurchase/>}></Route>
         <Route path='purchases/record' element={<RecordPurchase/>}></Route>
         <Route path='purchases/bill' element={<PurchaseBill/>}></Route>
         <Route path='sales' element={<Sales/>}></Route>
+        <Route path='sales/:id' element={<SingleSale/>}></Route>
         <Route path='sales/record' element={<RecordSales/>}></Route>
         <Route path='sales/invoice' element={<SalesInvoice/>}/>
         <Route path='journals' element={<Journals/>}></Route>
+        <Route path='journals/:id' element={<SingleJournal/>}></Route>
         <Route path='journals/record' element={<RecordJournal/>}></Route>
         <Route path='journals/bill' element={<JournalBill/>}/>
         <Route path='journals/invoice' element={<JournalInvoice/>}/>

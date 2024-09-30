@@ -2,7 +2,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors
 from journals.models import Journal
-from journals.serializers import JournalSerializer
+from journals.serializers import JournalSerializer, JournalDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -109,3 +109,7 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'error': 'Internal server error',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class JournalDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = JournalDetailSerializer
+    queryset = Journal.objects.all()

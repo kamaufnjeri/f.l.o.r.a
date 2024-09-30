@@ -5,6 +5,7 @@ import { capitalizeFirstLetter, getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Purchases = () => {
   const [searchItem, setSearchItem] = useState({
@@ -107,7 +108,7 @@ const Purchases = () => {
             </div>
             {purchases.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {purchases.map((purchase) => (<span className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</span>))}
+              {purchases.map((purchase) => (<Link to={`/purchases/${purchase.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -120,27 +121,33 @@ const Purchases = () => {
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[15%] border-gray-800 border-r-2 p-1'>Purchase #</span>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-          <span className='w-[40%] border-gray-800 border-r-2 p-1'>Items</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Total Amount</span>
+          <span className='w-[35%] border-gray-800 border-r-2 p-1'>Items</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Amount</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Quantity</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Due Amount</span>
+
+
         </div>
         {purchasesData?.results?.data && purchasesData.results.data.map((purchase, index) => (
-          <div className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase.id}>
+          <Link to={`/purchases/${purchase.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase.serial_number}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase.date}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(purchase.type)}</span>
-            <span className='w-[40%] border-gray-800 border-r-2 p-1 flex flex-col'>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.date}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(purchase.items_data.type)}</span>
+            <span className='w-[35%] border-gray-800 border-r-2 p-1 flex flex-col'>
               <ul className='flex flex-wrap gap-3'>
-                {purchase.item_list.map((item, index) => (
+                {purchase.items_data.list.map((item, index) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>
               <i className='text-sm'>({purchase.description})</i>
             </span>
-            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{purchase.total_amount}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.items_data.total_amount}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.items_data.total_quantity}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{ purchase.items_data.amount_due > 0 ? purchase.items_data.amount_due : '-' }</span>
 
-          </div>
+          </Link>
         ))}
       </div>
       <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>

@@ -19,34 +19,38 @@ class SalesSerializer(serializers.ModelSerializer):
     journal_entries = JournalEntrySerializer(many=True, write_only=True)
     discount_allowed = DiscountSerializer(required=False, allow_null=True, write_only=True)
     invoice = InvoiceSerializer(required=False, write_only=True)
-    type = serializers.SerializerMethodField(read_only=True)
-    item_list = serializers.SerializerMethodField(read_only=True)
-    total_amount = serializers.SerializerMethodField(read_only=True)
+    items_data = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Sales
         fields = [
             'id', 'date', 'description', 'sales_entries',
             'journal_entries', 'discount_allowed', 'invoice',
-            "serial_number",'type', 'item_list', 'total_amount'
+            "serial_number", 'items_data'
         ]
 
-    def get_type(self, obj):
+    
+
+    def get_items_data(self, obj):
         """Return the type based on the bill attribute."""
-        if hasattr(obj, 'bill') and obj.bill is not None:
-            return 'bill'
-        return 'regular'
+        type = 'regular'
+        sales_entries = SalesEntriesSerializer(obj.sales_entries.all(), many=True)
+        items_list = [entry['stock_name'] for entry in sales_entries.data]
+        total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity']) )for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
+        total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
+        amount_due = 0
 
-    def get_item_list(self, obj):
-        """Return a list of item names from purchase entries using the serializer."""
-        # Use the serializer to get the serialized data of purchase entries
-        purchase_entries = SalesEntriesSerializer(obj.sales_entries.all(), many=True)
-        return [entry['stock_name'] for entry in purchase_entries.data]  # Access item_name from serialized data
+        if hasattr(obj, 'invoice') and obj.invoice is not None:
+            amount_due = obj.invoice.amount_due
+            type = 'invoice'
 
-    def get_total_amount(self, obj):
-        """Return the total amount of all purchase entries."""
-        total = sum((float(entry['sales_price']) * float(entry['sold_quantity']) )for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
-        return total
+        return {
+            "list": items_list,
+            "type": type,
+            "total_amount": total_amount,
+            "total_quantity": total_quantity,
+            "amount_due": amount_due
+        }
 
     def validate(self, data):
         sales_entries = data.get('sales_entries')
@@ -74,10 +78,28 @@ class SalesSerializer(serializers.ModelSerializer):
         return sales
     
 class SalesDetailSerializer(SalesSerializer):
-    purchase_entries = SalesEntriesSerializer(many=True, read_only=True)
+    sales_entries = SalesEntriesSerializer(many=True, read_only=True)
     journal_entries = JournalEntrySerializer(many=True, read_only=True)
     discount_allowed = DiscountSerializer(allow_null=True, required=False, read_only=True)
+    invoice = InvoiceSerializer(read_only=True)
 
     class Meta:
         model = Sales
         fields = SalesSerializer.Meta.fields
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        journal_entries = data.get('journal_entries', [])
+        
+        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
+        
+        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
+        data['journal_entries'] = sorted_journal_entries
+        data['journal_entries_total'] = {
+            "debit_total": debit_total,
+            "credit_total": credit_total
+        }
+
+        return data

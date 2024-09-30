@@ -24,13 +24,16 @@ class JournalSerializer(serializers.ModelSerializer):
         
         journal_entries = data.get('journal_entries', [])
         
-        # Sort journal_entries with a key function
         sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
         
-        # You might want to update the data with the sorted entries
+        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
         data['journal_entries'] = sorted_journal_entries
+        data['journal_entries_total'] = {
+            "debit_total": debit_total,
+            "credit_total": credit_total
+        }
         
-        print(sorted_journal_entries)
 
         return data
 
@@ -57,4 +60,12 @@ class JournalSerializer(serializers.ModelSerializer):
             journal_entries_manager.create_journal_entries(journal_entries_data, "journal", journal, AccountDetailsSerializer)
 
         return journal
+    
+class JournalDetailSerializer(JournalSerializer):
+    bill = BillSerializer(read_only=True)
+    invoice = InvoiceSerializer(read_only=True)
+
+    class Meta:
+        model = Journal
+        fields = JournalSerializer.Meta.fields
     
