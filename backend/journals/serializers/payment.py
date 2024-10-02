@@ -11,6 +11,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     bill = serializers.CharField(write_only=True, required=False, allow_null=True)
     invoice = serializers.CharField(write_only=True, required=False, allow_null=True)
+    amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     
     journal_entries = JournalEntrySerializer(many=True)
 
@@ -18,23 +19,21 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries']
 
-    def validate(self, data):
-        journal_entries= data.get('journal_entries')
-        journal_entries_manager.validate_journal_entries(journal_entries)
-        return data
+   
 
     def create(self, validated_data):
         with transaction.atomic():
+
             journal_entries_data = validated_data.pop("journal_entries")
+
             bill_id = validated_data.get("bill")
             invoice_id = validated_data.get("invoice")
-            amount_paid = validated_data.get("amount_paid")
 
-            # Validation to ensure only one of bill_id or invoice_id is provided
+            amount_paid = sum(entry.get("amount") for entry in journal_entries_data)
+
             if invoice_id and bill_id:
                 raise serializers.ValidationError("Only one invoice or bill can be paid at a time")
 
-            # Creating Payment instance
             payment = None
             
             account_data = {}
@@ -49,7 +48,9 @@ class PaymentSerializer(serializers.ModelSerializer):
                 bill.amount_paid += amount_paid
                 bill.amount_due -= amount_paid
 
-                # Update the status of the bill
+                if bill.amount_paid > bill.total_amount:
+                    raise serializers.ValidationError("Amount to be paid can't be more the amount due")
+
                 bill.status = "paid" if bill.amount_due <= 0 else "partially_paid"
                 bill.save()
                 account_data = {
@@ -68,7 +69,9 @@ class PaymentSerializer(serializers.ModelSerializer):
                 invoice.amount_paid += amount_paid
                 invoice.amount_due -= amount_paid
 
-                # Update the status of the invoice
+                if invoice.amount_paid > invoice.total_amount:
+                    raise serializers.ValidationError("Amount to be paid can't be more the amount due")
+
                 invoice.status = "paid" if invoice.amount_paid >= invoice.total_amount else "partially_paid"
                 invoice.save()
                 account_data = {
@@ -77,9 +80,8 @@ class PaymentSerializer(serializers.ModelSerializer):
                     "account": account.id
                 }
             
-            payment = Payment.objects.create(**validated_data)
+            payment = Payment.objects.create(**validated_data, amount_paid=amount_paid)
 
-            # Add the account_data to journal_entries_data
             journal_entries_data.append(account_data)
             journal_entries_manager.validate_double_entry(journal_entries_data)
             journal_entries_manager.create_journal_entries(journal_entries_data, "payments", payment, AccountDetailsSerializer)

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from journals.models import SalesReturnEntries, SalesReturn, Sales, Account
 import decimal
 from django.db import transaction
-from .sales import SalesSerializer
+from .sales import SalesDetailSerializer
 from .account import AccountDetailsSerializer
 from journals.utils import JournalEntriesManager, SalesReturnEntriesManager
 
@@ -15,10 +15,16 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     sales_entry = serializers.CharField(write_only=True)
     sales_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    stock_name = serializers.SerializerMethodField(read_only=True)
+    stock = serializers.CharField(read_only=True)
+
 
     class Meta:
         fields = '__all__'
         model = SalesReturnEntries
+
+    def get_stock_name(self, obj):
+        return obj.stock.name
     
 class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -54,10 +60,8 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             cogs, total_sales_price = sales_return_entries_manager.create_sales_return_entries(return_entries, sales_return, sales)
             cogs_account = Account.objects.get(name="Cost of goods sold")
             inventory_account = Account.objects.get(name="Inventory")
-
-            #If its an invoice
             
-            sales_serializer = SalesSerializer(sales).data
+            sales_serializer = SalesDetailSerializer(sales).data
             if sales_serializer.get('invoice') != None:
                 invoice = sales
                 invoice.amount_due -= decimal.Decimal(total_sales_price)

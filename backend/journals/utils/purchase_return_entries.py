@@ -17,7 +17,7 @@ class PurchaseReturnEntriesManager:
             except PurchaseEntries.DoesNotExist:
                 raise serializers.ValidationError(f"Purchase entry with id {purchase_entry_id} not found")
             return_quantity = entry.get('return_quantity')
-            if purchase_entry.remaining_quantity > return_quantity and purchase_entry.remaining_quantity > 0:  
+            if purchase_entry.remaining_quantity >= return_quantity and purchase_entry.remaining_quantity > 0:  
                 entry['purchase_entry'] = purchase_entry
                 stock = purchase_entry.stock
                 purchase_entry.remaining_quantity -= return_quantity
@@ -28,6 +28,7 @@ class PurchaseReturnEntriesManager:
                     purchase_return=purchase_return,
                     cogs=return_cogs,
                     purchase_price=purchase_price,
+                    stock=stock,
                     **entry
                 )
                 purchase_entry.save()

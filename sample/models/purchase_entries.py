@@ -14,6 +14,5 @@ class PurchaseEntry(BaseModel):
     rem_quantity = Column(Integer)
     price = Column(Float)
     cogs = Column(Float)
-
     journal = relationship("Journal", backref=backref('purchase_entries', lazy='dynamic'))
     stock = relationship("Stock", backref=backref('purchase_entries', lazy='dynamic'))

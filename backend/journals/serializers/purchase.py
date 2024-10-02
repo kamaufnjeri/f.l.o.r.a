@@ -112,6 +112,5 @@ class PurchaseDetailSerializer(PurchaseSerializer):
             "credit_total": credit_total
         }
         
-        print(sorted_journal_entries)
 
         return data

@@ -28,11 +28,12 @@ class SalesReturnEntriesManager:
                 raise serializers.ValidationError(f"Sales entry with id {sales_entry_id} not found")
             
             entry['sales_entry'] = sales_entry
+            stock = sales_entry.stock
 
             return_quantity = entry.get('return_quantity')
             sales_price = sales_entry.sales_price
             
-            if return_quantity > sales_entry.sold_quantity:
+            if return_quantity > sales_entry.remaining_quantity:
                 raise serializers.ValidationError(
                     f"Sales return quantity {return_quantity} is more than the amount sold {sales_entry.sold_quantity}"
                 )
@@ -46,11 +47,12 @@ class SalesReturnEntriesManager:
             sales_returns_cogs, _ = self.reverse_fifo(sales_purchase_price_entries, return_quantity)
             SalesReturnEntries.objects.create(
                 sales_return=sales_return,
+                stock=stock,
                 sales_price=price,
                 cogs=sales_returns_cogs,
                 **entry
             )
-            sales_entry.sold_quantity -= return_quantity
+            sales_entry.remaining_quantity -= return_quantity
             sales_entry.save()
             cogs += float(sales_returns_cogs)
 
@@ -65,7 +67,7 @@ class SalesReturnEntriesManager:
             if remaining_quantity <= 0:
                 break
 
-            quantity_to_use = min(entry.sold_quantity, remaining_quantity)
+            quantity_to_use = min(entry.remaining_quantity, remaining_quantity)
             sales_purchase_cogs = entry.purchase_price * quantity_to_use
             sales_price += float(entry.sales_price * quantity_to_use)
             cogs += float(sales_purchase_cogs)
@@ -77,7 +79,7 @@ class SalesReturnEntriesManager:
             purchase_entry.save()
 
             # Update sales purchase price entry
-            entry.sold_quantity -= quantity_to_use
+            entry.remaining_quantity -= quantity_to_use
             entry.save()
 
         if remaining_quantity > 0:
@@ -90,7 +92,6 @@ class SalesReturnEntriesManager:
         remaining_amount = total_sales_price
 
         for entry in sales_journal_entries:
-            print(entry)
             if remaining_amount <= 0:
                 break
             account_id = entry.get('account')
@@ -109,6 +110,6 @@ class SalesReturnEntriesManager:
                 journal_entries.append(account_data)
 
         if remaining_amount > 0:
-            raise serializers.ValidationError('Total sales price of returned stocks is more than amount receied')
+            raise serializers.ValidationError('Total sales price of returned stocks is more than amount received')
         
         return journal_entries

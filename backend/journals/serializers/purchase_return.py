@@ -3,7 +3,7 @@ from journals.models import PurchaseReturnEntries, PurchaseReturn, Account, Purc
 from django.db import transaction
 from journals.utils import JournalEntriesManager, PurchaseReturnEntriesManager
 from .account import AccountDetailsSerializer
-from .purchase import PurchaseSerializer
+from .purchase import PurchaseDetailSerializer
 import decimal
 
 
@@ -17,10 +17,16 @@ class PurchaseReturnEntriesSerializer(serializers.ModelSerializer):
     purchase_entry = serializers.CharField(write_only=True)
     purchase_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    stock_name = serializers.SerializerMethodField(read_only=True)
+    stock = serializers.CharField(read_only=True)
 
     class Meta:
         fields = '__all__'
         model = PurchaseReturnEntries
+    
+    def get_stock_name(self, obj):
+        return obj.stock.name
+    
 
 class PurchaseReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -52,7 +58,7 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
             purchase_return = PurchaseReturn.objects.create(**validated_data)
             cogs = purchase_return_entries_manager.create_purchase_return_entries(return_entries, purchase_return, purchase)
 
-            purchase_serializer = PurchaseSerializer(purchase).data
+            purchase_serializer = PurchaseDetailSerializer(purchase).data
             if purchase_serializer.get('bill') != None:
                 bill = purchase.bill
                 bill.amount_due -= decimal.Decimal(cogs)

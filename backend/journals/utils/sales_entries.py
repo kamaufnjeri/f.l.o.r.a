@@ -22,7 +22,7 @@ class SalesEntriesManager:
                 purchase_price=entry.purchase_price,
                 sales_price=sales_entry.sales_price,
                 sold_quantity=quantity_to_use,
-                initial_quantity=quantity_to_use
+                remaining_quantity=quantity_to_use
             )
 
             if remaining_quantity <= 0:
@@ -65,7 +65,7 @@ class SalesEntriesManager:
         
             sales_entry = SalesEntries.objects.create(
                 sales=sales,
-                initial_quantity=sold_quantity,
+                remaining_quantity=sold_quantity,
                 **entry
             )
             sales_cogs = self.cost_of_goods_sold(sales_entry, purchase_entries)

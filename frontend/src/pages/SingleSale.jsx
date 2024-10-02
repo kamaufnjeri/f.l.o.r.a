@@ -1,26 +1,40 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getItems } from '../lib/helpers';
+import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
+import PaymentModal from '../components/modals/PaymentModal';
+import SalesReturnModal from '../components/modals/SalesReturnModal';
 
 const SingleSale = () => {
   const { id } = useParams();
   const [sale, setSale] = useState({});
   const [buttonName, SetButtonName] = useState('Show Journal Entries')
   const [showJournalEntries, setShowJournalEntries] = useState(false);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
+  const [openSaleReturnModal, setOpenSaleReturnModal] = useState();
 
+
+
+ 
+  const showModal = (setOpenModal) => {
+    setOpenModal(true);
+  };
+  const getData = async () => {
+    const sale = await getItems(`sales/${id}`);
+    setSale(sale)
+  }
+
+  const onPaymentSuccess = () => {
+    getData()
+  }
   useEffect(() => {
-    const getData = async () => {
-      const sale = await getItems(`sales/${id}`);
-      setSale(sale)
-    }
+   
     getData()
   }, []);
 
   const hideJournalEntries = () => {
     setShowJournalEntries(!showJournalEntries)
 
-    console.log('clicked')
     if (buttonName === 'Show Journal Entries') {
       SetButtonName('Hide Journal Entries')
     } else {
@@ -29,13 +43,21 @@ const SingleSale = () => {
   }
   return (
     <div className='flex flex-col gap-4 overflow-auto custom-scrollbar h-full'>
+      <SalesReturnModal title={`Sales return of sale# ${sale?.serial_number}`}
+      setOpenModal={setOpenSaleReturnModal}
+       sale={sale} openModal={openSaleReturnModal}/>
+      <PaymentModal 
+      onPaymentSuccess={onPaymentSuccess}
+      openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for invoice# ${sale?.invoice?.serial_number}`} type='debit' invoice_id={sale?.invoice?.id} />
+
 
       <div className='w-full flex flex-col gap-2 justify-between'>
         <InfoContainer header={'Sale#'} info={sale.serial_number} />
         <InfoContainer header={'Date:'} info={sale.date} />
         <InfoContainer header={'Type:'} info={sale?.items_data?.type} />
       </div>
-      {sale?.items_data?.type === 'invoice' && <div className='flex flex-col gap-2'>
+      {sale?.items_data?.type === 'invoice' && 
+      <div className='flex flex-col gap-2'>
         <div className='w-full flex flex-row'>
           <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
@@ -54,7 +76,9 @@ const SingleSale = () => {
             </span>
           </div>
         </div>
-        <div className='w-full flex flex-row'>
+        
+        {sale?.invoice?.amount_due > 0 && 
+        <><div className='w-full flex flex-row'>
           <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
               Due Date:
@@ -69,10 +93,40 @@ const SingleSale = () => {
             </h5>
             <span className='w-[60%] text-black font-semibold'>
               {sale?.invoice?.amount_due}
+              </span>
+            </div>
+          </div>
+            <div className='w-full flex flex-row'>
+              <div className='flex flex-row gap-5 w-[50%] px-2'>
+                <h5 className='w-[40%] text-lg font-bold'>
+                  Amount Paid:
+                </h5>
+                <span className='w-[60%] text-black font-semibold'>
+                  {sale?.invoice?.amount_paid}
+                </span>
+              </div>
+              <div className='flex flex-row gap-5 w-[50%] px-2'>
+                <button onClick={() => showModal(setOpenPaymentModal)} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
+                  Pay
+                </button>
+
+              </div>
+            </div>
+          </>}
+
+
+        <div className="w-full flex flex-row">
+        <div className='flex flex-row gap-5 w-[50%] px-2'>
+            <h5 className='w-[40%] text-lg font-bold'>
+              Status:
+            </h5>
+            <span className='w-[60%] text-black font-semibold'>
+              {capitalizeFirstLetter(replaceDash(sale?.invoice?.status))}
             </span>
           </div>
         </div>
-      </div>}
+      </div>
+      }
       <div className='p-1 flex flex-col'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No#</span>
@@ -141,7 +195,7 @@ const SingleSale = () => {
                     <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
                     <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
                   </div>)}
-                  <div className={`flex flex-row flex-1`}>
+                <div className={`flex flex-row flex-1`}>
                   <i className='text-sm w-[60%] p-1'>({sale.description})</i>
                   <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{sale?.journal_entries_total?.debit_total}</span>
                   <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{sale?.journal_entries_total?.debit_total}</span>
@@ -149,25 +203,28 @@ const SingleSale = () => {
               </span>
             </div>
           </div>}
-          <div className="w-[40%] self-start">
+          <div className="w-full flex flex-row gap-4">
 
-            <button onClick={hideJournalEntries} className={`w-full bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
+            <button onClick={hideJournalEntries} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
               {buttonName}
+            </button>
+            <button onClick={() => showModal(setOpenSaleReturnModal)} className={`w-[40%] bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
+              Sales Return
             </button>
 
           </div>
 
         </div>
         <div className='flex flex-row p-1 self-end w-[50%] gap-2 justify-between'>
-        <button className={`w-full bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
-              Download
-            </button>
-            <button className={`w-full bg-blue-700 text-white rounded-md h-90px border-2 border-blue-700 hover:bg-white hover:text-blue-700`}>
-              Edit
-            </button>
-            <button className={`w-full bg-red-700 text-white rounded-md h-90px border-2 border-red-700 hover:bg-white hover:text-red-700`}>
-              Delete
-            </button>
+          <button className={`w-full bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
+            Download
+          </button>
+          <button className={`w-full bg-blue-700 text-white rounded-md h-90px border-2 border-blue-700 hover:bg-white hover:text-blue-700`}>
+            Edit
+          </button>
+          <button className={`w-full bg-red-700 text-white rounded-md h-90px border-2 border-red-700 hover:bg-white hover:text-red-700`}>
+            Delete
+          </button>
         </div>
       </div >
     </div>

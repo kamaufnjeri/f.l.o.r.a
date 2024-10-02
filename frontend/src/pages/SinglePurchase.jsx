@@ -1,20 +1,33 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getItems } from '../lib/helpers';
+import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
+import PaymentModal from '../components/modals/PaymentModal';
+import PurchaseReturnModal from '../components/modals/PurchaseReturnModal';
 
 const SinglePurchase = () => {
   const { id } = useParams();
   const [purchase, setPurchase] = useState({});
   const [buttonName, SetButtonName] = useState('Show Journal Entries')
   const [showJournalEntries, setShowJournalEntries] = useState(false);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
+  const [openPurchaseReturnModal, setOpenPurchaseReturnModal] = useState();
+
+  const getData = async () => {
+    const purchase = await getItems(`purchases/${id}`);
+    setPurchase(purchase)
+  }
 
   useEffect(() => {
-    const getData = async () => {
-      const purchase = await getItems(`purchases/${id}`);
-      setPurchase(purchase)
-    }
+    
     getData()
   }, []);
+  const showModal = (setOpenModal) => {
+    setOpenModal(true);
+  };
+
+  const onPaymentSuccess = () => {
+    getData()
+  }
   const hideJournalEntries = () => {
     setShowJournalEntries(!showJournalEntries)
 
@@ -27,6 +40,12 @@ const SinglePurchase = () => {
   }
   return (
     <div className='flex flex-col gap-4 overflow-auto custom-scrollbar h-full'>
+      <PurchaseReturnModal title={`Purchase return of purchase# ${purchase?.serial_number}`}
+      setOpenModal={setOpenPurchaseReturnModal}
+       purchase={purchase} openModal={openPurchaseReturnModal}/>
+      <PaymentModal 
+      onPaymentSuccess={onPaymentSuccess}
+      openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for bill# ${purchase?.bill?.serial_number}`} type='credit' bill_id={purchase?.bill?.id}/>
 
       <div className='w-full flex flex-col gap-2 justify-between'>
         <InfoContainer header={'Purchase#'} info={purchase.serial_number} />
@@ -43,6 +62,7 @@ const SinglePurchase = () => {
               {purchase?.bill?.serial_number}
             </span>
           </div>
+          
           <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
               Supplier Name:
@@ -52,25 +72,58 @@ const SinglePurchase = () => {
             </span>
           </div>
         </div>
-        <div className='w-full flex flex-row'>
-          <div className='flex flex-row gap-5 w-[50%] px-2'>
-            <h5 className='w-[40%] text-lg font-bold'>
-              Due Date:
-            </h5>
-            <span className='w-[60%] text-black font-semibold'>
-              {purchase?.bill?.due_date}
-            </span>
+        {purchase.bill.amount_due > 0 && (
+          <> <div className='w-full flex flex-row'>
+            <div className='flex flex-row gap-5 w-[50%] px-2'>
+              <h5 className='w-[40%] text-lg font-bold'>
+                Due Date:
+              </h5>
+              <span className='w-[60%] text-black font-semibold'>
+                {purchase?.bill?.due_date}
+              </span>
+            </div>
+            <div className='flex flex-row gap-5 w-[50%] px-2'>
+              <h5 className='w-[40%] text-lg font-bold'>
+                Amount Due:
+              </h5>
+              <span className='w-[60%] text-black font-semibold'>
+                {purchase?.bill?.amount_due}
+              </span>
+            </div>
           </div>
-          <div className='flex flex-row gap-5 w-[50%] px-2'>
+            <div className='w-full flex flex-row'>
+              <div className='flex flex-row gap-5 w-[50%] px-2'>
+                <h5 className='w-[40%] text-lg font-bold'>
+                  Amount Paid:
+                </h5>
+                <span className='w-[60%] text-black font-semibold'>
+                  {purchase?.bill?.amount_paid}
+                </span>
+              </div>
+              <div className='flex flex-row gap-5 w-[50%] px-2'>
+                <button onClick={() => showModal(setOpenPaymentModal)} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
+                  Pay
+                </button>
+
+              </div>
+            </div>
+          </>
+
+
+        )
+        }
+        <div className="w-full flex flex-row">
+        <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
-              Amount Due:
+              Status:
             </h5>
             <span className='w-[60%] text-black font-semibold'>
-              {purchase?.bill?.amount_due}
+              {capitalizeFirstLetter(replaceDash(purchase?.bill?.status))}
             </span>
           </div>
         </div>
-      </div>}
+      </div>
+      }
       <div className='p-1 flex flex-col'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No#</span>
@@ -120,40 +173,42 @@ const SinglePurchase = () => {
           </div>}
         <div className='w-full flex flex-col p-1'>
           {showJournalEntries &&
-          <div className='p-1 flex flex-col w-full'>
-            <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-              <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                <div className='w-full flex flex-row flex-1'>
-                  <span className='w-[60%] p-1'>Account</span>
-                  <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
-                  <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
-                </div>
+            <div className='p-1 flex flex-col w-full'>
+              <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
+                <span className='w-full border-gray-800 border-r-2 flex flex-col'>
+                  <div className='w-full flex flex-row flex-1'>
+                    <span className='w-[60%] p-1'>Account</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
+                  </div>
 
-              </span>
+                </span>
 
-            </div>
-            <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
-              <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                {purchase.journal_entries && purchase.journal_entries.map((entry, index) =>
-                  <div className={`flex flex-row flex-1`} key={index}>
-                    <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
-                  </div>)}
-                <div className={`flex flex-row flex-1`}>
-                  <i className='text-sm w-[60%] p-1'>({purchase.description})</i>
-                  <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
-                  <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
-                </div>
-              </span>
-            </div>
-          </div>}
-          <div className="w-[40%] self-start">
+              </div>
+              <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
+                <span className='w-full border-gray-800 border-r-2 flex flex-col'>
+                  {purchase.journal_entries && purchase.journal_entries.map((entry, index) =>
+                    <div className={`flex flex-row flex-1`} key={index}>
+                      <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
+                      <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
+                      <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
+                    </div>)}
+                  <div className={`flex flex-row flex-1`}>
+                    <i className='text-sm w-[60%] p-1'>({purchase.description})</i>
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
+                  </div>
+                </span>
+              </div>
+            </div>}
+          <div className="w-full flex flex-row gap-4">
 
-            <button onClick={hideJournalEntries} className={`w-full bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
+            <button onClick={hideJournalEntries} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
               {buttonName}
             </button>
-
+            <button onClick={() => showModal(setOpenPurchaseReturnModal)} className={`w-[40%] bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
+              Purchase Return
+            </button>
           </div>
         </div>
 
