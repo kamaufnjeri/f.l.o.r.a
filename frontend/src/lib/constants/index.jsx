@@ -2,6 +2,47 @@ import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, Fa
 import { IoMdSettings, IoMdHelp  } from "react-icons/io";
 
 
+export const sortOptions = [
+    {
+        name: 'Reset',
+        value: 'reset'
+    },
+    {
+        name: "Newest Date",
+        value: "newest"
+    },
+    {
+        name: "Oldest Date",
+        value: "oldest"
+    },
+   
+]
+export const dateOptions = [
+    {
+        name: 'All',
+        value: 'all'
+    },
+    {
+        name: 'Today',
+        value: "today",
+    },
+    {
+        name: "Yesterday",
+        value: "yesterday"
+    },
+    {
+        name: "This Week",
+        value: "this_week"
+    },
+    {
+        name: "This Month",
+        value: "this_month"
+    },
+    {
+        name: "Custom Range",
+        value: '*',
+    }
+]
 export const accountGroups = [
 {
     name: 'Asset',

@@ -7,6 +7,8 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from django.db import models
+from datetime import datetime
+from journals.utils import date_filtering, sort_filtering
 
 
 class JournalPagination(PageNumberPagination):
@@ -21,30 +23,35 @@ class JournalFilter(DjangoFilterBackend):
     def filter_queryset(self, request, queryset, view):
         try:
             journals = request.query_params.get('journals')
-            
+            date = request.query_params.get('date')
+            sort_by = request.query_params.get('sort_by')
+
+            if date:
+                queryset = date_filtering(queryset, date)
+        
             if journals:
                 if journals == "is_invoices":
-                    queryset = Journal.objects.filter(invoice__isnull=False)
-               
+                    queryset = queryset.filter(invoice__isnull=False)
                 elif journals == "is_bills":
-                    queryset = Journal.objects.filter(bill__isnull=False)
-               
+                    queryset = queryset.filter(bill__isnull=False)
                 elif journals == "is_bills_or_invoices":
-                    queryset = Journal.objects.filter(models.Q(invoice__isnull=False) | models.Q(bill__isnull=False))
-
+                    queryset = queryset.filter(models.Q(invoice__isnull=False) | models.Q(bill__isnull=False))
                 elif journals == "is_not_bills_or_invoices":
-                    queryset = Journal.objects.filter(models.Q(invoice__isnull=True) & models.Q(bill__isnull=True))
-                
+                    queryset = queryset.filter(models.Q(invoice__isnull=True) & models.Q(bill__isnull=True))
                 elif journals == "all":
-                    queryset = Journal.objects.all()
+                    queryset = queryset
                 else:
-                    raise Exception("Valid options for journals are 'is_invoices' or 'is_bills' or or 'is_not_bills_or_invoices' or 'is_bills_or_invoices' or 'all'")
-            else:
-                queryset = Journal.objects.all()
+                    raise Exception("Valid options for journals are 'is_invoices', 'is_bills', 'is_bills_or_invoices', 'is_not_bills_or_invoices', or 'all'")
+            
+            if sort_by:
+                queryset = sort_filtering(queryset, sort_by)
+
             return queryset
 
         except Exception as e:
             raise Exception(str(e))
+
+
 
 
 

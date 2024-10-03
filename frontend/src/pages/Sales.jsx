@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
-import { capitalizeFirstLetter, getItems } from '../lib/helpers';
+import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { dateOptions, sortOptions } from '../lib/constants';
+import FromToDateModal from '../components/modals/FromToDateModal';
 
 const Sales = () => {
+  const [openDateModal, setOpenDateModal] = useState(false);
   const [searchItem, setSearchItem] = useState({
     name: '',
     sales: 'all',
+    date: 'all',
+    sortBy: 'reset',
   })
 
   const [selectOptions, setSelectOptions] = useState([
@@ -32,19 +37,68 @@ const Sales = () => {
   }, [])
   const handleChange = async (e) => {
     setSearchItem({ ...searchItem, name: e.target.value });
-    const queyParamsUrl = `?search=${e.target.value}&sales=${searchItem.sales}`
+    const queyParamsUrl = getQueryParams({
+      type: 'sales',
+      paginate: false,
+      search: e.target.value,
+      date: searchItem.date,
+      sortBy: searchItem.sortBy,
+      typeValue: searchItem.sales
+  })
 
-    console.log(queyParamsUrl)
     const newSales = await getItems('sales', queyParamsUrl);
     setSales(newSales)
   }
-  const handleSelectChange = async (e) => {
+  const handleSalesChange = async (e) => {
     setSearchItem({ ...searchItem, sales: e.target.value });
-    const queyParamsUrl = `?paginate=true&search=${searchItem.name}&sales=${e.target.value}`
+    const queyParamsUrl = getQueryParams({
+      type: 'sales',
+      paginate: true,
+      search: '',
+      date: searchItem.date,
+      sortBy: searchItem.sortBy,
+      typeValue: e.target.value
+    })
 
-    console.log(searchItem)
-    console.log(queyParamsUrl)
+    const newSalesData = await getItems('sales', queyParamsUrl);
+    setSalesData(newSalesData);
+    setPageNo(1);
 
+  }
+  const showModal = (setOpenModal) => {
+    setOpenModal(true);
+  };
+  const handleDatesChange = async (e) => {
+    if (e.target.value === '*') {
+      showModal(setOpenDateModal);
+    } else {
+
+      setSearchItem({ ...searchItem, date: e.target.value });
+      const queyParamsUrl = getQueryParams({
+        type: 'sales',
+        paginate: true,
+        search: '',
+        date: e.target.value,
+        sortBy: searchItem.sortBy,
+        typeValue: searchItem.sales
+      })
+      const newSalesData = await getItems('sales', queyParamsUrl);
+      setSalesData(newSalesData);
+      setPageNo(1);
+    }
+
+
+  }
+  const handleSortsChange = async (e) => {
+    setSearchItem({ ...searchItem, sortBy: e.target.value });
+    const queyParamsUrl = getQueryParams({
+      type: 'sales',
+      paginate: true,
+      search: '',
+      date: searchItem.date,
+      sortBy: e.target.value,
+      typeValue: searchItem.sales
+    })
     const newSalesData = await getItems('sales', queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
@@ -52,8 +106,14 @@ const Sales = () => {
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const queyParamsUrl = `?paginate=true&sales=${searchItem.sales}`
-    console.log(queyParamsUrl)
+    const queyParamsUrl = getQueryParams({
+      type: 'sales',
+      paginate: true,
+      search: searchItem.name,
+      date: searchItem.date,
+      sortBy: searchItem.sortBy,
+      typeValue: searchItem.sales
+    })
     const newSalesData = await getItems('sales', queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
@@ -93,18 +153,46 @@ const Sales = () => {
 
   return (
     <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+      <FromToDateModal
+        openModal={openDateModal}
+        setOpenModal={setOpenDateModal}
+        setSearchItem={setSearchItem}
+        searchItem={searchItem}
+        setData={setSalesData}
+        setPageNo={setPageNo}
+        type='sales'
+      />
       <FormHeader header='Sales List' />
       <div className='flex flex-row w-full items-center justify-between'>
-        <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[80%] text-black items-center gap-2'>
-          <div className='w-[70%] relative h-[90%] flex flex-row gap-2'>
-            <input type='name' className='w-[60%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter sales number or description' value={searchItem.name} onChange={e => handleChange(e)} />
-            <div className='p-1 cursor-pointer w-[40%] h-[90%] font-bold rounded-md border-2 border-gray-800'>
-              <select className='border-none outline-none' value={searchItem.sales} onChange={(e) => handleSelectChange(e)}>
-                {selectOptions.map((option, index) => (
-                  <option key={index} value={option.value}>{option.name}</option>
-                ))}
-              </select>
+        <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
+          <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
+            <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter sales number or description' value={searchItem.name} onChange={e => handleChange(e)} />
+            <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
+              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+                <select className='border-none outline-none' value={searchItem.sales} onChange={(e) => handleSalesChange(e)}>
+                  {selectOptions.map((option, index) => (
+                    <option key={index} value={option.value}>{option.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+                <select className='border-none outline-none' value={searchItem.date} onChange={(e) => handleDatesChange(e)}>
+                  {dateOptions.map((option, index) => (
+                    <option key={index} value={option.value}>{option.name}</option>
+                  ))}
+                  {searchItem.date && searchItem.date.includes('to') && (
+                    <option value={searchItem.date}>{searchItem.date}</option>
+                  )}
+                </select>
 
+              </div>
+              <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
+                <select className='border-none outline-none' value={searchItem.sortBy} onChange={(e) => handleSortsChange(e)}>
+                  {sortOptions.map((option, index) => (
+                    <option key={index} value={option.value}>{option.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             {sales.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
@@ -112,7 +200,7 @@ const Sales = () => {
             </div>}
           </div>
 
-          <button className='w-[30%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
+          <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
 
       </div>

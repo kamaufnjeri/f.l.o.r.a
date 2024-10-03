@@ -1,6 +1,6 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
-from journals.utils import flatten_errors
+from journals.utils import flatten_errors, date_filtering, sort_filtering
 from journals.models import Sales
 from journals.serializers import SalesSerializer, SalesDetailSerializer
 from rest_framework.filters import SearchFilter
@@ -20,18 +20,26 @@ class SalesFilter(DjangoFilterBackend):
     def filter_queryset(self, request, queryset, view):
         try:
             sales = request.query_params.get('sales')
+            date = request.query_params.get('date')
+            sort_by = request.query_params.get('sort_by')
+
+            if date:
+                queryset = date_filtering(queryset, date)
             
             if sales:
                 if sales == "is_invoices":
-                    queryset = Sales.objects.filter(invoice__isnull=False)
+                    queryset = queryset.filter(invoice__isnull=False)
                 elif sales == "is_not_invoices":
-                    queryset = Sales.objects.filter(invoice__isnull=True)
+                    queryset = queryset.filter(invoice__isnull=True)
                 elif sales == "all":
-                    queryset = Sales.objects.all()
+                    queryset = queryset.all()
                 else:
                     raise Exception("Valid options for sales are 'is_invoices' or 'is_not_invoices' or 'all'")
             else:
-                queryset = Sales.objects.all()
+                queryset = queryset.all()
+
+            if sort_by:
+                queryset = sort_filtering(queryset, sort_by)
             return queryset
 
         except Exception as e:

@@ -1,11 +1,12 @@
 from journals.models import Purchase
 from rest_framework.response import Response
-from journals.utils import flatten_errors
+from journals.utils import flatten_errors, date_filtering, sort_filtering
 from rest_framework import generics, status, serializers
 from journals.serializers import PurchaseSerializer, PurchaseDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+
 
 
 class PurchasePagination(PageNumberPagination):
@@ -20,18 +21,27 @@ class PurchaseFilter(DjangoFilterBackend):
     def filter_queryset(self, request, queryset, view):
         try:
             purchases = request.query_params.get('purchases')
+            date = request.query_params.get('date')
+            sort_by = request.query_params.get('sort_by')
+
+            if date:
+                queryset = date_filtering(queryset, date)
             
             if purchases:
                 if purchases == "is_bills":
-                    queryset = Purchase.objects.filter(bill__isnull=False)
+                    queryset = queryset.filter(bill__isnull=False)
                 elif purchases == "is_not_bills":
-                    queryset = Purchase.objects.filter(bill__isnull=True)
+                    queryset =queryset.filter(bill__isnull=True)
                 elif purchases == "all":
-                    queryset = Purchase.objects.all()
+                    queryset = queryset.all()
                 else:
                     raise Exception("Valid options for purchases are 'is_bills' or 'is_not_bills' or 'all'")
             else:
-                queryset = Purchase.objects.all()
+                queryset = queryset
+
+            if sort_by:
+                queryset = sort_filtering(queryset, sort_by)
+                
             return queryset
 
         except Exception as e:

@@ -94,3 +94,17 @@ export const replaceDash= (string) => {
   newString = newString.replace(/_/g, ' ');
   return newString;
 }
+
+
+export const getQueryParams = (data) => {
+  const {type, paginate=true, search, date, sortBy, typeValue} = data;
+  console.log(data)
+  let queryParams = `?search=${search}&${type}=${typeValue}&date=${date}&sort_by=${sortBy}`
+
+  if (paginate) {
+    const paginate = '&paginate=true'
+    queryParams = queryParams.concat(paginate);
+  }
+  console.log(queryParams)
+  return queryParams;
+}
