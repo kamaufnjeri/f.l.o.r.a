@@ -8,6 +8,7 @@ class PurchaseReturn(BaseModel):
     date = models.DateField()
     description = models.TextField()
     purchase = models.ForeignKey(Purchase, related_name='purchase_return', on_delete=models.CASCADE)
+    
 
     def __str__(self):
         return self.description

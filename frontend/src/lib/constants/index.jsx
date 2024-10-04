@@ -2,6 +2,46 @@ import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, Fa
 import { IoMdSettings, IoMdHelp  } from "react-icons/io";
 
 
+export const dueDaysOptions = [
+    {
+        name: "All", 
+        value: "all"
+    },
+    {
+        name: "In two days",
+        value: "in_two"
+    },
+    {
+        name: "3 to 7 days",
+        value: "three_to_seven"
+    }, {
+        name: "8 to 30 days",
+        value: "eight_to_thirty"
+    },
+    {
+        name: "More than 30 days",
+        value: "than_thirty"
+    },
+    {
+        name: "Overdue",
+        value: "overdue"
+    }
+]
+export const statusOptions = [
+    {
+        name: "All", 
+        value: "all"
+    },
+    {
+        name: "Paid",
+        value: "paid"
+    },
+    {
+        name: "Unpaid",
+        value: "unpaid"
+    },
+    
+]
 export const sortOptions = [
     {
         name: 'Reset',
@@ -254,6 +294,10 @@ export const sidebarIcons = [
         {
             name: 'View purchases',
             url: '/purchases'
+        },
+        {
+            name: 'View purchase returns',
+            url: '/purchase_returns'
         }
     ]
   },
@@ -272,6 +316,10 @@ export const sidebarIcons = [
         {
             name: 'View sales',
             url: '/sales'
+        },
+        {
+            name: 'View sales returns',
+            url: '/sales_returns'
         }
     ]
   },

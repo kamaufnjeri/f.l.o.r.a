@@ -29,9 +29,14 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
 class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = SalesReturnEntriesSerializer(many=True)
+    sales_no = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'sales']
+        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no']
         model = SalesReturn
+
+    def get_sales_no(self, obj):
+        return obj.sales.serial_number
 
     def validate(self, data):
         sales_return_entries = data.get('return_entries')

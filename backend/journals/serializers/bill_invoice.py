@@ -26,25 +26,31 @@ class BillDetailSerializer(BillSerializer):
         data = {}
         type = ''
         url = ''
-        overdue_days = 0
+        due_days = 0
         today = datetime.now().date()
         
         if hasattr(obj, 'journal') and obj.journal is not None:
             type = 'journal'
-            url = f'journals/{obj.journal.id}/'
+            url = f'journals/{obj.journal.id}'
             
         elif hasattr(obj, 'purchase') and obj.purchase is not None:
             type = 'purchase'
-            url = f'sales/{obj.purchase.id}/'
+            url = f'purchases/{obj.purchase.id}'
            
-        if today > obj.due_date:
-            overdue_days = today - obj.due_date
-            overdue_days = overdue_days.days
+        due_diff = obj.due_date - today
+        due_days = due_diff.days
+
+        if due_days < 0 and obj.status != "paid":
+            due_days = f"Overdue by {(-1 * due_days)} days"
+        elif due_days > 0:
+            due_days = f"{due_days} days"
+        else:
+            due_days = "Not due"
 
         data = {
             "type": type,
             "url": url,
-            "overdue_days": overdue_days
+            "due_days": due_days
         }
 
         return data
@@ -71,33 +77,42 @@ class InvoiceDetailSerializer(InvoiceSerializer):
     invoice_data = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = Bill
-        fields = BillSerializer.Meta.fields + ["invoice_data"]
+        model =Invoice
+        fields = InvoiceSerializer.Meta.fields + ["invoice_data"]
    
     
     def get_invoice_data(self, obj):
         data = {}
         type = ''
         url = ''
-        overdue_days = 0
+        due_days = 0
         today = datetime.now().date()
         
         if hasattr(obj, 'journal') and obj.journal is not None:
             type = 'journal'
-            url = f'journals/{obj.journal.id}/'
+            url = f'journals/{obj.journal.id}'
             
         elif hasattr(obj, 'sales') and obj.sales is not None:
             type = 'sales'
-            url = f'sales/{obj.sales.id}/'
+            url = f'sales/{obj.sales.id}'
            
-        if today > obj.due_date:
-            overdue_days = today - obj.due_date
-            overdue_days = overdue_days.days
+        due_diff = obj.due_date - today
+        due_days = due_diff.days
+
+        if due_days < 0 and obj.status != "paid":
+            due_days = f"Overdue by {(-1 * due_days)} days"
+        elif due_days > 0:
+            due_days = f"{due_days} days"
+        else:
+            due_days = "Not due"
+
+
+
 
         data = {
             "type": type,
             "url": url,
-            "overdue_days": overdue_days
+            "due_days": due_days
         }
 
         return data

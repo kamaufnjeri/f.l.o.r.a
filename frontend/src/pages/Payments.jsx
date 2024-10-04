@@ -1,40 +1,37 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
-import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
+import { capitalizeFirstLetter, getItems, paymentsQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { dateOptions, sortOptions } from '../lib/constants';
-import FromToDateModal from '../components/modals/FromToDateModal';
-import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
+import FromToDateModal from '../components/modals/FromToDateModal';
+import TypesFilter from '../components/filters/TypesFilter';
 
-const Journals = () => {
+const Payments = () => {
     const [openDateModal, setOpenDateModal] = useState(false);
     const [searchItem, setSearchItem] = useState({
         name: '',
-        journals: '',
+        type: "",
         date: '',
         sortBy: '',
     })
 
     const [selectOptions, setSelectOptions] = useState([
         { name: "All", value: "all" },
-        { name: "Invoice Journals", value: "is_invoices" },
-        { name: "Bill Journals", value: "is_bills" },
-        { name: "Bill and Invoice Journals", value: "is_bills_or_invoices" },
-        { name: "Regular Journals", value: "is_not_bills_or_invoices" },
+        { name: "Invoices", value: "invoices" },
+        { name: "Bills", value: "bills" },
     ])
 
-    const [journals, setJournals] = useState([]);
-    const [journalsData, setJournalsData] = useState([]);
+    const [payments, setPayments] = useState([]);
+    const [paymentsData, setPaymentsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const getData = async () => {
-        const newJournalsData = await getItems('journals', `?paginate=true`);
-        setJournalsData(newJournalsData);
+        const newPaymentsData = await getItems('payments', `?paginate=true`);
+        setPaymentsData(newPaymentsData);
     }
     useEffect(() => {
 
@@ -42,29 +39,27 @@ const Journals = () => {
     }, [])
     const handleChange = async (e) => {
         setSearchItem({ ...searchItem, name: e.target.value });
-        const queyParamsUrl = getQueryParams({
-            type: 'journals',
+        const queyParamsUrl = paymentsQueryParams({
+            type: searchItem.type,
             paginate: false,
             search: e.target.value,
             date: searchItem.date,
             sortBy: searchItem.sortBy,
-            typeValue: searchItem.journals
         })
-        const newJournals = await getItems('journals', queyParamsUrl);
-        setJournals(newJournals)
+        const newPayments = await getItems('payments', queyParamsUrl);
+        setPayments(newPayments)
     }
-    const handleJournalsChange = async (e) => {
-        setSearchItem({ ...searchItem, journals: e.target.value });
-        const queyParamsUrl = getQueryParams({
-            type: 'journals',
+    const handleTypesChange = async (e) => {
+        setSearchItem({ ...searchItem, type: e.target.value });
+        const queyParamsUrl = paymentsQueryParams({
+            type: e.target.value,
             paginate: true,
             search: '',
             date: searchItem.date,
-            sortBy: searchItem.sortBy,
-            typeValue: e.target.value
+            sortBy: searchItem.sortBy
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
-        setJournalsData(newJournalsData);
+        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        setPaymentsData(newPaymentsData);
         setPageNo(1);
 
     }
@@ -77,16 +72,15 @@ const Journals = () => {
         } else {
 
             setSearchItem({ ...searchItem, date: e.target.value });
-            const queyParamsUrl = getQueryParams({
-                type: 'journals',
+            const queyParamsUrl = paymentsQueryParams({
+                type: searchItem.type,
                 paginate: true,
                 search: '',
                 date: e.target.value,
                 sortBy: searchItem.sortBy,
-                typeValue: searchItem.journals
             })
-            const newJournalsData = await getItems('journals', queyParamsUrl);
-            setJournalsData(newJournalsData);
+            const newPaymentsData = await getItems('payments', queyParamsUrl);
+            setPaymentsData(newPaymentsData);
             setPageNo(1);
         }
 
@@ -94,63 +88,61 @@ const Journals = () => {
     }
     const handleSortsChange = async (e) => {
         setSearchItem({ ...searchItem, sortBy: e.target.value });
-        const queyParamsUrl = getQueryParams({
-            type: 'journals',
+        const queyParamsUrl = paymentsQueryParams({
+            type: searchItem.type,
             paginate: true,
             search: '',
             date: searchItem.date,
             sortBy: e.target.value,
-            typeValue: searchItem.journals
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
-        setJournalsData(newJournalsData);
+        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        setPaymentsData(newPaymentsData);
         setPageNo(1);
 
     }
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const queyParamsUrl = getQueryParams({
-            type: 'journals',
+        const queyParamsUrl = paymentsQueryParams({
+            type: searchItem.type,
             paginate: true,
             search: searchItem.name,
             date: searchItem.date,
             sortBy: searchItem.sortBy,
-            typeValue: searchItem.journals
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
-        setJournalsData(newJournalsData);
+        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        setPaymentsData(newPaymentsData);
         setPageNo(1);
         setSearchItem({ ...searchItem, name: '' })
     }
 
     const nextPage = async () => {
         try {
-            const response = await axios.get(journalsData.next);
+            const response = await axios.get(paymentsData.next);
             if (response.status == 200) {
-                setJournalsData(response.data)
+                setPaymentsData(response.data)
                 setPageNo(pageNo + 1);
             } else {
                 throw new Error();
             }
         }
         catch (error) {
-            toast.error(`Error': Error fetching journals`);
+            toast.error(`Error': Error fetching payments`);
         }
     }
 
     const previousPage = async () => {
 
         try {
-            const response = await axios.get(journalsData.previous);
+            const response = await axios.get(paymentsData.previous);
             if (response.status == 200) {
-                setJournalsData(response.data)
+                setPaymentsData(response.data)
                 setPageNo(pageNo - 1);
             } else {
                 throw new Error();
             }
         }
         catch (error) {
-            toast.error(`Error': Error fetching Journals`);
+            toast.error(`Error': Error fetching Payments`);
         }
     }
 
@@ -162,32 +154,32 @@ const Journals = () => {
                 setOpenModal={setOpenDateModal}
                 setSearchItem={setSearchItem}
                 searchItem={searchItem}
-                setData={setJournalsData}
+                setData={setPaymentsData}
                 setPageNo={setPageNo}
-                type='journals'
+                type='payments'
             />
-            <FormHeader header='Journals List' />
+            <FormHeader header='Payments List' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-1'>
                     <div className='w-[90%] relative h-[90%] flex flex-row gap-1'>
-                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter journal number or description' value={searchItem.name} onChange={e => handleChange(e)} />
+                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter bill/invoice number or description' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
-                            
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                            <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='journals' handleTypesChange={handleJournalsChange}/>
-
+                                <TypesFilter handleTypesChange={handleTypesChange} searchItem={searchItem} selectOptions={selectOptions} type='type'/>
                             </div>
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange}/>
+                                <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
 
                             </div>
                             <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                               <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange}/>
+                                <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem}/>
                             </div>
                         </div>
-                        {journals.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+                        {payments.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {journals.map((journal) => (<Link to={`/journals/${journal.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{journal.serial_number}</Link>))}
+                            {payments.map((payment) => (<Link to={`/${payment?.payment_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{
+                            payment?.payment_data?.type == "bill" ? payment?.payment_data?.bill_no : payment?.payment_data?.invoice_no
+                            }</Link>))}
                         </div>}
                     </div>
 
@@ -199,10 +191,12 @@ const Journals = () => {
 
             <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Journal #</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
+                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Payment #</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Bill/Invoice #</span>
+                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                    <span className='w-[60%] border-gray-800 border-r-2 flex flex-col'>
+                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Amount Paid</span>
+                    <span className='w-[50%] border-gray-800 border-r-2 flex flex-col'>
                         <div className='flex flex-row flex-1'>
                             <span className='w-[60%] p-1'>Account</span>
                             <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
@@ -213,24 +207,25 @@ const Journals = () => {
 
 
                 </div>
-                {journalsData?.results?.data && journalsData.results.data.map((journal, index) => (
-                    <Link to={`/journals/${journal.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(journal.type)}</span>
+                {paymentsData?.results?.data && paymentsData.results.data.map((payment, index) => (
+                    <Link to={`/${payment?.payment_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{payment?.payment_data?.type == "bill" ? payment?.payment_data?.bill_no : payment?.payment_data?.invoice_no }</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{payment.date}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(payment?.payment_data?.type)}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{payment.amount_paid}</span>
 
-
-                        <span className='w-[60%] border-gray-800 border-r-2 flex flex-col'>
-                            {journal.journal_entries.map((entry, index) =>
+                        <span className='w-[50%] border-gray-800 border-r-2 flex flex-col'>
+                            {payment.journal_entries.map((entry, index) =>
                                 <div className={`flex flex-row flex-1`} key={index}>
                                     <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
                                     <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
                                     <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
                                 </div>)}
                             <div className={`flex flex-row flex-1`}>
-                                <i className='text-sm w-[60%] p-1'>({journal.description})</i>
-                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
-                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
+                                <i className='text-sm w-[60%] p-1'>({payment.description})</i>
+                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{payment?.journal_entries_total?.debit_total}</span>
+                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{payment?.journal_entries_total?.debit_total}</span>
                             </div>
                         </span>
 
@@ -239,12 +234,12 @@ const Journals = () => {
                 ))}
             </div>
             <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-                {journalsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
+                {paymentsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
                 <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-                {journalsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
+                {paymentsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
             </div>
         </div>
     )
 }
 
-export default Journals
+export default Payments

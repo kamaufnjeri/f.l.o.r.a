@@ -136,7 +136,7 @@ const SinglePurchase = () => {
         </div>
 
         {purchase.purchase_entries && purchase.purchase_entries.map((entry, index) => (
-          <div className='w-full flex flex-row text-xl font-bold border-b-2 border-gray-800 border-l-2'>
+          <div className='w-full flex flex-row text-xl font-bold border-b-2 border-gray-800 border-l-2' key={index}>
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
             <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.stock_name}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.purchase_price}</span>

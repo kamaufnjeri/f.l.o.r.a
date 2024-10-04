@@ -8,14 +8,17 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { dateOptions, sortOptions } from '../lib/constants';
 import FromToDateModal from '../components/modals/FromToDateModal';
+import TypesFilter from '../components/filters/TypesFilter';
+import DateFilter from '../components/filters/DateFilter';
+import SortFilter from '../components/filters/SortFilter';
 
 const Sales = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
   const [searchItem, setSearchItem] = useState({
     name: '',
-    sales: 'all',
-    date: 'all',
-    sortBy: 'reset',
+    sales: '',
+    date: '',
+    sortBy: '',
   })
 
   const [selectOptions, setSelectOptions] = useState([
@@ -169,29 +172,15 @@ const Sales = () => {
             <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter sales number or description' value={searchItem.name} onChange={e => handleChange(e)} />
             <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
               <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                <select className='border-none outline-none' value={searchItem.sales} onChange={(e) => handleSalesChange(e)}>
-                  {selectOptions.map((option, index) => (
-                    <option key={index} value={option.value}>{option.name}</option>
-                  ))}
-                </select>
+                <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='sales' handleTypesChange={handleSalesChange} />
+
               </div>
               <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                <select className='border-none outline-none' value={searchItem.date} onChange={(e) => handleDatesChange(e)}>
-                  {dateOptions.map((option, index) => (
-                    <option key={index} value={option.value}>{option.name}</option>
-                  ))}
-                  {searchItem.date && searchItem.date.includes('to') && (
-                    <option value={searchItem.date}>{searchItem.date}</option>
-                  )}
-                </select>
+                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
               </div>
               <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                <select className='border-none outline-none' value={searchItem.sortBy} onChange={(e) => handleSortsChange(e)}>
-                  {sortOptions.map((option, index) => (
-                    <option key={index} value={option.value}>{option.name}</option>
-                  ))}
-                </select>
+                <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange} />
               </div>
             </div>
             {sales.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>

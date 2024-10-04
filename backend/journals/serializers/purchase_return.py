@@ -31,9 +31,15 @@ class PurchaseReturnEntriesSerializer(serializers.ModelSerializer):
 class PurchaseReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = PurchaseReturnEntriesSerializer(many=True)
+    purchase_no = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'purchase']
+        fields = ['id', 'date', 'description', 'return_entries', 'purchase', "purchase_no"]
         model = PurchaseReturn
+
+    def get_purchase_no(self, obj):
+        return obj.purchase.serial_number
+    
 
     def validate(self, data):
         purchase_return_entries = data.get('return_entries')

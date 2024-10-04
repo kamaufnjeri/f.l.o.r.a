@@ -98,13 +98,46 @@ export const replaceDash= (string) => {
 
 export const getQueryParams = (data) => {
   const {type, paginate=true, search, date, sortBy, typeValue} = data;
-  console.log(data)
   let queryParams = `?search=${search}&${type}=${typeValue}&date=${date}&sort_by=${sortBy}`
 
   if (paginate) {
     const paginate = '&paginate=true'
     queryParams = queryParams.concat(paginate);
   }
+  return queryParams;
+}
+
+export const invoiceBillQueryParam = (data) => {
+  const { search, dueDays, status, paginate } = data;
+  let queryParams = `?search=${search}&status=${status}&due_days=${dueDays}`
+
+  if (paginate) {
+    const paginate = '&paginate=true'
+    queryParams = queryParams.concat(paginate)
+  }
+  return queryParams;
+}
+
+export const returnsQueryParams = (data) => {
+  const {paginate=true, search, date, sortBy} = data;
+  let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}`
+
+  if (paginate) {
+    const paginate = '&paginate=true'
+    queryParams = queryParams.concat(paginate);
+  }
+  return queryParams;
+}
+
+
+export const paymentsQueryParams = (data) => {
+  const {paginate=true, search, date, sortBy, type} = data;
+  let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}&type=${type}`
   console.log(queryParams)
+
+  if (paginate) {
+    const paginate = '&paginate=true'
+    queryParams = queryParams.concat(paginate);
+  }
   return queryParams;
 }

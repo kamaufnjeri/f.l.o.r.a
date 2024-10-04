@@ -3,6 +3,7 @@ from .journal_entries import JournalEntrySerializer
 from journals.models import Payment, Bill, Invoice
 from journals.utils import JournalEntriesManager
 from django.db import transaction
+from .bill_invoice import BillDetailSerializer, InvoiceDetailSerializer
 from .account import AccountDetailsSerializer
 
 journal_entries_manager = JournalEntriesManager()
@@ -12,14 +13,53 @@ class PaymentSerializer(serializers.ModelSerializer):
     bill = serializers.CharField(write_only=True, required=False, allow_null=True)
     invoice = serializers.CharField(write_only=True, required=False, allow_null=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    
     journal_entries = JournalEntrySerializer(many=True)
+    payment_data = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Payment
-        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries']
+        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries', 'payment_data']
 
-   
+    def get_payment_data(self, obj):
+        type = ''
+        url = ''
+        bill_no = ''
+        invoice_no = ''
+        if hasattr(obj, 'invoice') and obj.invoice is not None:
+            type = 'invoice'
+            invoice_no = obj.invoice.serial_number
+            url = InvoiceDetailSerializer(obj.invoice).data.get("invoice_data").get("url")
+        elif hasattr(obj, 'bill') and obj.bill is not None:
+            type = 'bill'
+            bill_no = obj.bill.serial_number
+            url = BillDetailSerializer(obj.bill).data.get("bill_data").get("url")
+        
+        data = {
+            "type": type,
+            "bill_no": bill_no,
+            "invoice_no": invoice_no,
+            "url": url
+        }
+    
+        return data
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        journal_entries = data.get('journal_entries', [])
+        
+        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
+        
+        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
+        data['journal_entries'] = sorted_journal_entries
+        data['journal_entries_total'] = {
+            "debit_total": debit_total,
+            "credit_total": credit_total
+        }
+        
+
+        return data
 
     def create(self, validated_data):
         with transaction.atomic():
