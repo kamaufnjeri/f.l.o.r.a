@@ -11,7 +11,7 @@ const Layout = () => {
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [openAddItemModal, setOpenAddItemModal] = useState(false);
     const [openAddAccountModal, setOpenAddAccountModal] = useState(false);
-    const [showSideBar, setShowSideBar] = useState(false)
+    const [showSideBar, setShowSideBar] = useState(true)
 
   // Update windowWidth state when the window is resized
   useEffect(() => {
