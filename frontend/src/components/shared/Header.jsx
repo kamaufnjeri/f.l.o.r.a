@@ -4,7 +4,8 @@ import { MdLogout } from "react-icons/md";
 import { Link } from 'react-router-dom';
 
 
-const Header = ({ setOpenAddAccountModal, setOpenAddItemModal }) => {
+const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, showSideBar }) => {
+  
     const [isVisible, setIsVisible] = useState(false);
     const openDropDown = () => {
         setIsVisible(!isVisible);
@@ -12,8 +13,12 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal }) => {
     const showModal = (setOpenModal) => {
       setOpenModal(true);
     };
+    const showSideBarFunc = () => {
+      setShowSideBar(true)
+    }
   return (
-    <div className='font-bold h-[60px] text-gray-800 absolute top-0 right-0 left-[15rem] flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300'>
+    <div className={`font-bold h-[60px] text-gray-800 absolute top-0 right-0 flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300 ${showSideBar ? 'left-[16rem]' : 'w-full'}`}>
+      {!showSideBar && <FaBars className='text-2xl hover:text-purple-700 ml-2' onClick={() => showSideBarFunc()}/>}
       <div className='flex flex-row gap-2 items-center hover:text-purple-700'>
         <img src="/assets/apple.jpg" alt="Apple Logo" className='w-14 h-14 rounded-full'/>
         <span>Apple Inc.</span>
@@ -34,7 +39,7 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal }) => {
             <img src="/assets/flora.png" alt="" className='w-14 h-14 rounded-full cursor-pointer'/>
         </button>
         
-            <div className={`absolute right-1 top-16 rounded-sm w-[10rem] p-1
+            <div className={`absolute right-1 top-16 rounded-sm w-[10rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${
                 isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
                 <Link to='/profile' className='hover:bg-neutral-200 w-full p-1 rounded-sm'>Your profile</Link>

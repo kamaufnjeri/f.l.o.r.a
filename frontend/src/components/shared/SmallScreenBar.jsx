@@ -30,7 +30,7 @@ const SmallScreenBar = () => {
             {navbar && <FaTimes className='text-2xl hover:text-purple-700' onClick={() => showNavbar()}/>}
             {!navbar &&<FaBars className='text-2xl hover:text-purple-700' onClick={() => showNavbar()}/>}
         </div>
-        <div className={`absolute bottom-0 left-0 right-0 top-[5rem] z-10 h-auto overflow-scrolly-auto custom-scrollbar w-screen ${navbar ? 'show-small-screen-navbar' : 'hide-small-screen-navbar'} bg-neutral border-r-2 border-gray-400 flex flex-col`}>
+        <div className={`absolute bottom-0 left-0 right-0 top-[5rem] bg-neutral-200 z-10 h-auto overflow-scrolly-auto custom-scrollbar w-screen ${navbar ? 'show-small-screen-navbar' : 'hide-small-screen-navbar'} bg-neutral border-r-2 border-gray-400 flex flex-col`}>
        <div className='flex flex-row gap-2 items-center hover:text-purple-700 m-2 p-1 font-bold'>
         <span>Apple Inc.</span>
       </div>
