@@ -82,10 +82,11 @@ class SalesDetailSerializer(SalesSerializer):
     journal_entries = JournalEntrySerializer(many=True, read_only=True)
     discount_allowed = DiscountSerializer(allow_null=True, required=False, read_only=True)
     invoice = InvoiceSerializer(read_only=True)
+    has_returns = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Sales
-        fields = SalesSerializer.Meta.fields
+        fields = SalesSerializer.Meta.fields + ["has_returns"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -103,3 +104,10 @@ class SalesDetailSerializer(SalesSerializer):
         }
 
         return data
+    
+    def get_has_returns(self, obj):
+        if hasattr(obj, "sales_return") and obj.sales_return.exists():
+            
+            return True
+
+        return False

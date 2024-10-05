@@ -56,10 +56,12 @@ export const postRequest = async (values, url, resetForm=null) => {
 export const getItems = async (name, filterUrl=null) => {
   let url = '';
   if (filterUrl) {
+    
       url = `${BACKEND_URL}/${name}/${filterUrl}`;
   } else {
       url = `${BACKEND_URL}/${name}/`
   }
+  console.log(url)
   try {
     const response = await axios.get(url);
     if (response.status == 200) {

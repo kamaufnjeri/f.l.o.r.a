@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
 import PaymentModal from '../components/modals/PaymentModal';
+import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 
 const SingleJournal = () => {
   const { id } = useParams();
@@ -11,6 +12,15 @@ const SingleJournal = () => {
   const [invoiceId, setInvoiceId] = useState(null);
   const [billId, setBillId] = useState(null);
   const [type, setType] = useState('');
+
+  const [isVisible, setIsVisible] = useState(false);
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
 
 
   const showModal = (setOpenModal) => {
@@ -30,11 +40,11 @@ const SingleJournal = () => {
       setBillId(journal?.bill?.id)
       setType('credit')
     }
-    
+
 
   }
   useEffect(() => {
-   
+
     getData()
   }, []);
 
@@ -43,21 +53,46 @@ const SingleJournal = () => {
   }
 
   return (
-    <div className='flex flex-col gap-4 overflow-auto custom-scrollbar h-full'>
+    <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       <PaymentModal
         openModal={openPaymentModal}
-       setOpenModal={setOpenPaymentModal}
-       type={type} title={modalTitle}
-       invoice_id={invoiceId}
-       bill_id={billId}
-       onPaymentSuccess={onPaymentSuccess}
+        setOpenModal={setOpenPaymentModal}
+        type={type} title={modalTitle}
+        invoice_id={invoiceId}
+        bill_id={billId}
+        onPaymentSuccess={onPaymentSuccess}
       />
 
 
       <div className='w-full flex flex-col gap-2 justify-between'>
-        <InfoContainer header={'Journal#'} info={journal.serial_number} />
+        <div className='relative'>
+          <InfoContainer header={'Journal#'} info={journal.serial_number} />
+          <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+            {(journal.type !== 'regular' &&
+              ((journal?.bill?.status && journal.bill.status !== "unpaid") ||
+                (journal?.invoice?.status && journal.invoice.status !== "unpaid"))
+            ) && <Link to={journal.type === 'bill' ? `/bills/${journal?.bill?.id}/payments` : `/invoices/${journal?.invoice?.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                Paments
+              </Link>}
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Download
+            </button>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Edit
+            </button>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Delete
+            </button>
+
+
+          </div>
+        </div>
+
         <InfoContainer header={'Date:'} info={journal.date} />
-        <InfoContainer header={'Type:'} info={journal.type} />
+        <InfoContainer header={'Type:'} info={capitalizeFirstLetter(journal.type)} />
       </div>
       {(journal.type === 'bill' || journal.type === 'invoice') && <div className='flex flex-col gap-2'>
         <div className='w-full flex flex-row'>
@@ -81,30 +116,30 @@ const SingleJournal = () => {
         {(journal?.bill?.amount_due > 0 || journal?.invoice?.amount_due > 0) &&
 
           <><div className='w-full flex flex-row'>
-          <div className='flex flex-row gap-5 w-[50%] px-2'>
-            <h5 className='w-[40%] text-lg font-bold'>
-              Due Date:
-            </h5>
-            <span className='w-[60%] text-black font-semibold'>
-              {journal.type === 'bill' ? journal.bill.due_date : journal.invoice.due_date}
-            </span>
+            <div className='flex flex-row gap-5 w-[50%] px-2'>
+              <h5 className='w-[40%] text-lg font-bold'>
+                Due Date:
+              </h5>
+              <span className='w-[60%] text-black font-semibold'>
+                {journal.type === 'bill' ? journal.bill.due_date : journal.invoice.due_date}
+              </span>
+            </div>
+            <div className='flex flex-row gap-5 w-[50%] px-2'>
+              <h5 className='w-[40%] text-lg font-bold'>
+                Amount Due:
+              </h5>
+              <span className='w-[60%] text-black font-semibold'>
+                {journal.type === 'bill' ? journal.bill.amount_due : journal.invoice.amount_due}
+              </span>
+            </div>
           </div>
-          <div className='flex flex-row gap-5 w-[50%] px-2'>
-            <h5 className='w-[40%] text-lg font-bold'>
-              Amount Due:
-            </h5>
-            <span className='w-[60%] text-black font-semibold'>
-              {journal.type === 'bill' ? journal.bill.amount_due : journal.invoice.amount_due}
-            </span>
-          </div>
-        </div>
-        <div className='w-full flex flex-row'>
+            <div className='w-full flex flex-row'>
               <div className='flex flex-row gap-5 w-[50%] px-2'>
                 <h5 className='w-[40%] text-lg font-bold'>
                   Amount Paid:
                 </h5>
                 <span className='w-[60%] text-black font-semibold'>
-                {journal.type === 'bill' ? journal.bill.amount_paid : journal.invoice.amount_paid}
+                  {journal.type === 'bill' ? journal.bill.amount_paid : journal.invoice.amount_paid}
                 </span>
               </div>
               <div className='flex flex-row gap-5 w-[50%] px-2'>
@@ -114,9 +149,9 @@ const SingleJournal = () => {
 
               </div>
             </div>
-        </>}
+          </>}
         <div className="w-full flex flex-row">
-        <div className='flex flex-row gap-5 w-[50%] px-2'>
+          <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
               Status:
             </h5>
@@ -155,11 +190,7 @@ const SingleJournal = () => {
           </span>
         </div>
       </div>
-      <div className='flex flex-row p-1 self-end w-[50%] gap-2 justify-between'>
-        <Button className='w-[20%]' name='Download' color='purple' />
-        <Button className='w-[20%]' name='Edit' color='blue' />
-        <Button className='w-[20%]' name='Delete' color='red' />
-      </div>
+
     </div >
   )
 }
@@ -177,11 +208,6 @@ const InfoContainer = ({ header, info }) => {
   )
 }
 
-const Button = ({ color, name }) => {
-  return (
-    <button className={`w-full bg-${color}-700 text-white rounded-md h-90px border-2 border-${color}-700 hover:bg-white hover:text-${color}-700`}>
-      {name}
-    </button>)
-}
+
 export default SingleJournal
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaBars, FaPlus } from "react-icons/fa";
+import { FaBars, FaPlus, FaTimes } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { Link } from 'react-router-dom';
 
@@ -8,7 +8,10 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, s
   
     const [isVisible, setIsVisible] = useState(false);
     const openDropDown = () => {
-        setIsVisible(!isVisible);
+        setIsVisible(true);
+    }
+    const closeDropDown = () => {
+      setIsVisible(false);
     }
     const showModal = (setOpenModal) => {
       setOpenModal(true);
@@ -42,9 +45,10 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, s
             <div className={`absolute right-1 top-16 rounded-sm w-[10rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${
                 isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                <Link to='/profile' className='hover:bg-neutral-200 w-full p-1 rounded-sm'>Your profile</Link>
-                <Link to='/settings' className='hover:bg-neutral-200 w-full p-1 rounded-sm'>Settings</Link>
-                <button className='hover:bg-neutral-200 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                  <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown}/>
+                <Link to='/profile' className='hover:bg-neutral-100 w-full p-1 rounded-sm'>Your profile</Link>
+                <Link to='/settings' className='hover:bg-neutral-100 w-full p-1 rounded-sm'>Settings</Link>
+                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                     <MdLogout/>
                     <span>Logout</span>
                 </button>

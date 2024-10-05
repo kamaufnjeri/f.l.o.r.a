@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
 import PaymentModal from '../components/modals/PaymentModal';
 import PurchaseReturnModal from '../components/modals/PurchaseReturnModal';
+import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 
 const SinglePurchase = () => {
   const { id } = useParams();
@@ -12,13 +13,22 @@ const SinglePurchase = () => {
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [openPurchaseReturnModal, setOpenPurchaseReturnModal] = useState();
 
+  const [isVisible, setIsVisible] = useState(false);
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const getData = async () => {
     const purchase = await getItems(`purchases/${id}`);
     setPurchase(purchase)
   }
 
   useEffect(() => {
-    
+
     getData()
   }, []);
   const showModal = (setOpenModal) => {
@@ -39,18 +49,56 @@ const SinglePurchase = () => {
     }
   }
   return (
-    <div className='flex flex-col gap-4 overflow-auto custom-scrollbar h-full'>
+    <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       <PurchaseReturnModal title={`Purchase return of purchase# ${purchase?.serial_number}`}
-      setOpenModal={setOpenPurchaseReturnModal}
-       purchase={purchase} openModal={openPurchaseReturnModal}/>
-      <PaymentModal 
-      onPaymentSuccess={onPaymentSuccess}
-      openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for bill# ${purchase?.bill?.serial_number}`} type='credit' bill_id={purchase?.bill?.id}/>
+        setOpenModal={setOpenPurchaseReturnModal}
+        purchase={purchase} openModal={openPurchaseReturnModal} />
+      <PaymentModal
+        onPaymentSuccess={onPaymentSuccess}
+        openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for bill# ${purchase?.bill?.serial_number}`} type='credit' bill_id={purchase?.bill?.id} />
 
       <div className='w-full flex flex-col gap-2 justify-between'>
-        <InfoContainer header={'Purchase#'} info={purchase.serial_number} />
+        <div className='relative'>
+          <InfoContainer header={'Purchase#'} info={purchase.serial_number} />
+          <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+            {purchase?.items_data?.type === 'bill' &&
+              purchase?.bill?.status &&
+              purchase.bill.status !== 'unpaid' && (
+                <Link to={`/bills/${purchase.bill.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                  Payments
+                </Link>
+              )}
+            <button onClick={hideJournalEntries} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              {buttonName}
+            </button>
+            <button onClick={() => showModal(setOpenPurchaseReturnModal)} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Return purchase
+            </button>
+            {purchase?.has_returns &&
+               (
+                <Link to={`/purchases/${purchase.id}/purchase_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                  Purchase returns
+                </Link>
+              )}
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Download
+            </button>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Edit
+            </button>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+              Delete
+            </button>
+
+
+          </div>
+        </div>
+
         <InfoContainer header={'Date:'} info={purchase.date} />
-        <InfoContainer header={'Type:'} info={purchase?.items_data?.type} />
+        <InfoContainer header={'Type:'} info={capitalizeFirstLetter(purchase?.items_data?.type)} />
       </div>
       {purchase?.items_data?.type === 'bill' && <div className='flex flex-col gap-2'>
         <div className='w-full flex flex-row'>
@@ -62,7 +110,7 @@ const SinglePurchase = () => {
               {purchase?.bill?.serial_number}
             </span>
           </div>
-          
+
           <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
               Supplier Name:
@@ -113,7 +161,7 @@ const SinglePurchase = () => {
         )
         }
         <div className="w-full flex flex-row">
-        <div className='flex flex-row gap-5 w-[50%] px-2'>
+          <div className='flex flex-row gap-5 w-[50%] px-2'>
             <h5 className='w-[40%] text-lg font-bold'>
               Status:
             </h5>
@@ -187,7 +235,7 @@ const SinglePurchase = () => {
               </div>
               <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
                 <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                  {purchase.journal_entries && purchase.journal_entries.map((entry, index) =>
+                  {purchase.purchase_entries && purchase.purchase_entries.map((entry, index) =>
                     <div className={`flex flex-row flex-1`} key={index}>
                       <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
                       <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
@@ -195,35 +243,20 @@ const SinglePurchase = () => {
                     </div>)}
                   <div className={`flex flex-row flex-1`}>
                     <i className='text-sm w-[60%] p-1'>({purchase.description})</i>
-                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
-                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.purchase_entries_total?.debit_total}</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.purchase_entries_total?.debit_total}</span>
                   </div>
                 </span>
               </div>
             </div>}
           <div className="w-full flex flex-row gap-4">
 
-            <button onClick={hideJournalEntries} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
-              {buttonName}
-            </button>
-            <button onClick={() => showModal(setOpenPurchaseReturnModal)} className={`w-[40%] bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
-              Purchase Return
-            </button>
+
           </div>
         </div>
 
       </div>
-      <div className='flex flex-row p-1 self-end w-[50%] gap-2 justify-between'>
-        <button className={`w-full bg-purple-700 text-white rounded-md h-90px border-2 border-purple-700 hover:bg-white hover:text-purple-700`}>
-          Download
-        </button>
-        <button className={`w-full bg-blue-700 text-white rounded-md h-90px border-2 border-blue-700 hover:bg-white hover:text-blue-700`}>
-          Edit
-        </button>
-        <button className={`w-full bg-red-700 text-white rounded-md h-90px border-2 border-red-700 hover:bg-white hover:text-red-700`}>
-          Delete
-        </button>
-      </div>
+
     </div >
   )
 }

@@ -12,7 +12,7 @@ const FormInitialField = ({ values, handleChange, setFieldValue }) => {
 
         </div>
       </div>
-      <div className='flex flex-row gap-5 items-start w-full'>
+      <div className='flex flex-row gap-5 items-start w-full '>
         <label htmlFor="date" className='w-[15%]'>Date</label>
         <DateField className='w-[80%]' value={values.date} setFieldValue={setFieldValue} name='date' />
       </div>

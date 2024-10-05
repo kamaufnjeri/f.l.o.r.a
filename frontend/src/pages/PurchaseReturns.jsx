@@ -166,7 +166,7 @@ const PurchaseReturns = () => {
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[15%] border-gray-800 border-r-2 p-1'>Return #</span>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Sales #</span>
+          <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Purchase #</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
           <span className='w-[35%] border-gray-800 border-r-2 p-1'>Items</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Return Quantity</span>

@@ -20,7 +20,7 @@ const Sidebar = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, 
      <div className='w-[15rem] z-10'>
     <div className='relative'>
         <img src="/assets/logo.png" alt="Logo image" className='w-full h-auto' />
-        <FaTimes className='text-2xl hover:text-purple-700 self-end absolute right-0 top-4' onClick={() => hideSideBar()}/>
+        <FaTimes className='text-xl hover:text-purple-700 self-end absolute right-[-12px] top-1' onClick={() => hideSideBar()}/>
       </div>
     </div>
       <SideBarMainComponent setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal}/>

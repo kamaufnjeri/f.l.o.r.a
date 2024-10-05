@@ -42,8 +42,8 @@ const Layout = () => {
       <AddAccountModal openModal={openAddAccountModal} setOpenModal={setOpenAddAccountModal}/>
       <AddItemModal openModal={openAddItemModal} setOpenModal={setOpenAddItemModal}/>
       {renderItems()}
-      <div className={`flex-1 mt-[70px] p-3 ${showSideBar ? 'ml-[17rem]' : ''}`}
-      style={{ width: `${showSideBar ? 'calc(100vw - 17rem)' : '100vw'}`, height: 'calc(100vh - 60px)'}}
+      <div className={`flex-1 mt-[70px] p-3 ${showSideBar ? 'ml-[17rem]' : 'mx-[20px]'}`}
+      style={{ width: `${showSideBar ? 'calc(100vw - 17rem)' : 'calc(100vw - 40px)'}`, height: 'calc(100vh - 60px)'}}
       >
         <Outlet/>
       </div>

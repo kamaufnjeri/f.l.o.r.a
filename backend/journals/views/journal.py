@@ -120,3 +120,4 @@ class JournalAPIView(generics.ListCreateAPIView):
 class JournalDetailAPIView(generics.RetrieveAPIView):
     serializer_class = JournalDetailSerializer
     queryset = Journal.objects.all()
+
