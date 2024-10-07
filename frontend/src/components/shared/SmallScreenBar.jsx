@@ -23,7 +23,7 @@ const SmallScreenBar = () => {
   
     return (
       <div className='flex flex-col w-screen h-screen'>
-        <div className='w-screen p-2 z-10 flex flex-row justify-between items-center'>
+        <div className='w-screen p-2 z-10 flex flex-row justify-between items-center h-[60px]'>
             <div>
                 <img src="/assets/logo.png" alt="Logo image" className='w-[10rem] h-auto' />
             </div>

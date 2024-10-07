@@ -20,7 +20,7 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, s
       setShowSideBar(true)
     }
   return (
-    <div className={`font-bold h-[60px] text-gray-800 absolute top-0 right-0 flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300 ${showSideBar ? 'left-[16rem]' : 'w-full'}`}>
+    <div className={`font-bold h-[60px] text-gray-800 absolute top-0 right-0 flex flex-row m-1 items-center justify-between  border-b-2 p-1 border-b-gray-300 ${showSideBar ? 'decrease-header' : 'increase-header'}`}>
       {!showSideBar && <FaBars className='text-2xl hover:text-purple-700 ml-2' onClick={() => showSideBarFunc()}/>}
       <div className='flex flex-row gap-2 items-center hover:text-purple-700'>
         <img src="/assets/apple.jpg" alt="Apple Logo" className='w-14 h-14 rounded-full'/>

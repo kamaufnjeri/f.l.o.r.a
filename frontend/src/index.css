@@ -10,6 +10,28 @@
   transform: translateX(0%);
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
+.decrease-maincontainer {
+  width: calc(100vw - 17rem);
+  margin-left: 17rem;
+  transition: width 0.3s ease;
+}
+.maincontainer-height {
+  height: calc(100vh - 80px);
+
+}
+.increase-maincontainer {
+ width: calc(100vw - 40px);
+ margin-left: 20px;
+ transition: width 0.3s ease;
+}
+.increase-header {
+  width: 100%;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+.decrease-header {
+ left: 16rem;
+ transition: left 0.3s ease, width 0.3s ease;
+}
 
 .hide-small-screen-navbar {
   opacity: 0;

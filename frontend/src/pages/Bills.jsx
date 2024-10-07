@@ -8,6 +8,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { dueDaysOptions, statusOptions } from '../lib/constants';
 import TypesFilter from '../components/filters/TypesFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Bills = () => {
     const [searchItem, setSearchItem] = useState({
@@ -117,7 +118,7 @@ const Bills = () => {
     }
 
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2'>
 
             <FormHeader header='Bills List' />
             <div className='flex flex-row w-full items-center justify-between'>
@@ -146,7 +147,7 @@ const Bills = () => {
             </div>
 
 
-            <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
+            <div className='overflow-auto custom-scrollbar flex flex-col h-[500px] flex-1 w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>Bill #</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Due Date</span>
@@ -171,11 +172,8 @@ const Bills = () => {
                     </Link>
                 ))}
             </div>
-            <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-                {billsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-                <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-                {billsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-            </div>
+            <PrevNext pageNo={pageNo} data={billsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
         </div>
     )
 }

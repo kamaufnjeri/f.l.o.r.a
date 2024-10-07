@@ -30,10 +30,18 @@ const Layout = () => {
     if (windowWidth > 720) {
       return  (<div className='flex-none'>
       <Sidebar setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal} setShowSideBar={setShowSideBar} showSideBar={showSideBar}/>
-      <Header setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal} setShowSideBar={setShowSideBar} showSideBar={showSideBar}/>  
+      <Header setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal} setShowSideBar={setShowSideBar} showSideBar={showSideBar}/> 
+      <div className={`flex-1 mt-[70px] p-3 maincontainer-height ${showSideBar ? 'decrease-maincontainer' : 'increase-maincontainer'}`}>
+        <Outlet/>
+      </div> 
     </div>)
     } else {
-      return (<SmallScreenBar className='flex-none'/>);
+      return (<>
+      <SmallScreenBar className='flex-none'/>
+      <div className={`flex-1 p-3`}>
+        <Outlet/>
+      </div>
+      </>);
     }
   };
 
@@ -42,11 +50,7 @@ const Layout = () => {
       <AddAccountModal openModal={openAddAccountModal} setOpenModal={setOpenAddAccountModal}/>
       <AddItemModal openModal={openAddItemModal} setOpenModal={setOpenAddItemModal}/>
       {renderItems()}
-      <div className={`flex-1 mt-[70px] p-3 ${showSideBar ? 'ml-[17rem]' : 'mx-[20px]'}`}
-      style={{ width: `${showSideBar ? 'calc(100vw - 17rem)' : 'calc(100vw - 40px)'}`, height: 'calc(100vh - 60px)'}}
-      >
-        <Outlet/>
-      </div>
+      
     </div>
   );
 };

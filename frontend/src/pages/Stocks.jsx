@@ -5,6 +5,7 @@ import { getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import PrevNext from '../components/shared/PrevNext';
 
 
 const Stocks = () => {
@@ -67,7 +68,7 @@ const Stocks = () => {
   }
 
   return (
-    <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
+    <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2'>
       <FormHeader header='Stocks List' />
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
@@ -83,7 +84,7 @@ const Stocks = () => {
       </div>
       
 
-      <div className='overflow-auto custom-scrollbar flex flex-col flex-1 h-full w-full m-2'>
+      <div className='overflow-auto custom-scrollbar flex flex-col h-[500px] w-full p-1'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No.</span>
           <span className='w-[40%] border-gray-800 border-r-2 p-1 '>Name</span>
@@ -99,11 +100,7 @@ const Stocks = () => {
         </div>
         ))}
       </div>
-      <div className='absolute bottom-5 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {stocksData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {stocksData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl'/>}
-      </div>
+      <PrevNext pageNo={pageNo} data={stocksData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
     </div>
   )
 }
