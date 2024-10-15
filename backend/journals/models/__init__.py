@@ -17,3 +17,4 @@ from .sales_return import SalesReturn
 from .sales_return_entries import SalesReturnEntries
 from .stock import Stock
 from .supplier import Supplier
+from .user import FloraUser

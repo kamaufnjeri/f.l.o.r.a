@@ -19,6 +19,27 @@
   height: calc(100vh - 80px);
 
 }
+.rotate {
+  width: 200px;
+  height: 200px;
+  border-radius: 100%;
+  border: 20px solid #ccc;
+  border-top: 20px solid #2196f3;
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.unauthorized-height {
+  height: calc(100vh - 60px);
+}
 .increase-maincontainer {
  width: calc(100vw - 40px);
  margin-left: 20px;

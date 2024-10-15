@@ -12,8 +12,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-
+from datetime import timedelta
 from dotenv import load_dotenv
+
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -33,6 +35,15 @@ DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = []
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = os.getenv('EMAIL_ADDRESS')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_ADDRESS')
+SERVER_EMAIL  = os.getenv('EMAIL_ADDRESS')
+print(f'Email - {EMAIL_HOST_USER}')
 
 # Application definition
 
@@ -113,6 +124,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'journals.FloraUser'  # Adjust the app name as necessary
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -137,12 +150,32 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny',]
 }
 
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Set access token lifetime
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Set refresh token lifetime
+    'ROTATE_REFRESH_TOKENS': True,  # Rotate refresh tokens
+    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
+    'ALGORITHM': 'HS256',  # Algorithm for signing tokens
+    'SIGNING_KEY': SECRET_KEY,  # Use your Django SECRET_KEY for signing tokens
+    'AUTH_HEADER_TYPES': ('Bearer',),  # Set the authentication header type
+    'USER_ID_FIELD': 'id',  # User ID field to be used in the token
+    'USER_ID_CLAIM': 'user_id',  # Claim to be used for user ID
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
+frontend_url =  os.getenv("FRONTEND_BASE_URL")
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+   frontend_url,
 ]
+
+

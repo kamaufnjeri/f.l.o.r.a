@@ -27,12 +27,22 @@ import SingleBillPayments from "./pages/SingleBillPayments";
 import SingleInvoicePayments from "./pages/SingleInvoicePayments";
 import SinglePurchaseReturns from "./pages/SinglePurchaseReturns";
 import SingleSalesReturns from "./pages/SingleSalesReturns";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   return (
     <Router>
       <Routes>
-      <Route path='/' element={<Layout/>}>
+        <Route path='/Register' element={<Register/>}/>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/confirm-email/:uidb64/:token' element={<VerifyEmail/>}/>
+        <Route path='/forgot-password' element={<ForgotPassword/>}/>
+        <Route path='/reset-password/:uidb64/:token' element={<ResetPassword/>}/>
+      <Route path='/dashboard' element={<Layout/>}>
         <Route index element={<Dashboard/>}></Route>
         <Route path='stocks' element={<Stocks/>}></Route>
         <Route path='bills' element={<Bills/>}></Route>

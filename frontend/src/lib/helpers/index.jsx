@@ -17,9 +17,12 @@ export const postRequest = async (values, url, resetForm=null) => {
   try {
     const response = await axios.post(`${BACKEND_URL}/${url}/`, values);
 
-    if (response.status === 201) {
-      resetForm();
-      return { success: true, error: null }
+    if (response.status === 201 || response.status === 200 || response.status == 202) {
+      if (resetForm) {
+        resetForm();
+
+      }
+      return { success: true, error: null, data: response.data }
 
     } else {
       return { success: false, error: 'Unexpected error' }
@@ -71,7 +74,7 @@ export const getItems = async (name, filterUrl=null) => {
     }
   }
   catch (error) {
-    toast.error(`Error': Error fetching ${name}`);
+    toast.error(`Error fetching ${name}`);
   }
 }
 
@@ -142,4 +145,9 @@ export const paymentsQueryParams = (data) => {
     queryParams = queryParams.concat(paginate);
   }
   return queryParams;
+}
+
+
+export const togglePasswordVisibility = (setShowPassword, showPassword) => {
+  setShowPassword(!showPassword);
 }

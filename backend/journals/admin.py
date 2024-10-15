@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Account, Journal, JournalEntries, Stock, PurchaseEntries, PurchaseReturn
 from .models import SalesEntries, SalesPurchasePrice, SalesReturn, Sales, Purchase, Customer, Invoice
-from .models import PurchaseReturnEntries, SalesReturnEntries, Bill, Supplier, Payment
+from .models import PurchaseReturnEntries, SalesReturnEntries, Bill, Supplier, Payment, FloraUser
 
 # Register your models here.
 admin.site.register(Account)
@@ -22,3 +22,4 @@ admin.site.register(SalesReturn)
 admin.site.register(SalesReturnEntries)
 admin.site.register(SalesEntries)
 admin.site.register(SalesPurchasePrice)
+admin.site.register(FloraUser)

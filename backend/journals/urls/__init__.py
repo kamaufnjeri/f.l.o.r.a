@@ -14,9 +14,11 @@ from .sales_return import urlpatterns as sales_return_urls
 from .supplier import urlpatterns as supplier_urls
 from .stock import urlpatterns as stock_urls
 from .custom_404 import urlpatterns as cutom_404_urls
+from .auth import urlpatterns as auth_urls
 from .get_serial_number import urlpatterns as serial_number_urls
 
 urlpatterns = [
+    path('auth/', include(auth_urls)),
     path('accounts/', include(account_urls)),
     path('bills/', include(bill_urls)),
     path('customers/', include(customer_urls)),
