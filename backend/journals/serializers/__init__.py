@@ -12,3 +12,4 @@ from .stock import StockDetailsSerializer, StockSerializer
 from .supplier import SupplierSerializer
 from .auth import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer
 from .bill_invoice import InvoiceSerializer, BillSerializer, InvoiceDetailSerializer, BillDetailSerializer
+from .organisation import OrganisationSerializer

@@ -59,8 +59,8 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
       <AddSupplierModal openModal={openAddSupplierModal} setOpenModal={setOpenAddSupplierModal}/>
     <Link
       className={`flex flex-row items-center gap-5 cursor-pointer m-1 p-1 rounded-sm  hover:bg-neutral-200 hover:text-purple-600
-                  ${pathname === '/' ? 'text-purple-700' : 'text-neutral-900'}`}
-      to="/"
+                  ${pathname === '/dashboard' ? 'text-purple-700' : 'text-neutral-900'}`}
+      to="/dashboard"
       >
       <FaHome className='text-xl'/>
       <span className='font-medium text-xl flex-1'>Dashboard</span>

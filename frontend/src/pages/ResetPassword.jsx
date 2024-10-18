@@ -6,8 +6,8 @@ import { postRequest, togglePasswordVisibility } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import Loading from '../components/shared/Loading';
 
-import logo from '../../public/assets/logo.png';
-import forgotImg from '../../public/assets/forgot_img.jpg';
+import logo from '/assets/logo.png';
+import forgotImg from '/assets/forgot_img.jpg';
 
 const ResetPassword = () => {
     const [showPassword, setShowPassword] = useState(false);

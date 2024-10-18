@@ -16,6 +16,8 @@ from .stock import urlpatterns as stock_urls
 from .custom_404 import urlpatterns as cutom_404_urls
 from .auth import urlpatterns as auth_urls
 from .get_serial_number import urlpatterns as serial_number_urls
+from .organisation import urlpatterns as organisations_urls
+
 
 urlpatterns = [
     path('auth/', include(auth_urls)),
@@ -32,6 +34,7 @@ urlpatterns = [
     path('suppliers/', include(supplier_urls)),
     path('stocks/', include(stock_urls)),
     path('serial_number/', include(serial_number_urls)),
+    path('organisations/', include(organisations_urls)),
     path('', include(custom_404)),
 
 ]

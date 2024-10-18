@@ -12,4 +12,5 @@ from .stock import StockAPIView, StockDetailAPIView
 from .supplier import SupplierAPIVew, SupplierDetailsAPIView
 from .custom_404 import Custom404APIView
 from .serial_number import GetSerialNumberApiView
-from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView
+from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView, MeAPIView
+from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView

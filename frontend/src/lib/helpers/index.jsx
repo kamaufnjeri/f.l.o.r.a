@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../api"
 import { toast } from "react-toastify";
 
 export const scrollBottom = (scrollRef) => {
@@ -11,11 +11,11 @@ const isObject = (item) => {
   return item && typeof item === 'object' && !Array.isArray(item);
 }
 
-const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 
 export const postRequest = async (values, url, resetForm=null) => {
   try {
-    const response = await axios.post(`${BACKEND_URL}/${url}/`, values);
+    const response = await api.post(`/${url}/`, values);
 
     if (response.status === 201 || response.status === 200 || response.status == 202) {
       if (resetForm) {
@@ -60,13 +60,13 @@ export const getItems = async (name, filterUrl=null) => {
   let url = '';
   if (filterUrl) {
     
-      url = `${BACKEND_URL}/${name}/${filterUrl}`;
+      url = `/${name}/${filterUrl}`;
   } else {
-      url = `${BACKEND_URL}/${name}/`
+      url = `/${name}/`
   }
   console.log(url)
   try {
-    const response = await axios.get(url);
+    const response = await api.get(url);
     if (response.status == 200) {
       return response.data
     } else {
@@ -93,8 +93,12 @@ export const replaceDash= (string) => {
   if (typeof string !== 'string') return '';
   let updatedString = string.replace(/_/g, ' ');
 
-  let newString = string.split('.')[1]
+  let newString = null;
+  if (!string.includes('@')) {
+     newString = string.split('.')[1]
 
+  }
+  
   if (!newString) return updatedString;
   newString = newString.replace(/_/g, ' ');
   return newString;

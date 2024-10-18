@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Organization</title>
+    <style>
+        .text {
+            color: black;
+        }
+        a.button {
+            background-color: rgb(212, 29, 212);
+            border: 2px solid rgb(212, 29, 212);
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        a.button:hover {
+            background-color: white;
+            color: rgb(212, 29, 212);
+            border: 2px solid rgb(212, 29, 212);
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text">Welcome to F.L.O.R.A!</h1>
+    <p class="text">Thank you, <strong>{{ user_name }}</strong>, for your interest in joining <strong>{{ organization_name }}</strong>. Please confirm your invitation by clicking the button below:</p>
+    <a href="{{ invite_link }}" class="button">Join Organization</a>
+    <p class="text">If the button doesn't work, you can also copy and paste the following URL into your browser:</p>
+    <p>{{ invite_link }}</p>
+    <br>
+    <p class="text">Thank you!</p>
+</body>
+</html>

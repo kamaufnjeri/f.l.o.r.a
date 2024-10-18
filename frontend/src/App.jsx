@@ -32,18 +32,31 @@ import Login from "./pages/Login";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import Home from "./pages/Home";
+import AcceptInvite from "./pages/AcceptInvite";
+
+
+const RegisterRoute = () => {
+  localStorage.clear()
+  return <Register/>
+}
 
 const App = () => {
   return (
     <Router>
+      <AuthProvider>
       <Routes>
-        <Route path='/Register' element={<Register/>}/>
+        <Route path="/" element={<Home/>}/>
+        <Route path='/Register' element={<RegisterRoute/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/confirm-email/:uidb64/:token' element={<VerifyEmail/>}/>
         <Route path='/forgot-password' element={<ForgotPassword/>}/>
         <Route path='/reset-password/:uidb64/:token' element={<ResetPassword/>}/>
+        <Route path='/accept-invite/:uidb64' element={<AcceptInvite/>}/>
       <Route path='/dashboard' element={<Layout/>}>
-        <Route index element={<Dashboard/>}></Route>
+        <Route index element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
         <Route path='stocks' element={<Stocks/>}></Route>
         <Route path='bills' element={<Bills/>}></Route>
         <Route path='bills/:id/payments' element={<SingleBillPayments/>}></Route>
@@ -76,6 +89,7 @@ const App = () => {
         <Route path='reports'></Route>
       </Route>
     </Routes>
+    </AuthProvider>
     </Router>
     
   );

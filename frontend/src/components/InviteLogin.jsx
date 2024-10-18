@@ -1,29 +1,39 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
 import UnAuthorizedHeader from '../components/unauthorized/UnAuthorizedHeader'
 import Loading from '../components/shared/Loading';
-import { useAuth } from '../context/AuthContext';
 import LoginComponent from '../components/LoginComponent';
+import { useNavigate } from 'react-router-dom';
+import { postRequest } from '../lib/helpers';
+import { toast } from 'react-toastify';
 
-const Login = () => {
-    const { login } = useAuth();
+const InviteLogin = ({ setIsLogin, uidb64, token }) => {
+    const navigate = useNavigate()
     const [loginData, setLoginData] = useState({
         email: "",
-       password: ""
+       password: "",
+       is_login: true,
+       
     })
     const [isLoading, setIsLoading] = useState(false);
     
-
-   
-
     const handleChange = (e, fieldName) => {
         setLoginData({...loginData, [fieldName]: e.target.value});
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
-       login(setLoginData, loginData);
+        const response = await postRequest(loginData, `organisations/accept-invite/${uidb64}`);
+        if (response.success) {
+            toast.success("Invitation accepted!");
+            setLoginData({
+                email: "",
+                password: "",
+            })
+            navigate('/login');
+        }
+        else {
+            toast.error(response.error);
+        }
         setIsLoading(false);
     }
   return (
@@ -34,15 +44,15 @@ const Login = () => {
             <div className='flex flex-col w-1/2 items-center justify-center'>
                 <img src="/assets/logo.png" className='h-[100px] w-auto' alt="" />
                 <div className='flex flex-col items-center justify-center w-full'>
-                    <h2 className='font-bold text-2xl'>Login</h2>
+                    <h2 className='font-bold text-2xl'>Authenticate</h2>
                     <form className='flex flex-col w-[80%]' onSubmit={handleSubmit}>
                         
                        <LoginComponent loginData={loginData} handleChange={handleChange}/>
                         <div className='flex flex-col'>
-                            <button className='h-[35px] bg-purple-600 border-purple-600 text-white font-bold rounded-md mt-2 mb-1 border-2 hover:bg-white hover:text-purple-600'>Login</button>
+                            <button className='h-[35px] bg-purple-600 border-purple-600 text-white font-bold rounded-md mt-2 mb-1 border-2 hover:bg-white hover:text-purple-600'>Authenticate</button>
                         </div>
                         <div className='text-sm'>
-                            <span >Don't have an account? </span><Link to='/register' className='text-blue-900'>Register now</Link>
+                            <span >Don't have an account? </span><span onClick={() => setIsLogin(false)} className='text-blue-900'>Register now</span>
                         </div>
                     </form>
                 </div>
@@ -56,4 +66,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default InviteLogin

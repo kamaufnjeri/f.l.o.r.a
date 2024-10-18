@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
 import UnAuthorizedHeader from '../components/unauthorized/UnAuthorizedHeader'
 import { postRequest } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import Loading from '../components/shared/Loading';
 import RegisterComponent from '../components/RegisterComponent';
+import { useNavigate } from 'react-router-dom';
 
-const Register = () => {
+const InviteRegister = ({ setIsLogin, uidb64, token }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const navigate =  useNavigate();
     const [registerData, setRegisterData] = useState({
         first_name: "",
         last_name: "",
@@ -15,9 +16,8 @@ const Register = () => {
         phone_number: "",
         password: "",
         confirm_password: "",
+        is_login: false,
     })
-
-
    
 
     const handleChange = (e, fieldName) => {
@@ -27,9 +27,9 @@ const Register = () => {
     const handleSubmit = async (e) => {
         setIsLoading(true);
         e.preventDefault();
-        const response = await postRequest(registerData, 'auth/register');
+        const response = await postRequest(registerData, `organisations/accept-invite/${uidb64}`);
         if (response.success) {
-            toast.success("Registration successful! Check your email to verify");
+            toast.success("Invitation and registration accepted");
             setRegisterData({
                 first_name: "",
                 last_name: "",
@@ -38,6 +38,7 @@ const Register = () => {
                 password: "",
                 confirm_password: "",
             })
+            navigate('/login')
         }
         else {
             toast.error(response.error);
@@ -63,7 +64,7 @@ const Register = () => {
                             <button className='h-[35px] bg-purple-600 border-purple-600 text-white font-bold rounded-md mt-2 mb-1 border-2 hover:bg-white hover:text-purple-600'>Register</button>
                         </div>
                         <div className='text-sm mb-2'>
-                            <span >Already have an account? </span><Link to='/login' className='text-blue-900'>Login now</Link>
+                            <span >Already have an account? </span><span onClick={() => setIsLogin(true)} className='text-blue-900'>Authenticate</span>
                         </div>
                     </form>
                 </div>
@@ -77,4 +78,4 @@ const Register = () => {
   )
 }
 
-export default Register
+export default InviteRegister

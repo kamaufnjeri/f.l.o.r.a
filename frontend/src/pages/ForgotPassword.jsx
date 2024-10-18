@@ -39,7 +39,7 @@ const ForgotPassword = () => {
         {isLoading && <Loading/>}
         <div className='flex flex-row rounded-sm w-[800px] bg-white h-[60%]'>
             <div className='flex flex-col w-1/2 items-center justify-center'>
-                <img src="assets/logo.png" className='h-[100px] w-auto' alt="" />
+                <img src="/assets/logo.png" className='h-[100px] w-auto' alt="" />
                 <div className='flex flex-col items-center justify-center w-full'>
                     <h2 className='font-bold text-2xl'>Forgot Password</h2>
                     <form className='flex flex-col w-[80%]' onSubmit={handleSubmit}>
@@ -66,7 +66,7 @@ const ForgotPassword = () => {
                 </div>
             </div>
             <div className='w-1/2 relative'>
-                <img src="assets/forgot_img.jpg" alt="forgot image" className='h-full'/>
+                <img src="/assets/forgot_img.jpg" alt="forgot image" className='h-full'/>
                 <div className='absolute top-0 bottom-0 left-0 right-0 bg-purple-800 opacity-50'></div>
             </div>
       </div>

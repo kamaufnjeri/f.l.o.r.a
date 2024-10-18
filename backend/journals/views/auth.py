@@ -1,18 +1,52 @@
-from rest_framework import generics, status, serializers
+from rest_framework import generics, status
 from rest_framework.response import Response
 from journals.utils import flatten_errors, send_email, token_uid
 from journals.models import FloraUser
-from journals.serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer
+from journals.serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer, OrganisationSerializer
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import get_user_model
 import os
 from balance_buddy.settings import frontend_url
+
 load_dotenv()
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
+User = get_user_model()
+
+class MeAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated] 
+    
+    def get(self, request, *args, **kwargs):
+       
+        user = request.user
+
+        current_org = None
+        if user.current_org:
+            current_org = OrganisationSerializer(user.current_org).data
+            print(current_org)
+            
+
+        data = {
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "current_org":  current_org
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
 class ForgotPasswordAPIView(generics.GenericAPIView):    
     serializer_class = ForgotPasswordSerializeer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -31,7 +65,7 @@ class ForgotPasswordAPIView(generics.GenericAPIView):
 
 class ResetPasswordAPIView(generics.UpdateAPIView):    
     serializer_class = ResetPasswordSerializer
-
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -60,6 +94,7 @@ class ResetPasswordAPIView(generics.UpdateAPIView):
 class CustomLoginAPIView(generics.GenericAPIView):
     queryset = FloraUser.objects.all()
     serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -80,14 +115,26 @@ class CustomLoginAPIView(generics.GenericAPIView):
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
 
+            current_org = None
+            if user.current_org:
+                current_org = OrganisationSerializer(user.current_org).data
+
             return Response({
                 'refresh': str(refresh),
-                'access': str(access)
+                'access': str(access),
+                'user': {
+                    "email": user.email,
+                    "phone_number": user.phone_number,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "current_org":  current_org
+                }
             }, status=status.HTTP_200_OK)
 
 class RegisterAPIVew(generics.CreateAPIView):
     queryset = FloraUser.objects.all()
     serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         with transaction.atomic():
@@ -117,6 +164,7 @@ class RegisterAPIVew(generics.CreateAPIView):
 
 
 class VerifyEmailView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         try:

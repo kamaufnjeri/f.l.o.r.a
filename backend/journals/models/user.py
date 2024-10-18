@@ -39,6 +39,8 @@ class FloraUser(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    current_org = models.ForeignKey('Organisation', related_name='current_users', on_delete=models.CASCADE, null=True, blank=True)
+
 
     objects = FloraUserManager()
 
