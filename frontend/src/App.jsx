@@ -36,6 +36,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import Home from "./pages/Home";
 import AcceptInvite from "./pages/AcceptInvite";
+import OrganisationCreatePage from "./pages/OrganisationCreatePage";
 
 
 const RegisterRoute = () => {
@@ -55,7 +56,11 @@ const App = () => {
         <Route path='/forgot-password' element={<ForgotPassword/>}/>
         <Route path='/reset-password/:uidb64/:token' element={<ResetPassword/>}/>
         <Route path='/accept-invite/:uidb64' element={<AcceptInvite/>}/>
-      <Route path='/dashboard' element={<Layout/>}>
+        <Route path='/' element={<Layout/>}>
+        <Route path='/organisation-create' element={<OrganisationCreatePage/>}/>
+        </Route>
+       
+      <Route path='/dashboard/:orgId' element={<Layout/>}>
         <Route index element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
         <Route path='stocks' element={<Stocks/>}></Route>
         <Route path='bills' element={<Bills/>}></Route>

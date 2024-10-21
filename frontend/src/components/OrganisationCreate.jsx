@@ -25,8 +25,7 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
         e.preventDefault();
         const response = await postRequest(organisationData, 'organisations');
         if (response.success) {
-            toast.success("Registration successful! Check your email to verify");
-
+            toast.success("Registration successful!");
             setOrganisationData({
                 org_name: "",
                 org_email: "",
@@ -43,16 +42,16 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
     }
     return (
         <>
-            <div
+            {(user) && <div
                 className='flex-1 flex flex-col font-medium gap-4 w-full items-center justify-center h-full '>
                 {isLoading && <Loading />}
-                <div className='flex flex-row rounded-md w-full h-[97%] ronded-sm overflow-y-auto custom-scrollbar'>
-                <div className='flex flex-col items-center text-center justify-center w-1/2 gap-3 bg-purple-800 p-2 text-white rounded-md'>
-                        <h2 className='font-bold text-3xl '>Welcome, {user.first_name} {user.last_name}!</h2>
-                        <p className='font-medium text-xl'>It looks like you're new here. Let's get started by creating your organization.</p>
+                <div className='flex flex-row rounded-md w-full h-[97%] ronded-sm overflow-y-auto custom-scrollbar bg-purple-800'>
+                    <div className='flex flex-col items-center text-center justify-center w-1/2 text-white rounded-md'>
+                        <img src="/assets/login_img.jpg" alt="Organisation image" className='h-full w-full' />
+
                     </div>
-                    
-                    <div className='flex flex-col items-center justify-center w-1/2 gap-3 p-2'>
+
+                    <div className='flex flex-col items-center justify-center w-1/2 gap-3 p-2 bg-white '>
                         <h2 className='font-bold text-2xl'>Create new organisation</h2>
                         <form className='flex flex-col w-full gap-3' onSubmit={handleSubmit}>
                             <div className='flex flex-col'>
@@ -107,9 +106,9 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
 
                         </form>
                     </div>
-                   
+
                 </div>
-            </div></>
+            </div>}</>
     )
 }
 

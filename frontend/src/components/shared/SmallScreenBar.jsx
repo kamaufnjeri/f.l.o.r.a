@@ -1,17 +1,17 @@
 import React, { useRef, useState } from 'react';
 import {sidebarIcons, sidebarIconsBottom} from '../../lib/constants';
 import { Link, useLocation } from 'react-router-dom';
-import { FaChevronDown } from 'react-icons/fa'; // Import the arrow icon
 import { MdLogout } from "react-icons/md";
 import { FaHome, FaTimes } from 'react-icons/fa';
-import { FaUser, FaBars } from 'react-icons/fa'; // FontAwesome user icon
-import { GoDotFill } from "react-icons/go";
+import { FaUser, FaBars } from 'react-icons/fa';
 import SideBarMainComponent from './SideBarMainComponent';
+import { useAuth } from '../../context/AuthContext';
 
 
 const SmallScreenBar = () => {
     
     const { pathname } = useLocation();
+    const { logout } = useAuth();
     
     const [navbar, setNavbar] = useState(false);
   
@@ -36,7 +36,7 @@ const SmallScreenBar = () => {
       </div>
       <SideBarMainComponent/>
         <div className='border border-t-gray-400 flex flex-col font-medium'>
-          <div className='flex flex-row gap-5 m-1 hover:bg-neutral-200 p-1 rounded-sm cursor-pointer text-red-500'>
+          <div className='flex flex-row gap-5 m-1 hover:bg-neutral-200 p-1 rounded-sm cursor-pointer text-red-500' onClick={logout}>
               <MdLogout className='text-xl'/>
               <span>Logout</span>
           </div>

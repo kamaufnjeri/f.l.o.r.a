@@ -1,8 +1,7 @@
 from journals.models import FloraUser
 from rest_framework import serializers
 from django.db import transaction
-from django.contrib.auth import authenticate
-
+from .organisation import OrganisationSerializer
 
 class ForgotPasswordSerializeer(serializers.Serializer):
     email = serializers.EmailField(required=True)
@@ -93,4 +92,26 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise Exception(str(e))
         
 
+class FloraUserSerializer(RegisterSerializer):
+    user_organisations = serializers.SerializerMethodField(read_only=True)
+    current_organisation = serializers.SerializerMethodField(read_only=True)
 
+    class Meta:
+        model = FloraUser
+        fields = RegisterSerializer.Meta.fields + ['user_organisations', 'current_organisation']
+
+    def get_user_organisations(self, obj):
+        orgs = []
+        for org_memb in obj.org_membership.all():
+            org = org_memb.organisation
+            data = {
+                "org_name": org.org_name,
+                "org_id": org.id,
+            }
+            orgs.append(data)
+
+        return orgs
+
+    def get_current_organisation(self, obj):
+        data = OrganisationSerializer(obj.current_org).data
+        return data

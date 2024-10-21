@@ -43,7 +43,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_ADDRESS')
 SERVER_EMAIL  = os.getenv('EMAIL_ADDRESS')
-print(f'Email - {EMAIL_HOST_USER}')
 
 # Application definition
 
@@ -57,6 +56,7 @@ INSTALLED_APPS = [
     'journals',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
 
@@ -174,6 +174,7 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',  # User ID field to be used in the token
     'USER_ID_CLAIM': 'user_id',  # Claim to be used for user ID
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_BLACKLIST_ENABLED': True,
 }
 frontend_url =  os.getenv("FRONTEND_BASE_URL")
 

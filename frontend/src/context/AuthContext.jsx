@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
                     const response = await api.get('auth/me/');
                     if (response.status == 200) {
                       setUser(response.data)
-                      setCurrentOrg(response.data?.current_org)
+                      setCurrentOrg(response.data?.current_organisation)
                     } else {
                       throw new Error();
                     }
@@ -50,12 +50,18 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('refreshToken', response?.data?.refresh);
             localStorage.setItem('accessToken', response?.data?.access)
             setUser(response.data?.user)
-            setCurrentOrg(response.data?.user?.current_org)
+            setCurrentOrg(response.data?.user?.current_organisation)
             setLoginData({
                email: "",
                password: "",
             });
-            navigate("/dashboard")
+            if (response.data?.current_organisation?.org_name === '') {
+                navigate('/organisation-create')
+
+            } else {
+                navigate(`/dashboard/${response.data?.user?.current_organisation.id}`)
+            }
+           
         }
         else {
             toast
@@ -63,9 +69,39 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        localStorage.clear();
-        setUser(null);
+    const changeCurrentOrg = async (orgId) => {
+        const response = await postRequest({
+            org_id: orgId
+        }, 'organisations/change-current-organisation');
+        if (response.success) {
+            toast.success("Organisation changed successfully!");
+            
+            setCurrentOrg(response.data)
+           
+            navigate(`/dashboard/${response.data?.id}`)
+        }
+        else {
+            toast
+            .error(response.error);
+        }   
+    }
+
+    const logout = async () => {
+       const refreshToken = localStorage.getItem('refreshToken');
+        const response = await postRequest({
+            "refresh": refreshToken
+        }, 'auth/logout');
+        if (response.success) {
+            localStorage.clear();
+            toast.success("Logout successful!");
+            setUser(null);
+            navigate("/")
+        }
+        else {
+            toast
+            .error(response.error);
+        }
+       
     };
 
     const isAuthenticated = () => {
@@ -80,6 +116,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated,
+        changeCurrentOrg,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

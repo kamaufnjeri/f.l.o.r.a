@@ -2,46 +2,45 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from journals.utils import flatten_errors, send_email, token_uid
 from journals.models import FloraUser
-from journals.serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer, OrganisationSerializer
+from journals.serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer, FloraUserSerializer
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth import get_user_model
 import os
 from balance_buddy.settings import frontend_url
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 load_dotenv()
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
+class LogoutView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
 
-User = get_user_model()
-
+            return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
 class MeAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated] 
     
     def get(self, request, *args, **kwargs):
-       
         user = request.user
-
-        current_org = None
-        if user.current_org:
-            current_org = OrganisationSerializer(user.current_org).data
-            print(current_org)
-            
-
-        data = {
-            "email": user.email,
-            "phone_number": user.phone_number,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "current_org":  current_org
-        }
-
+        user_serializer = FloraUserSerializer(user)
+        data = user_serializer.data
+       
         return Response(data, status=status.HTTP_200_OK)
     
 class ForgotPasswordAPIView(generics.GenericAPIView):    
@@ -115,20 +114,14 @@ class CustomLoginAPIView(generics.GenericAPIView):
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
 
-            current_org = None
-            if user.current_org:
-                current_org = OrganisationSerializer(user.current_org).data
+            user_serializer = FloraUserSerializer(user)
+            data = user_serializer.data
+
 
             return Response({
                 'refresh': str(refresh),
                 'access': str(access),
-                'user': {
-                    "email": user.email,
-                    "phone_number": user.phone_number,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "current_org":  current_org
-                }
+                'user': data
             }, status=status.HTTP_200_OK)
 
 class RegisterAPIVew(generics.CreateAPIView):

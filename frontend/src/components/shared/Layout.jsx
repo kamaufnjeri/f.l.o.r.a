@@ -13,7 +13,6 @@ const Layout = () => {
     const [openAddAccountModal, setOpenAddAccountModal] = useState(false);
     const [showSideBar, setShowSideBar] = useState(true)
 
-  // Update windowWidth state when the window is resized
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -21,7 +20,6 @@ const Layout = () => {
 
     window.addEventListener('resize', handleResize);
 
-    // Clean up the event listener on component unmount
     return () => {
       window.removeEventListener('resize', handleResize);
     };

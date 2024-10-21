@@ -2,12 +2,48 @@ from rest_framework import generics, serializers, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from journals.utils import flatten_errors, send_email, token_uid
-from django.shortcuts import get_object_or_404
 from journals.models import Organisation, FloraUser, OrganisationMembership
 from journals.serializers import OrganisationSerializer
 from django.db import transaction
 from datetime import timedelta, datetime
 from django.utils import timezone
+
+
+class ChangeCurrentOrgApiView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                org_id = request.data.get('org_id')
+                user = request.user
+
+                try:
+                    organisation = Organisation.objects.get(pk=org_id)
+                except Organisation.DoesNotExist:
+                    return Response({
+                        'error': 'Bad Request',
+                        'details': 'Organisation does not exist'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                if user.current_org == organisation:
+                    return Response({
+                        'error': 'Bad Request',
+                        'details': 'Organisation already current organisation'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    user.current_org = organisation
+                    user.save()
+
+                    data = OrganisationSerializer(organisation).data
+                    return Response(data=data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Internal Error: {e}") 
+            return Response({
+                'error': 'Internal server error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OrganisationApiView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]

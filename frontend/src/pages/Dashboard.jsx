@@ -1,14 +1,13 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import OrganisationCreate from '../components/OrganisationCreate';
 import OrganisationInviteEmail from '../components/OrganisationInviteEmail';
 
 const Dashboard = () => {
-    const { user, currentOrg, setCurrentOrg } = useAuth();
+    const { user, currentOrg } = useAuth();
 
     return (
         <div className='flex-1 flex flex-col font-medium gap-4 w-full h-full items-center justify-center'>
-            {user ? (
+            {user &&
                 currentOrg ? (
                     <div>
                         <span className='text-purple-800 bold text-xl'>{user.email} current organsiation is {currentOrg.org_name}</span>
@@ -16,10 +15,7 @@ const Dashboard = () => {
                             <OrganisationInviteEmail/>
                         </div>
                     </div>
-                ) : (
-                      <OrganisationCreate user={user}  setCurrentOrg={setCurrentOrg}/>
-                )
-            ) : (
+                )  : (
                 <div>Loading...</div>
             )}
         </div>

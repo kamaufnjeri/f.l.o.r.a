@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { FaBars, FaPlus, FaTimes } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 
 const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, showSideBar }) => {
+  const {logout} = useAuth();
   
     const [isVisible, setIsVisible] = useState(false);
     const openDropDown = () => {
@@ -52,7 +54,7 @@ const Header = ({ setOpenAddAccountModal, setOpenAddItemModal, setShowSideBar, s
                   <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown}/>
                 <Link to='/profile' className='hover:bg-neutral-100 w-full p-1 rounded-sm'>Your profile</Link>
                 <Link to='/settings' className='hover:bg-neutral-100 w-full p-1 rounded-sm'>Settings</Link>
-                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={logout}>
                     <MdLogout/>
                     <span>Logout</span>
                 </button>

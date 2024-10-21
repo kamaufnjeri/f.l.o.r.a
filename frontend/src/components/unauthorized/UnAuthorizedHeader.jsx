@@ -6,7 +6,7 @@ import { MdLogout } from 'react-icons/md';
 
 
 const UnAuthorizedHeader = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentOrg, logout } = useAuth();
   const isAuthenticatedUser = isAuthenticated();
 
   return (
@@ -24,13 +24,13 @@ const UnAuthorizedHeader = () => {
       <Link to="/contact-us" className='flex flex-row items-center gap-2 hover:text-purple-700'>
         Contact Us
       </Link>{isAuthenticatedUser ? <>
-        <Link to="/dashboard" className='flex flex-row items-center gap-2 hover:text-purple-700'>
+        <Link to={`/dashboard/${currentOrg.id}`} className='flex flex-row items-center gap-2 hover:text-purple-700'>
           Dashboard
         </Link>
-        <Link to="/logout" className='flex flex-row items-center gap-2 border-2 border-gray-800 rounded-md p-2 hover:border-purple-600 hover:text-purple-700'>
+        <span className='flex flex-row items-center gap-2 border-2 border-gray-800 rounded-md p-2 hover:border-purple-600 hover:text-purple-700' onClick={logout}>
           Logout
           <MdLogout className='text-xl' />
-        </Link>
+        </span>
       </> : <><Link to="/login" className='flex flex-row items-center gap-2 hover:text-purple-700'>
         Login
       </Link>

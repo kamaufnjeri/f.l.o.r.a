@@ -275,7 +275,7 @@ export const sidebarIcons = [
         },
         {
             name: 'View stocks',
-            url: '/dashboard/stocks'
+            url: 'stocks'
         }
     ]
   },
@@ -285,19 +285,19 @@ export const sidebarIcons = [
     lists: [
         {
             name: 'Record purchase',
-            url: '/dashboard/purchases/record'
+            url: 'purchases/record'
         },
         {
             name: 'Purchase bill',
-            url: '/dashboard/purchases/bill'
+            url: 'purchases/bill'
         },
         {
             name: 'View purchases',
-            url: '/dashboard/purchases'
+            url: 'purchases'
         },
         {
             name: 'View purchase returns',
-            url: '/dashboard/purchase_returns'
+            url: 'purchase_returns'
         }
     ]
   },
@@ -307,19 +307,19 @@ export const sidebarIcons = [
     lists: [
         {
             name: 'Record sale',
-            url: '/dashboard/sales/record'
+            url: 'sales/record'
         },
         {
             name: 'Sales invoice',
-            url: '/dashboard/sales/invoice'
+            url: 'sales/invoice'
         },
         {
             name: 'View sales',
-            url: '/dashboard/sales'
+            url: 'sales'
         },
         {
             name: 'View sales returns',
-            url: '/dashboard/sales_returns'
+            url: 'sales_returns'
         }
     ]
   },
@@ -329,19 +329,19 @@ export const sidebarIcons = [
     lists: [
         {
             name: 'Record journal',
-            url: '/dashboard/journals/record'
+            url: 'journals/record'
         },
         {
             name: 'Journal invoice',
-            url: '/dashboard/journals/invoice',
+            url: 'journals/invoice',
         },
         {
             name: 'Journal bill',
-            url: '/dashboard/journals/bill'
+            url: 'journals/bill'
         },
         {
             name: 'View journals',
-            url: '/dashboard/journals'
+            url: 'journals'
         }
     ]
   },
@@ -355,7 +355,7 @@ export const sidebarIcons = [
         },
         {
             name: 'Chart of Accounts',
-            url: '/dashboard/accounts'
+            url: 'accounts'
         }
     ]
   },
@@ -369,7 +369,7 @@ export const sidebarIcons = [
         },
         {
             name: 'View customers',
-            url: '/dashboard/customers'
+            url: 'customers'
         }
     ]
   },
@@ -384,7 +384,7 @@ export const sidebarIcons = [
         },
         {
             name: 'View suppliers',
-            url: '/dashboard/suppliers'
+            url: 'suppliers'
         }
     ]
   },
@@ -395,15 +395,15 @@ export const sidebarIcons = [
     lists: [
         {
             name: 'Trial Balance',
-            url: '/dashboard/reports/trialbalance'
+            url: 'reports/trialbalance'
         },
         {
             name: 'Income Statement',
-            url: '/dashboard/reports/incomestatment'
+            url: 'reports/incomestatment'
         },
         {
             name: 'Balance Sheet',
-            url: '/dashboard/reports/balancesheet'
+            url: 'reports/balancesheet'
         }
     ]
   }
@@ -413,11 +413,11 @@ export const sidebarIconsBottom = [
     {
         name: "Settings",
         icon: <IoMdSettings className='text-xl'/>,
-        url: "/dashboard/settings"
+        url: "settings"
     },
     {
         name: "Help and Support",
         icon: <IoMdHelp className='text-xl'/>,
-        url: '/dashboard/helpandsuppot'
+        url: 'helpandsuppot'
     }
 ]
