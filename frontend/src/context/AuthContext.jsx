@@ -111,6 +111,7 @@ export const AuthProvider = ({ children }) => {
     const value = {
         user,
         currentOrg,
+        setUser,
         setCurrentOrg,
         loading,
         login,

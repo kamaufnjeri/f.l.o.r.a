@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import { postRequest } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import Loading from '../components/shared/Loading';
+import { useAuth } from '../context/AuthContext';
 
 const OrganisationCreate = ({ user, setCurrentOrg }) => {
+    const { setUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [organisationData, setOrganisationData] = useState({
         org_name: "",
@@ -33,7 +35,8 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
                 country: "",
                 currency: "",
             })
-            setCurrentOrg(response.data)
+            setUser(response.data)
+            setCurrentOrg(response.data?.current_organisation)
         }
         else {
             toast.error(response.error);

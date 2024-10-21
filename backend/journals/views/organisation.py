@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from journals.utils import flatten_errors, send_email, token_uid
 from journals.models import Organisation, FloraUser, OrganisationMembership
-from journals.serializers import OrganisationSerializer
+from journals.serializers import OrganisationSerializer, FloraUserSerializer
 from django.db import transaction
 from datetime import timedelta, datetime
 from django.utils import timezone
@@ -56,7 +56,8 @@ class OrganisationApiView(generics.CreateAPIView):
         try:
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            user_data = FloraUserSerializer(request.user).data
+            return Response(user_data, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
