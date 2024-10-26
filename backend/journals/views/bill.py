@@ -7,7 +7,8 @@ from journals.serializers import JournalBillSerializer, PurchaseBillSerializer, 
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework.permissions import IsAuthenticated
+from journals.permissions import IsUserInOrganisation
 
     
 class BillPagination(PageNumberPagination):
@@ -18,8 +19,6 @@ class BillPagination(PageNumberPagination):
 class BillFilter(DjangoFilterBackend, SearchFilter):
     class Meta:
         model = Bill
-
-
     def filter_queryset(self, request, queryset, view):
         search = request.query_params.get("search")
         due_days = request.query_params.get("due_days")
@@ -40,14 +39,14 @@ class BillFilter(DjangoFilterBackend, SearchFilter):
 class BillApiView(generics.ListAPIView):
     queryset = Bill.objects.all()
     serializer_class = BillDetailSerializer
-
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
     pagination_class = BillPagination
     filter_backends = [BillFilter]
     search_fields = ['serial_number', 'supplier']
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
             paginate = request.query_params.get('paginate')
 
             if paginate:
@@ -81,11 +80,15 @@ class BillApiView(generics.ListAPIView):
 class PurchaseBillAPIView(generics.CreateAPIView):
     queryset = Purchase.objects.filter(bill__isnull=False)
     serializer_class = PurchaseBillSerializer
+    permission_classes = [IsUserInOrganisation, IsAuthenticated]
 
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -108,10 +111,15 @@ class PurchaseBillAPIView(generics.CreateAPIView):
 class JournalBillAPIView(generics.CreateAPIView):
     queryset = Journal.objects.filter(bill__isnull=False)
     serializer_class = JournalBillSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -134,6 +142,7 @@ class BillPaymentsApiView(generics.ListAPIView):
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
     pagination_class = BillPagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
 
     def get(self, request, *args, **kwargs):

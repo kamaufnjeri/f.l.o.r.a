@@ -40,7 +40,7 @@ class JournalInvoiceSerializer(JournalSerializer):
             invoice['customer'] = customer
             amount_due = invoice.get('amount_due')
             journal = Journal.objects.create(**validated_data)
-            invoice = Invoice.objects.create(journal=journal, total_amount=amount_due, status="unpaid", **invoice)
+            invoice = Invoice.objects.create(journal=journal, total_amount=amount_due, status="unpaid", organisation=validated_data.get('organisation'), user=validated_data.get('user'), **invoice)
 
             account = customer.account
 
@@ -81,17 +81,17 @@ class SalesInvoiceSerializer(SalesSerializer):
             receivables_account = customer.account
 
             sales = Sales.objects.create(**validated_data)
-            invoice = Invoice.objects.create(sales=sales, total_amount=amount_due, status="unpaid", **invoice)
+            invoice = Invoice.objects.create(sales=sales, total_amount=amount_due, organisation=validated_data.get('organisation'), user=validated_data.get('user'), status="unpaid", **invoice)
             if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
                 discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
-                discount_account = Account.objects.get(name='Discount allowed')
+                discount_account = Account.objects.get(name='Discount allowed', organisation_id=validated_data.get('organisation'))
                 discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'debit')
                 journal_entries.append(discount_account_data)
 
             cogs, total_sales_price = sales_entries_manager.create_sales_entries(sales_entries, sales, StockDetailsSerializer)
             receivables_account_data = journal_entries_manager.create_journal_entry(receivables_account, amount_due, "debit")
             journal_entries.append(receivables_account_data)
-            journal_entries = journal_entries_manager.sales_journal_entries_dict(journal_entries, cogs, total_sales_price)
+            journal_entries = journal_entries_manager.sales_journal_entries_dict(journal_entries, cogs, total_sales_price, validated_data.get('organisation'))
             journal_entries_manager.validate_double_entry(journal_entries)
             journal_entries_manager.create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
         return sales

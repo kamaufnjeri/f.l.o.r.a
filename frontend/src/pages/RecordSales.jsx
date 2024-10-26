@@ -9,6 +9,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import AccountsField from '../components/forms/AccountsField';
 import SalesEntriesField from '../components/forms/SalesEntriesField';
 import DiscountContainer from '../components/forms/DiscountContainer';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -50,6 +51,7 @@ const RecordSales = () => {
   const [accounts, setAccounts] = useState([]);
   const scrollRef = useRef(null);
   const [salesNo, setSalesNo] = useState('');
+  const { orgId } = useParams();
 
   const getTotalSalesPrice = (items) => {
     if (items) {
@@ -65,9 +67,9 @@ const RecordSales = () => {
 
   const getData = async () => {
     const subCategory = 'cash_and_cash_equivalents'
-    const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
-    const newStocks = await getItems('stocks');
-    const saleNo = await getSerialNumber('SALE')
+    const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
+    const newStocks = await getItems(`${orgId}/stocks`);
+    const saleNo = await getSerialNumber('SALE', orgId)
     setSalesNo(saleNo);
     setAccounts(newAccounts)
     setStocks(newStocks)
@@ -106,7 +108,7 @@ const RecordSales = () => {
           const salesPriceTotal = getTotalSalesPrice(values.sales_entries) - values.discount_allowed.discount_amount;
           
           if (salesPriceTotal === debitTotalAmount) {
-            const response = await postRequest(values, 'sales', resetForm);
+            const response = await postRequest(values, `${orgId}/sales`, resetForm);
 
             if (response.success) {
               toast.success('Recorded: Sales recorded successfully')

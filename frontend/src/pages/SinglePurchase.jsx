@@ -12,6 +12,7 @@ const SinglePurchase = () => {
   const [showJournalEntries, setShowJournalEntries] = useState(false);
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [openPurchaseReturnModal, setOpenPurchaseReturnModal] = useState();
+  const { orgId } = useParams();
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -23,8 +24,9 @@ const SinglePurchase = () => {
   }
 
   const getData = async () => {
-    const purchase = await getItems(`purchases/${id}`);
+    const purchase = await getItems(`${orgId}/purchases/${id}`);
     setPurchase(purchase)
+    console.log(purchase)
   }
 
   useEffect(() => {
@@ -40,8 +42,7 @@ const SinglePurchase = () => {
   }
   const hideJournalEntries = () => {
     setShowJournalEntries(!showJournalEntries)
-
-    console.log('clicked')
+    console.log(purchase.journal_entries)
     if (buttonName === 'Show Journal Entries') {
       SetButtonName('Hide Journal Entries')
     } else {
@@ -52,6 +53,7 @@ const SinglePurchase = () => {
     <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       <PurchaseReturnModal title={`Purchase return of purchase# ${purchase?.serial_number}`}
         setOpenModal={setOpenPurchaseReturnModal}
+        onPurchaseReturn={onPaymentSuccess}
         purchase={purchase} openModal={openPurchaseReturnModal} />
       <PaymentModal
         onPaymentSuccess={onPaymentSuccess}
@@ -67,7 +69,7 @@ const SinglePurchase = () => {
             {purchase?.items_data?.type === 'bill' &&
               purchase?.bill?.status &&
               purchase.bill.status !== 'unpaid' && (
-                <Link to={`/bills/${purchase.bill.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                <Link to={`/dashboard/${orgId}/bills/${purchase.bill.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                   Payments
                 </Link>
               )}
@@ -79,7 +81,7 @@ const SinglePurchase = () => {
             </button>
             {purchase?.has_returns &&
                (
-                <Link to={`/purchases/${purchase.id}/purchase_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                <Link to={`purchase_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                   Purchase returns
                 </Link>
               )}
@@ -235,7 +237,7 @@ const SinglePurchase = () => {
               </div>
               <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
                 <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                  {purchase.purchase_entries && purchase.purchase_entries.map((entry, index) =>
+                  {purchase.purchase_entries && purchase.journal_entries.map((entry, index) =>
                     <div className={`flex flex-row flex-1`} key={index}>
                       <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
                       <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>

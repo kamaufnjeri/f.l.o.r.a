@@ -78,8 +78,8 @@ export const getItems = async (name, filterUrl=null) => {
   }
 }
 
-export const getSerialNumber = async(initial_name) => {
-  const data = await getItems('serial_number', `?initial_name=${initial_name}`)
+export const getSerialNumber = async(initial_name, orgId) => {
+  const data = await getItems(`${orgId}/serial_number`, `?initial_name=${initial_name}`)
 
   return data.serial_number
 }

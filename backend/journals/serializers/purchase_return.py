@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from journals.models import PurchaseReturnEntries, PurchaseReturn, Account, Purchase
+from journals.models import PurchaseReturnEntries, PurchaseReturn, Account, Purchase, Organisation, FloraUser
 from django.db import transaction
 from journals.utils import JournalEntriesManager, PurchaseReturnEntriesManager
 from .account import AccountDetailsSerializer
@@ -32,9 +32,11 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = PurchaseReturnEntriesSerializer(many=True)
     purchase_no = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'purchase', "purchase_no"]
+        fields = ['id', 'date', 'description', 'return_entries', 'purchase', "purchase_no", 'user', 'organisation']
         model = PurchaseReturn
 
     def get_purchase_no(self, obj):
@@ -50,7 +52,7 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             return_entries = validated_data.pop('return_entries')
             try:
-                purchase_return_account = Account.objects.get(name="Purchase Return")
+                purchase_return_account = Account.objects.get(name="Purchase Return", organisation_id=validated_data.get('organisation'))
             except Account.DoesNotExist:
                 raise serializers.ValidationError(f"Purchase return account not found")
             

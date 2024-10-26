@@ -6,6 +6,8 @@ from journals.utils import flatten_errors
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from journals.permissions import IsUserInOrganisation
 
 
 class CustomerPagination(PageNumberPagination):
@@ -20,10 +22,11 @@ class CustomerAPIVew(generics.ListCreateAPIView):
     pagination_class = CustomerPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
 
             paginate = request.query_params.get('paginate')
 
@@ -57,8 +60,11 @@ class CustomerAPIVew(generics.ListCreateAPIView):
 
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -81,6 +87,7 @@ class CustomerAPIVew(generics.ListCreateAPIView):
 class CustomerDetailsAPIView(generics.RetrieveAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
     def get(self, request, *args, **kwargs):
         customer_id = kwargs.get('pk')

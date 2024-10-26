@@ -1,6 +1,6 @@
-from rest_framework import serializers, exceptions
+from rest_framework import serializers
 from django.db import transaction
-from journals.models import Stock, PurchaseEntries
+from journals.models import Stock, PurchaseEntries, FloraUser, Organisation
 from datetime import date
 from .purchase_entries import PurchaseEntriesSerializer
 
@@ -10,11 +10,17 @@ class StockSerializer(serializers.ModelSerializer):
     opening_stock_rate = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, write_only=True)
     opening_stock_quantity = serializers.IntegerField(required=False, write_only=True)
     total_quantity = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
 
     class Meta:
         model = Stock
-        fields = ['id', 'name', 'unit_name', 'unit_alias', 'opening_stock_quantity', 'opening_stock_rate', 'total_quantity']
+        fields = [
+            'id', 'name', 'unit_name', 'user', 'organisation',
+            'unit_alias', 'opening_stock_quantity', 
+            'opening_stock_rate', 'total_quantity'
+        ]
 
     
     def get_total_quantity(self, obj):

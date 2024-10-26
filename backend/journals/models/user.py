@@ -40,7 +40,6 @@ class FloraUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     current_org = models.ForeignKey('Organisation', related_name='current_users', on_delete=models.CASCADE, null=True, blank=True)
-
     objects = FloraUserManager()
 
     USERNAME_FIELD = 'email'

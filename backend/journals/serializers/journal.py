@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .journal_entries import JournalEntrySerializer
-from journals.models import Journal
+from journals.models import Journal, FloraUser, Organisation
 from .account import AccountDetailsSerializer
 from .bill_invoice import InvoiceSerializer, BillSerializer
 from journals.utils import JournalEntriesManager
@@ -14,9 +14,11 @@ class JournalSerializer(serializers.ModelSerializer):
     bill = BillSerializer(required=False, write_only=True)
     invoice = InvoiceSerializer(required=False, write_only=True)
     type = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        fields = ['id', "date", "description", "journal_entries", "serial_number", "invoice", "bill", "type"]
+        fields = ['id', "date", "description", "journal_entries", "serial_number", "invoice", "bill", "type", "organisation", "user"]
         model = Journal
 
     def to_representation(self, instance):

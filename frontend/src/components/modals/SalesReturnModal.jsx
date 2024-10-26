@@ -8,6 +8,7 @@ import FormInitialField from '../forms/FormInitialField';
 import InputNumberField from '../forms/InputNumberField';
 import SelectField from '../forms/SelectField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -26,7 +27,8 @@ const validationSchema = Yup.object({
         .min(1, 'At least one return entry are required'),
 });
 
-const SalesReturnModal = ({ openModal, setOpenModal, title, sale }) => {
+const SalesReturnModal = ({ openModal, setOpenModal, title, sale, onSalesReturn }) => {
+    const { orgId } = useParams();
     const handleCancel = () => {
         setOpenModal(false);
     };
@@ -59,9 +61,11 @@ const SalesReturnModal = ({ openModal, setOpenModal, title, sale }) => {
                     onSubmit={async (values, { resetForm }) => {
                         console.log(values)
 
-                        const response = await postRequest(values, 'sales_returns', resetForm);
+                        const response = await postRequest(values, `${orgId}/sales_returns`, resetForm);
                         if (response.success) {
                             toast.success('Sales return successfully')
+
+                            onSalesReturn();
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }

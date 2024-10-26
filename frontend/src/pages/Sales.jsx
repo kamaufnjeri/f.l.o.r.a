@@ -4,13 +4,13 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { dateOptions, sortOptions } from '../lib/constants';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Sales = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
@@ -20,7 +20,7 @@ const Sales = () => {
     date: '',
     sortBy: '',
   })
-
+  const { orgId } = useParams();
   const [selectOptions, setSelectOptions] = useState([
     { name: "All", value: "all" },
     { name: " Invoice Sales", value: "is_invoices" },
@@ -31,7 +31,7 @@ const Sales = () => {
   const [salesData, setSalesData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newSalesData = await getItems('sales', `?paginate=true`);
+    const newSalesData = await getItems(`${orgId}/sales`, `?paginate=true`);
     setSalesData(newSalesData);
   }
   useEffect(() => {
@@ -49,7 +49,7 @@ const Sales = () => {
       typeValue: searchItem.sales
   })
 
-    const newSales = await getItems('sales', queyParamsUrl);
+    const newSales = await getItems(`${orgId}/sales`, queyParamsUrl);
     setSales(newSales)
   }
   const handleSalesChange = async (e) => {
@@ -63,7 +63,7 @@ const Sales = () => {
       typeValue: e.target.value
     })
 
-    const newSalesData = await getItems('sales', queyParamsUrl);
+    const newSalesData = await getItems(`${orgId}/sales`, queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
 
@@ -85,7 +85,7 @@ const Sales = () => {
         sortBy: searchItem.sortBy,
         typeValue: searchItem.sales
       })
-      const newSalesData = await getItems('sales', queyParamsUrl);
+      const newSalesData = await getItems(`${orgId}/sales`, queyParamsUrl);
       setSalesData(newSalesData);
       setPageNo(1);
     }
@@ -102,7 +102,7 @@ const Sales = () => {
       sortBy: e.target.value,
       typeValue: searchItem.sales
     })
-    const newSalesData = await getItems('sales', queyParamsUrl);
+    const newSalesData = await getItems(`${orgId}/sales`, queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
 
@@ -117,7 +117,7 @@ const Sales = () => {
       sortBy: searchItem.sortBy,
       typeValue: searchItem.sales
     })
-    const newSalesData = await getItems('sales', queyParamsUrl);
+    const newSalesData = await getItems(`${orgId}/sales`, queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
     setSearchItem({ ...searchItem, name: '' })
@@ -125,7 +125,7 @@ const Sales = () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(salesData.next);
+      const response = await api.get(salesData.next);
       if (response.status == 200) {
         setSalesData(response.data)
         setPageNo(pageNo + 1);
@@ -141,7 +141,7 @@ const Sales = () => {
   const previousPage = async () => {
 
     try {
-      const response = await axios.get(salesData.previous);
+      const response = await api.get(salesData.previous);
       if (response.status == 200) {
         setSalesData(response.data)
         setPageNo(pageNo - 1);
@@ -185,7 +185,7 @@ const Sales = () => {
             </div>
             {sales.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {sales.map((sale) => (<Link to={`/sales/${sale.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sale.serial_number}</Link>))}
+              {sales.map((sale) => (<Link to={`${sale.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sale.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -207,7 +207,7 @@ const Sales = () => {
 
         </div>
         {salesData?.results?.data && salesData.results.data.map((sale, index) => (
-          <Link to={`/sales/${sale.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sale.id}>
+          <Link to={`${sale.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sale.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{sale.serial_number}</span>
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{sale.date}</span>
             <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(sale.items_data.type)}</span>
@@ -228,11 +228,8 @@ const Sales = () => {
           </Link>
         ))}
       </div>
-      <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {salesData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {salesData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-      </div>
+      <PrevNext pageNo={pageNo} data={salesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }

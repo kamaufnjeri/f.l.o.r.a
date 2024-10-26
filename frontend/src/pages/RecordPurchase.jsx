@@ -9,6 +9,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import AccountsField from '../components/forms/AccountsField';
 import PurchaseEntriesFields from '../components/forms/PurchaseEntriesFields';
 import DiscountContainer from '../components/forms/DiscountContainer';
+import { useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object({
     date: Yup.date().required('Date is required'),
@@ -48,6 +49,7 @@ const RecordPurchase = () => {
     const [accounts, setAccounts] = useState([]);
     const scrollRef = useRef(null);
     const [purchaseNo, setPurchaseNo] = useState('')
+    const { orgId } = useParams();
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -62,9 +64,9 @@ const RecordPurchase = () => {
 
     const getData = async () => {
         const subCategory = 'cash_and_cash_equivalents'
-        const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
-        const newStocks = await getItems('stocks');
-        const purchaseNo = await getSerialNumber('PURCH')
+        const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
+        const newStocks = await getItems(`${orgId}/stocks`);
+        const purchaseNo = await getSerialNumber('PURCH', orgId)
         setPurchaseNo(purchaseNo)
         setAccounts(newAccounts)
         setStocks(newStocks)
@@ -101,7 +103,7 @@ const RecordPurchase = () => {
                     }, 0);
                     const purchasePriceTotal = getTotalPurchasePrice(values.purchase_entries) - values.discount_received.discount_amount;
                     if (purchasePriceTotal === creditTotalAmount) {
-                        const response = await postRequest(values, 'purchases', resetForm)
+                        const response = await postRequest(values, `${orgId}/purchases`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase recorded successfully')
                             getData();

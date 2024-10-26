@@ -14,6 +14,7 @@ const SingleJournal = () => {
   const [type, setType] = useState('');
 
   const [isVisible, setIsVisible] = useState(false);
+  const { orgId } = useParams();
   const openDropDown = () => {
     setIsVisible(true);
   }
@@ -28,7 +29,7 @@ const SingleJournal = () => {
   };
 
   const getData = async () => {
-    const journal = await getItems(`journals/${id}`);
+    const journal = await getItems(`${orgId}/journals/${id}`);
     setJournal(journal)
     if (journal.type == 'invoice') {
       setModalTitle(`Payment for invoice# ${journal?.invoice?.serial_number}`)
@@ -74,7 +75,7 @@ const SingleJournal = () => {
             {(journal.type !== 'regular' &&
               ((journal?.bill?.status && journal.bill.status !== "unpaid") ||
                 (journal?.invoice?.status && journal.invoice.status !== "unpaid"))
-            ) && <Link to={journal.type === 'bill' ? `/bills/${journal?.bill?.id}/payments` : `/invoices/${journal?.invoice?.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+            ) && <Link to={journal.type === 'bill' ? `/dashboard/${orgId}/bills/${journal?.bill?.id}/payments` : `/dashboard/${orgId}/invoices/${journal?.invoice?.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                 Paments
               </Link>}
             <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>

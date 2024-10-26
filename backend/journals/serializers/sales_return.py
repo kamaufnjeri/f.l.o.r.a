@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from journals.models import SalesReturnEntries, SalesReturn, Sales, Account
+from journals.models import SalesReturnEntries, SalesReturn, Sales, Account, FloraUser, Organisation
 import decimal
 from django.db import transaction
 from .sales import SalesDetailSerializer
@@ -30,9 +30,11 @@ class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = SalesReturnEntriesSerializer(many=True)
     sales_no = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no']
+        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no', 'organisation', 'user']
         model = SalesReturn
 
     def get_sales_no(self, obj):
@@ -49,7 +51,7 @@ class SalesReturnSerializer(serializers.ModelSerializer):
 
             try:
 
-                sales_return_account = Account.objects.get(name="Sales Return")
+                sales_return_account = Account.objects.get(name="Sales Return", organisation=validated_data.get('organisation'))
             except Account.DoesNotExist:
                 raise serializers.ValidationError('Sales Return account not found')
 
@@ -63,8 +65,15 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             
             sales_return = SalesReturn.objects.create(**validated_data)
             cogs, total_sales_price = sales_return_entries_manager.create_sales_return_entries(return_entries, sales_return, sales)
-            cogs_account = Account.objects.get(name="Cost of goods sold")
-            inventory_account = Account.objects.get(name="Inventory")
+            try:
+                cogs_account = Account.objects.get(name="Cost of goods sold", organisation=validated_data.get('organisation'))
+            except Account.DoesNotExist:
+                raise serializers.ValidationError('Cost of goods sold account not found')
+            
+            try:
+                inventory_account = Account.objects.get(name="Inventory", organisation=validated_data.get('organisation'))
+            except Account.DoesNotExist:
+                raise serializers.ValidationError('Inventory account not found')
             
             sales_serializer = SalesDetailSerializer(sales).data
             if sales_serializer.get('invoice') != None:

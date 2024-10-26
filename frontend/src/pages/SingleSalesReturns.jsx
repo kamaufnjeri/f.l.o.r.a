@@ -5,14 +5,15 @@ import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
+import PrevNext from '../components/shared/PrevNext';
 
 
 const SingleSalesReturns = () => {
-    const {id} = useParams();
+    const {id, orgId} = useParams();
   const [salesReturnsData, setSalesReturnsData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newSalesReturnsData = await getItems(`sales/${id}/sales_returns`, `?paginate=true`);
+    const newSalesReturnsData = await getItems(`${orgId}/sales/${id}/sales_returns`, `?paginate=true`);
     setSalesReturnsData(newSalesReturnsData);
   }
   useEffect(() => {
@@ -65,7 +66,7 @@ const SingleSalesReturns = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Return Quantity</span>
         </div>
         {salesReturnsData?.results?.data && salesReturnsData.results.data.map((sales_return, index) => (
-          <Link to={`/sales/${sales_return.sales}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sales_return.id}>
+          <Link to={`/dashboard/${orgId}/sales/${sales_return.sales}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sales_return.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{sales_return.sales_no}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{sales_return.date}</span>
@@ -88,11 +89,8 @@ const SingleSalesReturns = () => {
           </Link>
         ))}
       </div>
-      <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {salesReturnsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {salesReturnsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-      </div>
+      <PrevNext pageNo={pageNo} data={salesReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }

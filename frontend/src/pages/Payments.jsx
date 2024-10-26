@@ -4,12 +4,13 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, paymentsQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../lib/api';
 import { Link } from 'react-router-dom';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import TypesFilter from '../components/filters/TypesFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Payments = () => {
     const [openDateModal, setOpenDateModal] = useState(false);
@@ -19,6 +20,7 @@ const Payments = () => {
         date: '',
         sortBy: '',
     })
+    const { orgId } = useParams();
 
     const [selectOptions, setSelectOptions] = useState([
         { name: "All", value: "all" },
@@ -30,7 +32,7 @@ const Payments = () => {
     const [paymentsData, setPaymentsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const getData = async () => {
-        const newPaymentsData = await getItems('payments', `?paginate=true`);
+        const newPaymentsData = await getItems(`${orgId}/payments`, `?paginate=true`);
         setPaymentsData(newPaymentsData);
     }
     useEffect(() => {
@@ -46,7 +48,7 @@ const Payments = () => {
             date: searchItem.date,
             sortBy: searchItem.sortBy,
         })
-        const newPayments = await getItems('payments', queyParamsUrl);
+        const newPayments = await getItems(`${orgId}/payments`, queyParamsUrl);
         setPayments(newPayments)
     }
     const handleTypesChange = async (e) => {
@@ -58,7 +60,7 @@ const Payments = () => {
             date: searchItem.date,
             sortBy: searchItem.sortBy
         })
-        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        const newPaymentsData = await getItems(`${orgId}/payments`, queyParamsUrl);
         setPaymentsData(newPaymentsData);
         setPageNo(1);
 
@@ -79,7 +81,7 @@ const Payments = () => {
                 date: e.target.value,
                 sortBy: searchItem.sortBy,
             })
-            const newPaymentsData = await getItems('payments', queyParamsUrl);
+            const newPaymentsData = await getItems(`${orgId}/payments`, queyParamsUrl);
             setPaymentsData(newPaymentsData);
             setPageNo(1);
         }
@@ -95,7 +97,7 @@ const Payments = () => {
             date: searchItem.date,
             sortBy: e.target.value,
         })
-        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        const newPaymentsData = await getItems(`${orgId}/payments`, queyParamsUrl);
         setPaymentsData(newPaymentsData);
         setPageNo(1);
 
@@ -109,7 +111,7 @@ const Payments = () => {
             date: searchItem.date,
             sortBy: searchItem.sortBy,
         })
-        const newPaymentsData = await getItems('payments', queyParamsUrl);
+        const newPaymentsData = await getItems(`${orgId}/payments`, queyParamsUrl);
         setPaymentsData(newPaymentsData);
         setPageNo(1);
         setSearchItem({ ...searchItem, name: '' })
@@ -117,7 +119,7 @@ const Payments = () => {
 
     const nextPage = async () => {
         try {
-            const response = await axios.get(paymentsData.next);
+            const response = await api.get(paymentsData.next);
             if (response.status == 200) {
                 setPaymentsData(response.data)
                 setPageNo(pageNo + 1);
@@ -133,7 +135,7 @@ const Payments = () => {
     const previousPage = async () => {
 
         try {
-            const response = await axios.get(paymentsData.previous);
+            const response = await api.get(paymentsData.previous);
             if (response.status == 200) {
                 setPaymentsData(response.data)
                 setPageNo(pageNo - 1);
@@ -233,11 +235,8 @@ const Payments = () => {
                     </Link>
                 ))}
             </div>
-            <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-                {paymentsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-                <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-                {paymentsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-            </div>
+            <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
         </div>
     )
 }

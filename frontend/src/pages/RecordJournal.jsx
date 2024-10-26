@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
 import JournalEntries from '../components/forms/JournalEntries';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -31,10 +32,11 @@ const RecordJournal = () => {
   const [debitCreditDiff, setDebitCreditDiff] = useState(0);
   const scrollRef = useRef(null);
   const [journalNo, setJounalNo] = useState('');
+  const { orgId } = useParams();
 
   const getData = async () => {
-    const newAccounts = await getItems('accounts');
-    const journalNo = await getSerialNumber('JOURN')
+    const newAccounts =await getItems(`${orgId}/accounts`);
+    const journalNo = await getSerialNumber('JOURN', orgId)
     setJounalNo(journalNo)
     setAccounts(newAccounts);
   }
@@ -81,7 +83,7 @@ const RecordJournal = () => {
           }, 0);
 
           if (totalDebitAmount === totalCreditAmount) {
-            const response = await postRequest(values, 'journals', resetForm)
+            const response = await postRequest(values, `${orgId}/journals`, resetForm)
             if (response.success) {
               toast.success('Recorded: Journal recorded successfully')
               getData()

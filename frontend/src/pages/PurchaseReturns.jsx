@@ -4,11 +4,12 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, returnsQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 
 const PurchaseReturns = () => {
@@ -19,13 +20,12 @@ const PurchaseReturns = () => {
     date: '',
     sortBy: '',
   })
-
-
   const [purchaseReturns, setPurchaseReturns] = useState([]);
   const [purchaseReturnsData, setPurchaseReturnsData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
+  const { orgId } = useParams();
   const getData = async () => {
-    const newPurchaseReturnsData = await getItems('purchase_returns', `?paginate=true`);
+    const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, `?paginate=true`);
     setPurchaseReturnsData(newPurchaseReturnsData);
   }
   useEffect(() => {
@@ -42,7 +42,7 @@ const PurchaseReturns = () => {
   })
 
     console.log(queyParamsUrl)
-    const newPurchaseReturns = await getItems('purchase_returns', queyParamsUrl);
+    const newPurchaseReturns = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
     setPurchaseReturns(newPurchaseReturns)
   }
   const showModal = (setOpenModal) => {
@@ -60,7 +60,7 @@ const PurchaseReturns = () => {
         date: e.target.value,
         sortBy: searchItem.sortBy,
       })
-      const newPurchaseReturnsData = await getItems('purchase_returns', queyParamsUrl);
+      const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
       setPurchaseReturnsData(newPurchaseReturnsData);
       setPageNo(1);
     }
@@ -75,7 +75,7 @@ const PurchaseReturns = () => {
       date: searchItem.date,
       sortBy: e.target.value,
     })
-    const newPurchaseReturnsData = await getItems('purchase_returns', queyParamsUrl);
+    const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
     setPurchaseReturnsData(newPurchaseReturnsData);
     setPageNo(1);
 
@@ -88,7 +88,7 @@ const PurchaseReturns = () => {
       date: searchItem.date,
       sortBy: searchItem.sortBy,
     })
-    const newPurchaseReturnsData = await getItems('purchase_returns', queyParamsUrl);
+    const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
     setPurchaseReturnsData(newPurchaseReturnsData);
     setPageNo(1);
     setSearchItem({ ...searchItem, name: '' })
@@ -96,7 +96,7 @@ const PurchaseReturns = () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(purchaseReturnsData.next);
+      const response = await api.get(purchaseReturnsData.next);
       if (response.status == 200) {
         setPurchaseReturnsData(response.data)
         setPageNo(pageNo + 1);
@@ -112,7 +112,7 @@ const PurchaseReturns = () => {
   const previousPage = async () => {
 
     try {
-      const response = await axios.get(purchaseReturnsData.previous);
+      const response = await api.get(purchaseReturnsData.previous);
       if (response.status == 200) {
         setPurchaseReturnsData(response.data)
         setPageNo(pageNo - 1);
@@ -153,7 +153,7 @@ const PurchaseReturns = () => {
             </div>
             {purchaseReturns.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {purchaseReturns.map((purchase_return) => (<Link to={`/purchases/${purchase_return.purchase}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase_return.purchase_no}</Link>))}
+              {purchaseReturns.map((purchase_return) => (<Link to={`/dashboard/${orgId}/purchases/${purchase_return.purchase}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase_return.purchase_no}</Link>))}
             </div>}
           </div>
 
@@ -172,7 +172,7 @@ const PurchaseReturns = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Return Quantity</span>
         </div>
         {purchaseReturnsData?.results?.data && purchaseReturnsData.results.data.map((purchase_return, index) => (
-          <Link to={`/purchases/${purchase_return.purchase}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase_return.id}>
+          <Link to={`/dashboard/${orgId}/purchases/${purchase_return.purchase}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase_return.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase_return.purchase_no}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{purchase_return.date}</span>
@@ -195,11 +195,8 @@ const PurchaseReturns = () => {
           </Link>
         ))}
       </div>
-      <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {purchaseReturnsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {purchaseReturnsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-      </div>
+      <PrevNext pageNo={pageNo} data={purchaseReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }

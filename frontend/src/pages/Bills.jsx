@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, invoiceBillQueryParam, replaceDash } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import { dueDaysOptions, statusOptions } from '../lib/constants';
 import TypesFilter from '../components/filters/TypesFilter';
 import PrevNext from '../components/shared/PrevNext';
@@ -16,11 +15,12 @@ const Bills = () => {
         dueDays: '',
         status: '',
     })
+    const { orgId } = useParams();
     const [bills, setBills] = useState([]);
     const [billsData, setBillsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const getData = async () => {
-        const newbillsData = await getItems('bills', `?paginate=true`);
+        const newbillsData = await getItems(`${orgId}/bills`, `?paginate=true`);
         setBillsData(newbillsData);
     }
     useEffect(() => {
@@ -36,7 +36,7 @@ const Bills = () => {
             paginate: false
         })
 
-        const newbills = await getItems('bills', queyParamsUrl);
+        const newbills = await getItems(`${orgId}/bills`, queyParamsUrl);
         setBills(newbills)
     }
 
@@ -49,7 +49,7 @@ const Bills = () => {
             paginate: true
         })
 
-        const newbillsData = await getItems('bills', queyParamsUrl);
+        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
         setBillsData(newbillsData);
         setPageNo(1);
 
@@ -64,7 +64,7 @@ const Bills = () => {
             status: e.target.value,
             paginate: true
         })
-        const newbillsData = await getItems('bills', queyParamsUrl);
+        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
         setBillsData(newbillsData);
         setPageNo(1);
     }
@@ -80,7 +80,7 @@ const Bills = () => {
             status: searchItem.status,
             paginate: true
         })
-        const newbillsData = await getItems('bills', queyParamsUrl);
+        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
         setBillsData(newbillsData);
         setPageNo(1);
         setSearchItem({ ...searchItem, name: '' })
@@ -88,7 +88,7 @@ const Bills = () => {
 
     const nextPage = async () => {
         try {
-            const response = await axios.get(billsData.next);
+            const response = await api.get(billsData.next);
             if (response.status == 200) {
                 setBillsData(response.data)
                 setPageNo(pageNo + 1);
@@ -104,7 +104,7 @@ const Bills = () => {
     const previousPage = async () => {
 
         try {
-            const response = await axios.get(billsData.previous);
+            const response = await api.get(billsData.previous);
             if (response.status == 200) {
                 setBillsData(response.data)
                 setPageNo(pageNo - 1);

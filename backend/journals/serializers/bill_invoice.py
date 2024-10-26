@@ -7,10 +7,12 @@ class BillSerializer(serializers.ModelSerializer):
     supplier_name = serializers.SerializerMethodField(read_only=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     status = serializers.CharField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    organisation = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Bill
-        fields = ["id", "due_date", "amount_due", "supplier", "serial_number", "supplier_name", "amount_paid", "status"]
+        fields = ["id", "due_date", "amount_due", "supplier", "serial_number", "supplier_name", "amount_paid", "status", "organisation", "user"]
     
     def get_supplier_name(self, obj):
         return obj.supplier.name
@@ -61,13 +63,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
     customer_name= serializers.SerializerMethodField(read_only=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     status = serializers.CharField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    organisation = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Invoice
         fields = [
             "id", "due_date", "amount_due", "customer", 
             "serial_number", "customer_name", "amount_paid",
-            "status"
+            "status", "organisation", "user"
         ]
 
     def get_customer_name(self, obj):

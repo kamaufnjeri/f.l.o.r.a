@@ -2,26 +2,30 @@ from rest_framework import views, status
 from journals.utils import get_serial_number
 from journals.models import Journal, Purchase, Sales, Bill, Invoice
 from rest_framework.response import Response
-
+from journals.permissions import IsUserInOrganisation
+from rest_framework.permissions import IsAuthenticated
 
 
 class GetSerialNumberApiView(views.APIView):
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
     def get(self, request, *args, **kwargs):
         try:
             initial_name = request.query_params.get('initial_name')
+            organisation = request.user.current_org
 
             if initial_name:
                 items = []
                 if initial_name == 'JOURN':
-                    items = Journal.objects.all()
+                    items = Journal.objects.filter(organisation=organisation)
                 elif initial_name == 'PURCH':
-                    items = Purchase.objects.all()
+                    items = Purchase.objects.filter(organisation=organisation)
                 elif initial_name == 'SALE':
-                    items = Sales.objects.all()
+                    items = Sales.objects.filter(organisation=organisation)
                 elif initial_name == 'BILL':
-                    items = Bill.objects.all()
+                    items = Bill.objects.filter(organisation=organisation)
                 elif initial_name == 'INV':
-                    items = Invoice.objects.all()
+                    items = Invoice.objects.filter(organisation=organisation)
                 else:
                     raise ValueError("Initial name can only be 'BILL', 'INV', 'SALE', 'PURCH' or 'JOURN'")
                 serial_number = get_serial_number(items, initial_name, len(items))

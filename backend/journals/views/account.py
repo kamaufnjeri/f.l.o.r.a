@@ -4,10 +4,12 @@ from journals.serializers import AccountSerializer, AccountDetailsSerializer
 from journals.utils import flatten_errors
 from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES
 from django.db.models import Q
-from journals.models import Account
+from journals.models import Account, Organisation, OrganisationMembership
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from journals.permissions import IsUserInOrganisation
 
 
 class AccountPagination(PageNumberPagination):
@@ -17,6 +19,7 @@ class AccountPagination(PageNumberPagination):
 
 
 class AccountAPIView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     pagination_class = AccountPagination
@@ -24,9 +27,12 @@ class AccountAPIView(generics.ListCreateAPIView):
     search_fields = ['name', 'group', 'category', 'sub_category']
     filterset_fields = ['name', 'group', 'category', 'sub_category']
 
+
+
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
 
             paginate = request.query_params.get('paginate')
 
@@ -60,8 +66,12 @@ class AccountAPIView(generics.ListCreateAPIView):
 
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -83,6 +93,7 @@ class AccountAPIView(generics.ListCreateAPIView):
 class AccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountDetailsSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

@@ -9,6 +9,7 @@ import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
 import InvoiceContainer from '../components/forms/InvoiceContainer';
 import BillInvoiceAccountsFields from '../components/forms/BillInvoiceAccountsFields';
+import { useParams } from 'react-router-dom';
 
 
 
@@ -39,13 +40,14 @@ const JournalInvoice = () => {
     const scrollRef = useRef(null);
     const [invoiceNo, setInvoiceNo] = useState('');
     const [journalNo, setJounalNo] = useState('');
+    const { orgId } = useParams();
 
     const getData = async () => {
-        const newAccounts = await getItems('accounts', '?group=income');
-        const newCustomers = await getItems('customers')
+        const newAccounts = await getItems(`${orgId}/accounts`, '?group=income');
+        const newCustomers = await getItems(`${orgId}/customers`)
 
-        const invoiceNo = await getSerialNumber('INV')
-        const journalNo = await getSerialNumber('JOURN')
+        const invoiceNo = await getSerialNumber('INV', orgId)
+        const journalNo = await getSerialNumber('JOURN', orgId)
         setInvoiceNo(invoiceNo)
         setJounalNo(journalNo)
         setAccounts(newAccounts);
@@ -88,7 +90,7 @@ const JournalInvoice = () => {
                     const totalAmountDue = values.invoice.amount_due;
                     const totalEntriesAmount = getEntriesTotalAmount(values);
                     if (totalEntriesAmount === totalAmountDue) {
-                        const response = await postRequest(values, 'invoices/journals', resetForm)
+                        const response = await postRequest(values, `${orgId}/invoices/journals`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Journal invoice recorded successfully')
                             getData()

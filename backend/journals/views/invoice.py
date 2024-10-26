@@ -7,6 +7,8 @@ from journals.serializers import JournalInvoiceSerializer, SalesInvoiceSerialize
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from journals.permissions import IsUserInOrganisation
+from rest_framework.permissions import IsAuthenticated
 
 
 class InvoicePagination(PageNumberPagination):
@@ -40,13 +42,14 @@ class InvoiceFilter(DjangoFilterBackend, SearchFilter):
 class InvoiceApiView(generics.ListAPIView):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceDetailSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
     pagination_class = InvoicePagination
     filter_backends = [InvoiceFilter]
     search_fields = ['serial_number', 'customer']
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
             paginate = request.query_params.get('paginate')
 
             if paginate:
@@ -81,11 +84,14 @@ class InvoiceApiView(generics.ListAPIView):
 class JournalInvoiceAPIView(generics.CreateAPIView):
     queryset = Journal.objects.filter(invoice__isnull=False)
     serializer_class = JournalInvoiceSerializer
-
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
     
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -106,11 +112,15 @@ class JournalInvoiceAPIView(generics.CreateAPIView):
 class SalesInvoiceAPIView(generics.CreateAPIView):
     queryset = Sales.objects.filter(invoice__isnull=False)
     serializer_class = SalesInvoiceSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -133,12 +143,11 @@ class InvoicePaymentsApiView(generics.ListAPIView):
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
     pagination_class = InvoicePagination
-
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
     def get(self, request, *args, **kwargs):
         try:
             pk = kwargs.get('pk')
-            print(pk)
             queryset = self.get_queryset()
             queryset = queryset.filter(invoice_id=pk).order_by('-date')
 

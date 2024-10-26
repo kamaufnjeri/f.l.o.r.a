@@ -9,6 +9,7 @@ import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
 import BillContainer from '../components/forms/BillContainer';
 import BillInvoiceAccountsFields from '../components/forms/BillInvoiceAccountsFields';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -38,13 +39,14 @@ const JournalBill = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [billNo, setBillNo] = useState('');
     const [journalNo, setJounalNo] = useState('');
+    const { orgId } = useParams();
 
     const getData = async () => {
-        const newAccounts = await getItems('accounts', '?group=expense');
-        const newSuppliers = await getItems('suppliers');
+        const newAccounts = await getItems(`${orgId}/accounts`, '?group=expense');
+        const newSuppliers = await getItems(`${orgId}/suppliers`);
         
-        const billNo = await getSerialNumber('BILL')
-        const journalNo = await getSerialNumber('JOURN')
+        const billNo = await getSerialNumber('BILL', orgId)
+        const journalNo = await getSerialNumber('JOURN', orgId)
         setBillNo(billNo)
         setJounalNo(journalNo)
         setAccounts(newAccounts);
@@ -88,7 +90,7 @@ const JournalBill = () => {
                     
 
                     if (totalEntriesAmount === totalAmountDue) {
-                        const response = await postRequest(values, 'bills/journals', resetForm)
+                        const response = await postRequest(values, `${orgId}/bills/journals`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Journal bill recorded successfully')
                             getData()

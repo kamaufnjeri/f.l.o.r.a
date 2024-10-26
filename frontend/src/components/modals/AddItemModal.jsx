@@ -4,6 +4,8 @@ import * as Yup from 'yup'
 import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router-dom';
+
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Item name is required'),
@@ -14,7 +16,7 @@ const validationSchema = Yup.object({
 })
 
 const AddItemModal = ({ openModal, setOpenModal }) => {
-
+  const {orgId} = useParams();
   const handleCancel = () => {
     setOpenModal(false);
   };
@@ -43,7 +45,7 @@ const AddItemModal = ({ openModal, setOpenModal }) => {
             opening_stock_rate: 0.00
           }}
           onSubmit={async (values, { resetForm }) => {
-            const response = await postRequest(values, 'stocks', resetForm);
+            const response = await postRequest(values, `${orgId}/stocks`, resetForm);
             if (response.success) {
               toast.success('Recorded: Stock Item added successfully')
             } else {

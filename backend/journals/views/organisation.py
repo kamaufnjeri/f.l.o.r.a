@@ -7,6 +7,7 @@ from journals.serializers import OrganisationSerializer, FloraUserSerializer
 from django.db import transaction
 from datetime import timedelta, datetime
 from django.utils import timezone
+from journals.permissions import IsUserInOrganisation
 
 
 class ChangeCurrentOrgApiView(generics.CreateAPIView):
@@ -74,7 +75,7 @@ class OrganisationApiView(generics.CreateAPIView):
 
 
 class OrganisationSentInviteApiView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
     def post(self, request, *args, **kwargs):
         invite_emails = request.data

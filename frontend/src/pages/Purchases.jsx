@@ -4,12 +4,13 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import TypesFilter from '../components/filters/TypesFilter';
 import SortFilter from '../components/filters/SortFilter';
 import DateFilter from '../components/filters/DateFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Purchases = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
@@ -26,12 +27,12 @@ const Purchases = () => {
     { name: "Bill Purchases", value: "is_bills" },
     { name: "Regular Purchases", value: "is_not_bills" },
   ])
-
+  const { orgId } = useParams();
   const [purchases, setPurchases] = useState([]);
   const [purchasesData, setPurchasesData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newPurchasesData = await getItems('purchases', `?paginate=true`);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, `?paginate=true`);
     setPurchasesData(newPurchasesData);
   }
   useEffect(() => {
@@ -50,7 +51,7 @@ const Purchases = () => {
     })
 
     console.log(queyParamsUrl)
-    const newPurchases = await getItems('purchases', queyParamsUrl);
+    const newPurchases = await getItems(`${orgId}/purchases`, queyParamsUrl);
     setPurchases(newPurchases)
   }
   const handlePurchasesChange = async (e) => {
@@ -64,7 +65,7 @@ const Purchases = () => {
       typeValue: e.target.value
     })
 
-    const newPurchasesData = await getItems('purchases', queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
 
@@ -86,7 +87,7 @@ const Purchases = () => {
         sortBy: searchItem.sortBy,
         typeValue: searchItem.purchases
       })
-      const newPurchasesData = await getItems('purchases', queyParamsUrl);
+      const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
       setPurchasesData(newPurchasesData);
       setPageNo(1);
     }
@@ -103,7 +104,7 @@ const Purchases = () => {
       sortBy: e.target.value,
       typeValue: searchItem.purchases
     })
-    const newPurchasesData = await getItems('purchases', queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
 
@@ -118,7 +119,7 @@ const Purchases = () => {
       sortBy: searchItem.sortBy,
       typeValue: searchItem.purchases
     })
-    const newPurchasesData = await getItems('purchases', queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
     setSearchItem({ ...searchItem, name: '' })
@@ -126,7 +127,7 @@ const Purchases = () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(purchasesData.next);
+      const response = await api.get(purchasesData.next);
       if (response.status == 200) {
         setPurchasesData(response.data)
         setPageNo(pageNo + 1);
@@ -142,7 +143,7 @@ const Purchases = () => {
   const previousPage = async () => {
 
     try {
-      const response = await axios.get(purchasesData.previous);
+      const response = await api.get(purchasesData.previous);
       if (response.status == 200) {
         setPurchasesData(response.data)
         setPageNo(pageNo - 1);
@@ -186,7 +187,7 @@ const Purchases = () => {
             </div>
             {purchases.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {purchases.map((purchase) => (<Link to={`/purchases/${purchase.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</Link>))}
+              {purchases.map((purchase) => (<Link to={`${purchase.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -209,7 +210,7 @@ const Purchases = () => {
 
         </div>
         {purchasesData?.results?.data && purchasesData.results.data.map((purchase, index) => (
-          <Link to={`/purchases/${purchase.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase.id}>
+          <Link to={`${purchase.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase.serial_number}</span>
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.date}</span>
             <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(purchase.items_data.type)}</span>
@@ -228,11 +229,8 @@ const Purchases = () => {
           </Link>
         ))}
       </div>
-      <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {purchasesData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {purchasesData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-      </div>
+      <PrevNext pageNo={pageNo} data={purchasesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }

@@ -5,10 +5,10 @@ import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import FormInitialField from '../forms/FormInitialField';
-import PaymentAccountsFields from '../forms/PaymentAccountsFields';
 import InputNumberField from '../forms/InputNumberField';
 import SelectField from '../forms/SelectField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -27,7 +27,8 @@ const validationSchema = Yup.object({
         .min(1, 'At least one return entry are required'),
 });
 
-const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase }) => {
+const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurchaseReturn }) => {
+    const { orgId } = useParams();
     const handleCancel = () => {
         setOpenModal(false);
     };
@@ -60,9 +61,10 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase }) => {
                     onSubmit={async (values, { resetForm }) => {
                         console.log(values)
 
-                        const response = await postRequest(values, 'purchase_returns', resetForm);
+                        const response = await postRequest(values, `${orgId}/purchase_returns`, resetForm);
                         if (response.success) {
                             toast.success('Purchase return successfully')
+                            onPurchaseReturn()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }

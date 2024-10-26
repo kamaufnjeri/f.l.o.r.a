@@ -9,6 +9,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import SalesEntriesField from '../components/forms/SalesEntriesField';
 import DiscountContainer from '../components/forms/DiscountContainer';
 import InvoiceContainer from '../components/forms/InvoiceContainer';
+import { useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object({
     date: Yup.date().required('Date is required'),
@@ -44,6 +45,7 @@ const SalesInvoice = () => {
     const scrollRef = useRef(null);
     const [invoiceNo, setInvoiceNo] = useState('')
     const [salesNo, setSalesNo] = useState('')
+    const { orgId } = useParams();
 
     const getTotalSalesPrice = (items) => {
         if (items) {
@@ -57,10 +59,10 @@ const SalesInvoice = () => {
       };
     
       const getData = async () => {
-        const newStocks = await getItems('stocks');
-        const newCustomers = await getItems('customers')
-        const saleNo = await getSerialNumber('SALE')
-        const invoiceNo = await getSerialNumber('INV')
+        const newStocks = await getItems(`${orgId}/stocks`);
+        const newCustomers = await getItems(`${orgId}/customers`)
+        const saleNo = await getSerialNumber('SALE', orgId)
+        const invoiceNo = await getSerialNumber('INV', orgId)
         setInvoiceNo(invoiceNo)
         setSalesNo(saleNo);
         setStocks(newStocks);
@@ -99,7 +101,7 @@ const SalesInvoice = () => {
         const totalAmountDue = values.invoice.amount_due;
         const salesPriceTotal = getTotalSalesPrice(values.sales_entries) - values.discount_allowed.discount_amount;
         if (salesPriceTotal === totalAmountDue) {
-          const response = await postRequest(values, 'invoices/sales', resetForm);
+          const response = await postRequest(values, `${orgId}/invoices/sales`, resetForm);
 
           if (response.success) {
             toast.success('Recorded: Sales invoice recorded successfully')

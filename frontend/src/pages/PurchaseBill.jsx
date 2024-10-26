@@ -9,6 +9,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import PurchaseEntriesFields from '../components/forms/PurchaseEntriesFields';
 import DiscountContainer from '../components/forms/DiscountContainer';
 import BillContainer from '../components/forms/BillContainer';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -45,7 +46,7 @@ const PurchaseBill = () => {
     const scrollRef = useRef(null);
     const [billNo, setBillNo] = useState('');
     const [purchaseNo, setPurchaseNo] = useState('');
-
+    const { orgId } = useParams();
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -59,10 +60,10 @@ const PurchaseBill = () => {
     };
 
     const getData = async () => {
-        const newStocks = await getItems('stocks');
-        const newSuppliers = await getItems('suppliers')
-        const billNo = await getSerialNumber('BILL')
-        const purchaseNo = await getSerialNumber('PURCH')
+        const newStocks = await getItems(`${orgId}/stocks`);
+        const newSuppliers = await getItems(`${orgId}/suppliers`)
+        const billNo = await getSerialNumber('BILL', orgId)
+        const purchaseNo = await getSerialNumber('PURCH', orgId)
         setBillNo(billNo)
         setPurchaseNo(purchaseNo)
         setStocks(newStocks);
@@ -103,7 +104,7 @@ const PurchaseBill = () => {
 
                     const purchasePriceTotal = getTotalPurchasePrice(values.purchase_entries) - values.discount_received.discount_amount;
                     if (purchasePriceTotal === totalAmountDue) {
-                        const response = await postRequest(values, 'bills/purchases', resetForm)
+                        const response = await postRequest(values, `${orgId}/bills/purchases`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase bill recorded successfully')
                             getData()

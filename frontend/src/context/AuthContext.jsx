@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }) => {
                email: "",
                password: "",
             });
-            if (response.data?.current_organisation?.org_name === '') {
+            
+            if (!response.data.user.current_organisation || !response.data.user.current_organisation.id) {
                 navigate('/organisation-create')
 
             } else {

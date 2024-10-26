@@ -4,7 +4,7 @@ from .journal_entries import JournalEntrySerializer
 from .account import AccountDetailsSerializer
 from .bill_invoice import BillSerializer
 from .discount import DiscountSerializer
-from journals.models import Purchase, Account, Discount
+from journals.models import Purchase, Account, Discount, FloraUser, Organisation
 from django.db import transaction
 from journals.utils import PurchaseEntriesManager, JournalEntriesManager
 
@@ -20,13 +20,15 @@ class PurchaseSerializer(serializers.ModelSerializer):
     discount_received = DiscountSerializer(allow_null=True, required=False, write_only=True)
     bill = BillSerializer(required=False, write_only=True)
     items_data = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
     class Meta:
         model = Purchase
         fields = [
             'id', 'date', 'description', 'purchase_entries', 
             'journal_entries', 'discount_received', 'bill', 
-            'serial_number', 'items_data'
+            'serial_number', 'items_data', 'user', 'organisation'
         ]
 
     def get_items_data(self, obj):
@@ -69,13 +71,13 @@ class PurchaseSerializer(serializers.ModelSerializer):
             purchase = Purchase.objects.create(**validated_data)
             cogs = purchase_entries_manager.create_purchase_entries(purchase_entries_data, purchase)
             try:
-                inventory_account = Account.objects.get(name="Inventory")
+                inventory_account = Account.objects.get(name="Inventory", organisation=validated_data.get('organisation'))
             except Account.DoesNotExist:
                 raise serializers.ValidationError('Inventory Account not found')
             if discount_received and (discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00):
                 discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
                 try:
-                    discount_account = Account.objects.get(name='Discount received')
+                    discount_account = Account.objects.get(name='Discount received', organisation_id=validated_data.get('organisation'))
                 except Account.DoesNotExist:
                     raise serializers.ValidationError('Discount received account not found')
                 discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'credit')

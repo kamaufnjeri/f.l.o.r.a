@@ -65,19 +65,25 @@ class JournalEntriesManager:
         if debit_total != credit_total:
             raise serializers.ValidationError("For every journal entered the debit and credit amounts need to be equal")
         
-    def sales_journal_entries_dict(self, journal_entries, cogs, total_sales_price, discount=None):
-        inventory_account = Account.objects.get(name="Inventory")
-        cogs_account = Account.objects.get(name="Cost of goods sold")
-        sales_revenue_account = Account.objects.get(name="Sales Revenue")
+    def sales_journal_entries_dict(self, journal_entries, cogs, total_sales_price, organisation_id):
+        try:
+            inventory_account = Account.objects.get(name="Inventory", organisation_id=organisation_id)
+           
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Inventory account not found")
+        try:
+            
+            cogs_account = Account.objects.get(name="Cost of goods sold", organisation_id=organisation_id)
+            
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Cost of goods sold account not found")
+        try:
+           
+            sales_revenue_account = Account.objects.get(name="Sales Revenue", organisation_id=organisation_id)
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Sales Revenue accounts not found")
         inventory_account_data = self.create_journal_entry(inventory_account, decimal.Decimal(cogs), "credit")
         sales_revenue_data = self.create_journal_entry(sales_revenue_account, decimal.Decimal(total_sales_price),"credit")
-
-        if discount:
-            discount_account = Account.objects.get(name='Discount allowed')
-
-            discount_account_data = self.create_journal_entry(discount_account, decimal.Decimal(discount), 'debit')
-            journal_entries.append(discount_account_data)
-
         cogs_data = self.create_journal_entry(cogs_account, decimal.Decimal(cogs), "debit")
         journal_entries.append(inventory_account_data)
         journal_entries.append(sales_revenue_data)

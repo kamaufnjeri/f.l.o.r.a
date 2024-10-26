@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .journal_entries import JournalEntrySerializer
-from journals.models import Payment, Bill, Invoice
+from journals.models import Payment, Bill, Invoice, FloraUser, Organisation
 from journals.utils import JournalEntriesManager
 from django.db import transaction
 from .bill_invoice import BillDetailSerializer, InvoiceDetailSerializer
@@ -15,10 +15,12 @@ class PaymentSerializer(serializers.ModelSerializer):
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     journal_entries = JournalEntrySerializer(many=True)
     payment_data = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = Payment
-        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries', 'payment_data']
+        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries', 'payment_data', "user", "organisation"]
 
     def get_payment_data(self, obj):
         type = ''

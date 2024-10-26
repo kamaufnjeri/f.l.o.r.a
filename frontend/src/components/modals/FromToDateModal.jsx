@@ -4,6 +4,7 @@ import * as Yup from 'yup'
 import { Formik } from 'formik';
 import DateField from '../forms/DateField.Jsx'
 import { getItems, getQueryParams } from '../../lib/helpers';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -17,6 +18,8 @@ const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, s
         setOpenModal(false);
 
     };
+    const { orgId } = useParams();
+
 
     return (
         <>
@@ -49,7 +52,7 @@ const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, s
                             sortBy: searchItem.sortBy,
                             typeValue: searchItem[type]
                         })
-                        const newData = await getItems(type, queryParamsUrl);
+                        const newData = await getItems(`${orgId}/${type}`, queryParamsUrl);
                         setData(newData);
                         setPageNo(1);
                         resetForm();

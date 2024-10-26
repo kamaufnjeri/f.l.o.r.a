@@ -4,6 +4,8 @@ import * as Yup from 'yup'
 import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router-dom';
+
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Customer name is required'),
@@ -23,6 +25,8 @@ const validationSchema = Yup.object({
 })
 
 const AddCustomerModal = ({ openModal, setOpenModal }) => {
+  const { orgId} = useParams();
+
   const handleCancel = () => {
     setOpenModal(false);
   };
@@ -49,7 +53,8 @@ const AddCustomerModal = ({ openModal, setOpenModal }) => {
             phone_number: ''
           }}
           onSubmit={async (values, { resetForm }) => {
-            const response = await postRequest(values, 'customers', resetForm);
+            const response = await postRequest(values, `${orgId}/customers`, resetForm);
+      
             if (response.success) {
               toast.success('Recorded: Customer added successfully')
             } else {

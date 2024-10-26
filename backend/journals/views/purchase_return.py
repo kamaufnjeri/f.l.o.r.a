@@ -7,7 +7,8 @@ from journals.serializers import PurchaseReturnSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-
+from journals.permissions import IsUserInOrganisation
+from rest_framework.permissions import IsAuthenticated
 
 
 class PurchaseReturnPagination(PageNumberPagination):
@@ -49,12 +50,13 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
     queryset = PurchaseReturn.objects.all()
     serializer_class = PurchaseReturnSerializer
     pagination_class = PurchaseReturnPagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
     filter_backends = [PurchaseReturnFilter]
     search_fields = ['description']
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
             paginate = request.query_params.get('paginate')
 
             if paginate:
@@ -86,8 +88,11 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
         try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

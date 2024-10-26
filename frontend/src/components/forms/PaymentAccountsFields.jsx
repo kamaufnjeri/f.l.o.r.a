@@ -4,14 +4,15 @@ import SelectField from '../forms/SelectField';
 import InputNumberField from '../forms/InputNumberField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import { getItems } from '../../lib/helpers';
+import { useParams } from 'react-router-dom';
 
 const PaymentAccountsFields = ({values, setFieldValue, type}) => {
   const [accounts, setAccounts] = useState([]);
-
+  const { orgId } = useParams();
 
   const getData = async () => {
     const subCategory = 'cash_and_cash_equivalents'
-    const newAccounts = await getItems('accounts', `?sub_category=${subCategory}`);
+    const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
     
     setAccounts(newAccounts)
 }

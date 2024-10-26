@@ -13,6 +13,7 @@ const SingleSale = () => {
   const [showJournalEntries, setShowJournalEntries] = useState(false);
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [openSaleReturnModal, setOpenSaleReturnModal] = useState();
+  const { orgId } = useParams();
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -28,13 +29,14 @@ const SingleSale = () => {
     setOpenModal(true);
   };
   const getData = async () => {
-    const sale = await getItems(`sales/${id}`);
+    const sale = await getItems(`${orgId}/sales/${id}`);
     setSale(sale)
   }
 
   const onPaymentSuccess = () => {
     getData()
   }
+ 
   useEffect(() => {
 
     getData()
@@ -53,6 +55,7 @@ const SingleSale = () => {
     <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       <SalesReturnModal title={`Sales return of sale# ${sale?.serial_number}`}
         setOpenModal={setOpenSaleReturnModal}
+        onSalesReturn={onPaymentSuccess}
         sale={sale} openModal={openSaleReturnModal} />
       <PaymentModal
         onPaymentSuccess={onPaymentSuccess}
@@ -69,7 +72,7 @@ const SingleSale = () => {
             {sale?.items_data?.type === 'invoice' &&
               sale?.invoice?.status &&
               sale.invoice.status !== 'unpaid' && (
-                <Link to={`/invoices/${sale.invoice.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                <Link to={`/dashboard/${orgId}/invoices/${sale.invoice.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                   Payments
                 </Link>
               )}
@@ -81,7 +84,7 @@ const SingleSale = () => {
             </button>
             {sale?.has_returns &&
                (
-                <Link to={`/sales/${sale.id}/sales_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                <Link to={`sales_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                   Sales returns
                 </Link>
               )}

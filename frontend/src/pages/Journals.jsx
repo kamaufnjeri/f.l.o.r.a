@@ -4,13 +4,13 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { dateOptions, sortOptions } from '../lib/constants';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Journals = () => {
     const [openDateModal, setOpenDateModal] = useState(false);
@@ -20,7 +20,7 @@ const Journals = () => {
         date: '',
         sortBy: '',
     })
-
+    const { orgId } = useParams();
     const [selectOptions, setSelectOptions] = useState([
         { name: "All", value: "all" },
         { name: "Invoice Journals", value: "is_invoices" },
@@ -33,7 +33,7 @@ const Journals = () => {
     const [journalsData, setJournalsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const getData = async () => {
-        const newJournalsData = await getItems('journals', `?paginate=true`);
+        const newJournalsData = await getItems(`${orgId}/journals`, `?paginate=true`);
         setJournalsData(newJournalsData);
     }
     useEffect(() => {
@@ -50,7 +50,7 @@ const Journals = () => {
             sortBy: searchItem.sortBy,
             typeValue: searchItem.journals
         })
-        const newJournals = await getItems('journals', queyParamsUrl);
+        const newJournals = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournals(newJournals)
     }
     const handleJournalsChange = async (e) => {
@@ -63,7 +63,7 @@ const Journals = () => {
             sortBy: searchItem.sortBy,
             typeValue: e.target.value
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
+        const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournalsData(newJournalsData);
         setPageNo(1);
 
@@ -85,7 +85,7 @@ const Journals = () => {
                 sortBy: searchItem.sortBy,
                 typeValue: searchItem.journals
             })
-            const newJournalsData = await getItems('journals', queyParamsUrl);
+            const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
             setJournalsData(newJournalsData);
             setPageNo(1);
         }
@@ -102,7 +102,7 @@ const Journals = () => {
             sortBy: e.target.value,
             typeValue: searchItem.journals
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
+        const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournalsData(newJournalsData);
         setPageNo(1);
 
@@ -117,7 +117,7 @@ const Journals = () => {
             sortBy: searchItem.sortBy,
             typeValue: searchItem.journals
         })
-        const newJournalsData = await getItems('journals', queyParamsUrl);
+        const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournalsData(newJournalsData);
         setPageNo(1);
         setSearchItem({ ...searchItem, name: '' })
@@ -125,7 +125,7 @@ const Journals = () => {
 
     const nextPage = async () => {
         try {
-            const response = await axios.get(journalsData.next);
+            const response = await api.get(journalsData.next);
             if (response.status == 200) {
                 setJournalsData(response.data)
                 setPageNo(pageNo + 1);
@@ -141,7 +141,7 @@ const Journals = () => {
     const previousPage = async () => {
 
         try {
-            const response = await axios.get(journalsData.previous);
+            const response = await api.get(journalsData.previous);
             if (response.status == 200) {
                 setJournalsData(response.data)
                 setPageNo(pageNo - 1);
@@ -187,7 +187,7 @@ const Journals = () => {
                         </div>
                         {journals.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {journals.map((journal) => (<Link to={`/journals/${journal.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{journal.serial_number}</Link>))}
+                            {journals.map((journal) => (<Link to={`${journal.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{journal.serial_number}</Link>))}
                         </div>}
                     </div>
 
@@ -214,7 +214,7 @@ const Journals = () => {
 
                 </div>
                 {journalsData?.results?.data && journalsData.results.data.map((journal, index) => (
-                    <Link to={`/journals/${journal.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
+                    <Link to={`${journal.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(journal.type)}</span>
@@ -238,11 +238,8 @@ const Journals = () => {
                     </Link>
                 ))}
             </div>
-            <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-                {journalsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-                <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-                {journalsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-            </div>
+            <PrevNext pageNo={pageNo} data={journalsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
         </div>
     )
 }

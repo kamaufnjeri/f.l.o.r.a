@@ -4,10 +4,11 @@ import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, invoiceBillQueryParam, replaceDash } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import api from '../lib/api';
+import { Link, useParams } from 'react-router-dom';
 import {  dueDaysOptions,  statusOptions } from '../lib/constants';
 import TypesFilter from '../components/filters/TypesFilter';
+import PrevNext from '../components/shared/PrevNext';
 
 const Invoices = () => {
   const [searchItem, setSearchItem] = useState({
@@ -15,11 +16,12 @@ const Invoices = () => {
     dueDays: 'all',
     status: 'all', 
   })
+  const { orgId } = useParams();
   const [invoices, setInvoices] = useState([]);
   const [invoicesData, setInvoicesData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newinvoicesData = await getItems('invoices', `?paginate=true`);
+    const newinvoicesData = await getItems(`${orgId}/invoices`, `?paginate=true`);
     setInvoicesData(newinvoicesData);
   }
   useEffect(() => {
@@ -35,7 +37,7 @@ const Invoices = () => {
       paginate: false
   })
 
-    const newinvoices = await getItems('invoices', queyParamsUrl);
+    const newinvoices = await getItems(`${orgId}/invoices`, queyParamsUrl);
     setInvoices(newinvoices)
   }
 
@@ -48,7 +50,7 @@ const Invoices = () => {
         paginate: true
     })
 
-    const newinvoicesData = await getItems('invoices', queyParamsUrl);
+    const newinvoicesData = await getItems(`${orgId}/invoices`, queyParamsUrl);
     setInvoicesData(newinvoicesData);
     setPageNo(1);
 
@@ -63,7 +65,7 @@ const Invoices = () => {
         status: e.target.value,
         paginate: true
     })
-      const newinvoicesData = await getItems('invoices', queyParamsUrl);
+      const newinvoicesData = await getItems(`${orgId}/invoices`, queyParamsUrl);
       setInvoicesData(newinvoicesData);
       setPageNo(1);
     }
@@ -79,7 +81,7 @@ const Invoices = () => {
         status: searchItem.status,
         paginate: true
     })
-    const newinvoicesData = await getItems('invoices', queyParamsUrl);
+    const newinvoicesData = await getItems(`${orgId}/invoices`, queyParamsUrl);
     setInvoicesData(newinvoicesData);
     setPageNo(1);
     setSearchItem({ ...searchItem, name: '' })
@@ -87,7 +89,7 @@ const Invoices = () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(invoicesData.next);
+      const response = await api.get(invoicesData.next);
       if (response.status == 200) {
         setInvoicesData(response.data)
         setPageNo(pageNo + 1);
@@ -103,7 +105,7 @@ const Invoices = () => {
   const previousPage = async () => {
 
     try {
-      const response = await axios.get(invoicesData.previous);
+      const response = await api.get(invoicesData.previous);
       if (response.status == 200) {
         setInvoicesData(response.data)
         setPageNo(pageNo - 1);
@@ -171,11 +173,8 @@ const Invoices = () => {
           </Link>
         ))}
       </div>
-      <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {invoicesData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {invoicesData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-      </div>
+      <PrevNext pageNo={pageNo} data={invoicesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
  }

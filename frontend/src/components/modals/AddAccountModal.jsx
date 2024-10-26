@@ -5,6 +5,7 @@ import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import { accountCategories, accountSubCategories, accountGroups } from '../../lib/constants';
+import { useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Account name is required'),
@@ -21,6 +22,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
   const [entryTypes] = useState(['debit', 'credit']);
   const [categories, setCategories] = useState(accountCategories['asset']);
   const [subCategories, setSubCategories] = useState(accountSubCategories['current_asset'])
+  const { orgId } = useParams();
 
   const handleCancel = () => {
     setOpenModal(false);
@@ -73,7 +75,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
             opening_balance_type: '',
           }}
           onSubmit={async (values, { resetForm }) => {
-            const response = await postRequest(values, 'accounts', resetForm);
+            const response = await postRequest(values, `${orgId}/accounts`, resetForm);
             
             if (response.success) {
               setCategories(accountCategories['asset'])

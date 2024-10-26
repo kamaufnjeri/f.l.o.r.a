@@ -4,17 +4,20 @@ import { MdSearch } from "react-icons/md";
 import { getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../lib/api';
+import { useParams } from 'react-router-dom';
+import PrevNext from '../components/shared/PrevNext';
 
 const Customers = () => {
   const [searchItem, setSearchItem] = useState({
     name: ''
   })
+  const { orgId } = useParams();
   const [customers, setCustomers] = useState([]);
   const [customersData, setCustomersData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newCustomersData = await getItems('customers', `?paginate=true`);
+    const newCustomersData = await getItems(`${orgId}/customers`, `?paginate=true`);
     setCustomersData(newCustomersData);
 }
   useEffect(() => {
@@ -23,12 +26,12 @@ const Customers = () => {
 }, [])
   const handleChange = async (e) => {
     setSearchItem({ name: e.target.value });
-    const newCustomers = await getItems('customers', `?search=${e.target.value}`);
+    const newCustomers = await getItems(`${orgId}/customers`, `?search=${e.target.value}`);
     setCustomers(newCustomers)
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newCustomersData = await getItems('customers', `?search=${searchItem.name}&paginate=true`);
+    const newCustomersData = await getItems(`${orgId}/customers`, `?search=${searchItem.name}&paginate=true`);
     setCustomersData(newCustomersData);
     setPageNo(1);
     setSearchItem({ name: '' })
@@ -36,7 +39,7 @@ const Customers = () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(customersData.next);
+      const response = await api.get(customersData.next);
       if (response.status == 200) {
         setCustomersData(response.data)
         setPageNo(pageNo + 1);
@@ -52,7 +55,7 @@ const Customers = () => {
   const previousPage = async () => {
     
     try {
-      const response = await axios.get(customersData.previous);
+      const response = await api.get(customersData.previous);
       if (response.status == 200) {
         setCustomersData(response.data)
         setPageNo(pageNo - 1);
@@ -101,11 +104,8 @@ const Customers = () => {
         </div>
         ))}
       </div>
-      <div className='absolute bottom-5 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {customersData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {customersData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl'/>}
-      </div>
+      <PrevNext pageNo={pageNo} data={customersData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }

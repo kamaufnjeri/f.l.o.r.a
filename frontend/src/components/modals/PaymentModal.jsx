@@ -6,6 +6,7 @@ import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import FormInitialField from '../forms/FormInitialField';
 import PaymentAccountsFields from '../forms/PaymentAccountsFields';
+import { useParams } from 'react-router-dom';
 
 
 const validationSchema = Yup.object({
@@ -27,6 +28,7 @@ const validationSchema = Yup.object({
 });
 
 const PaymentModal = ({ openModal, setOpenModal, title, type, bill_id=null, invoice_id=null, onPaymentSuccess }) => {
+    const { orgId } = useParams();
     const handleCancel = () => {
         setOpenModal(false);
     };
@@ -60,7 +62,7 @@ const PaymentModal = ({ openModal, setOpenModal, title, type, bill_id=null, invo
                     onSubmit={async (values, { resetForm }) => {
                         console.log(values)
 
-                        const response = await postRequest(values, 'payments', resetForm);
+                        const response = await postRequest(values, `${orgId}/payments`, resetForm);
                         if (response.success) {
                             toast.success('Payment made successfully')
                             onPaymentSuccess()

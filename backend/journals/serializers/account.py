@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from journals.models import Account, JournalEntries
+from journals.models import Account, JournalEntries, Organisation, FloraUser
 from django.db import models
 from .journal_entries import JournalEntrySerializer
 from journals.constants import ACCOUNT_STRUCTURE, GROUPS, CATEGORIES, SUB_CATEGORIES
@@ -16,10 +16,12 @@ class AccountSerializer(serializers.ModelSerializer):
     category = serializers.CharField(validators=[lambda value: validate_choice(value, CATEGORIES)])
     sub_category = serializers.CharField(validators=[lambda value: validate_choice(value, SUB_CATEGORIES)]) 
     account_balance = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
 
     class Meta:
-        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type', 'account_balance']
+        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type', 'account_balance', 'organisation', 'user']
         required_fields = ['name', 'category', 'sub_category']
         model = Account
 

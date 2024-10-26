@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { capitalizeFirstLetter, getItems,  replaceDash } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../lib/api';
 import { Link, useParams } from 'react-router-dom';
+import PrevNext from '../components/shared/PrevNext';
 
 const SingleBillPayments = () => {
     const {id} = useParams()
     const [paymentsData, setPaymentsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
+    const { orgId } = useParams();
     const getData = async () => {
-        const newPaymentsData = await getItems(`bills/${id}/payments`, `?paginate=true`);
+        const newPaymentsData = await getItems(`${orgId}/bills/${id}/payments`, `?paginate=true`);
         setPaymentsData(newPaymentsData);
     }
     useEffect(() => {
@@ -21,7 +22,7 @@ const SingleBillPayments = () => {
    
     const nextPage = async () => {
         try {
-            const response = await axios.get(paymentsData.next);
+            const response = await api.get(paymentsData.next);
             if (response.status == 200) {
                 setPaymentsData(response.data)
                 setPageNo(pageNo + 1);
@@ -37,7 +38,7 @@ const SingleBillPayments = () => {
     const previousPage = async () => {
 
         try {
-            const response = await axios.get(paymentsData.previous);
+            const response = await api.get(paymentsData.previous);
             if (response.status == 200) {
                 setPaymentsData(response.data)
                 setPageNo(pageNo - 1);
@@ -73,7 +74,7 @@ const SingleBillPayments = () => {
 
                 </div>
                 {paymentsData?.results?.data && paymentsData.results.data.map((payment, index) => (
-                    <Link to={`/${payment?.payment_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
+                    <Link to={`/dashboard/${orgId}/${payment?.payment_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{payment?.payment_data?.type == "bill" ? payment?.payment_data?.bill_no : payment?.payment_data?.invoice_no }</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{payment.date}</span>
@@ -98,11 +99,8 @@ const SingleBillPayments = () => {
                     </Link>
                 ))}
             </div>
-            <div className='absolute bottom-1 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-                {paymentsData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-                <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-                {paymentsData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl' />}
-            </div>
+            <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
         </div>
     )
 }

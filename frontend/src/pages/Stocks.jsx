@@ -6,17 +6,19 @@ import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import PrevNext from '../components/shared/PrevNext';
+import { useParams } from 'react-router-dom';
 
 
 const Stocks = () => {
   const [searchItem, setSearchItem] = useState({
     name: ''
   })
+  const { orgId } = useParams();
   const [stocks, setStocks] = useState([]);
   const [stocksData, setStocksData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newStocksData = await getItems('stocks', `?paginate=true`);
+    const newStocksData = await getItems(`${orgId}/stocks`, `?paginate=true`);
     setStocksData(newStocksData);
 }
   useEffect(() => {
@@ -25,12 +27,12 @@ const Stocks = () => {
 }, [])
   const handleChange = async (e) => {
     setSearchItem({ name: e.target.value });
-    const newStocks = await getItems('stocks', `?search=${e.target.value}`);
+    const newStocks = await getItems(`${orgId}/stocks`, `?search=${e.target.value}`);
     setStocks(newStocks)
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newStocksData = await getItems('stocks', `?search=${searchItem.name}&paginate=true`);
+    const newStocksData = await getItems(`${orgId}/stocks`, `?search=${searchItem.name}&paginate=true`);
     setStocksData(newStocksData);
     setPageNo(1);
     setSearchItem({ name: '' })

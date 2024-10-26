@@ -17,7 +17,6 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
   const [openAddACustomerModal, setOpenAddCustomerModal] = useState(false);
   const [openAddSupplierModal, setOpenAddSupplierModal] = useState(false);
 
-  console.log(currentOrg)
   const dropItemsRef = useRef([]);
 
   const sidebarIconsUpdated = sidebarIcons.map((icon) => ({
@@ -61,15 +60,20 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
       <AddCustomerModal openModal={openAddACustomerModal} setOpenModal={setOpenAddCustomerModal} />
       <AddSupplierModal openModal={openAddSupplierModal} setOpenModal={setOpenAddSupplierModal} />
       <div className='flex flex-row'> 
-        <div className='w-1/6 flex flex-col gap-2'>
+        <div className='w-1/6 flex flex-col gap-4'>
           {user && user?.user_organisations.map((organisation, index) => (
-              <span key={index} onClick={() => changeCurrentOrg(organisation.org_id)} className={`w-[40px] h-[40px] rounded-full text-2xl font-bold border-4 border-black hover:text-purple-800 hover:border-gray-500 cursor-pointer flex items-center justify-center ${currentOrg.id === organisation.org_id ? 'text-purple-800 border-purple-800': ''}`}>
+            <div key={index} className={`organisation ${currentOrg.id === organisation.org_id ? 'text-purple-800 border-purple-800': 'border-purple-800'}`}>
+               <span onClick={() => changeCurrentOrg(organisation.org_id)}>
                 {organisation.org_name[0]}
               </span>
+              <i className='text-xs font-light absolute -bottom-4 -left-2 bg-gray-300 p-1 hidden'>{organisation.org_name}</i>
+            </div>
+             
           ))}
          
-              <Link to='/organisation-create' className={`w-[40px] h-[40px] rounded-full text-2xl font-bold border-4 border-black hover:text-purple-800 hover:border-gray-500 cursor-pointer flex items-center justify-center`}>
-                <FaPlus/>
+              <Link to='/organisation-create' className={`organisation`}>
+               <FaPlus/>
+              <i className='text-xs font-light absolute -bottom-4 w-[100px] -left-2 bg-gray-300 p-1  hidden'>Add Organisation</i>
                 </Link>
         </div>
        {

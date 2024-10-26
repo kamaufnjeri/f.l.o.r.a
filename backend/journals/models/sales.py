@@ -6,6 +6,9 @@ class Sales(BaseModel):
     date = models.DateField()
     description = models.TextField()
     serial_number = models.CharField(max_length=200)
+    organisation = models.ForeignKey('Organisation', related_name='sales', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='sales', on_delete=models.CASCADE)
+
 
     def __str__(self):
         return self.serial_number

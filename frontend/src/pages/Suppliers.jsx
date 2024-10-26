@@ -4,17 +4,20 @@ import { MdSearch } from "react-icons/md";
 import { getItems } from '../lib/helpers';
 import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../lib/api';
+import { useParams } from 'react-router-dom';
+import PrevNext from '../components/shared/PrevNext';
 
 const Suppliers= () => {
   const [searchItem, setSearchItem] = useState({
     name: ''
   })
+  const { orgId } = useParams();
   const [suppliers, setSuppliers] = useState([]);
   const [suppliersData, setSuppliersData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newSuppliersData = await getItems('suppliers', `?paginate=true`);
+    const newSuppliersData = await getItems(`${orgId}/suppliers`, `?paginate=true`);
     setSuppliersData(newSuppliersData);
 }
   useEffect(() => {
@@ -23,12 +26,12 @@ const Suppliers= () => {
 }, [])
   const handleChange = async (e) => {
     setSearchItem({ name: e.target.value });
-    const newsuppliers = await getItems('suppliers', `?search=${e.target.value}`);
+    const newsuppliers = await getItems(`${orgId}/suppliers`, `?search=${e.target.value}`);
     setSuppliers(newsuppliers)
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newSuppliersData = await getItems('suppliers', `?search=${searchItem.name}&paginate=true`);
+    const newSuppliersData = await getItems(`${orgId}/suppliers`, `?search=${searchItem.name}&paginate=true`);
     setSuppliersData(newSuppliersData);
     setPageNo(1);
     setSearchItem({ name: '' })
@@ -36,7 +39,7 @@ const Suppliers= () => {
 
   const nextPage = async () => {
     try {
-      const response = await axios.get(suppliersData.next);
+      const response = await api.get(suppliersData.next);
       if (response.status == 200) {
         setSuppliersData(response.data)
         setPageNo(pageNo + 1);
@@ -52,7 +55,7 @@ const Suppliers= () => {
   const previousPage = async () => {
     
     try {
-      const response = await axios.get(suppliersData.previous);
+      const response = await api.get(suppliersData.previous);
       if (response.status == 200) {
         setSuppliersData(response.data)
         setPageNo(pageNo - 1);
@@ -102,11 +105,8 @@ const Suppliers= () => {
         </div>
         ))}
       </div>
-      <div className='absolute bottom-5 flex flex-row gap-4 justify-center items-center cursor-pointer z-10'>
-        {suppliersData.previous && <FaAngleDoubleLeft onClick={previousPage} className='text-2xl' />}
-        <span className='rounded-lg bg-gray-800 text-white h-8 flex items-center justify-center text-xl w-8'>{pageNo}</span>
-        {suppliersData.next && <FaAngleDoubleRight onClick={nextPage} className='text-2xl'/>}
-      </div>
+      <PrevNext pageNo={pageNo} data={suppliersData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+
     </div>
   )
 }
