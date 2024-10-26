@@ -17,7 +17,7 @@ class StockPagination(PageNumberPagination):
 
 
 class StockAPIView(generics.ListCreateAPIView):
-    queryset = Stock.objects.all()
+    queryset = Stock.objects.all().order_by('created_at')
     serializer_class = StockSerializer
     pagination_class = StockPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

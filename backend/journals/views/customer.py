@@ -17,7 +17,7 @@ class CustomerPagination(PageNumberPagination):
 
 
 class CustomerAPIVew(generics.ListCreateAPIView):
-    queryset = Customer.objects.all()
+    queryset = Customer.objects.all().order_by('created_at')
     serializer_class = CustomerSerializer
     pagination_class = CustomerPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]

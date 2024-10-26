@@ -51,7 +51,7 @@ class PurchaseFilter(DjangoFilterBackend):
 
 
 class PurchaseAPIView(generics.ListCreateAPIView):
-    queryset = Purchase.objects.all()
+    queryset = Purchase.objects.all().order_by('created_at')
     serializer_class = PurchaseSerializer
     pagination_class = PurchasePagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

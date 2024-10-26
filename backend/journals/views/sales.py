@@ -48,7 +48,7 @@ class SalesFilter(DjangoFilterBackend):
             raise Exception(str(e))
 
 class SalesAPIView(generics.ListCreateAPIView):
-    queryset = Sales.objects.all()
+    queryset = Sales.objects.all().order_by('created_at')
     serializer_class = SalesSerializer
     pagination_class = SalesPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

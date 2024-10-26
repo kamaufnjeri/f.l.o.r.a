@@ -20,7 +20,7 @@ class AccountPagination(PageNumberPagination):
 
 class AccountAPIView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
-    queryset = Account.objects.all()
+    queryset = Account.objects.all().order_by('created_at')
     serializer_class = AccountSerializer
     pagination_class = AccountPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]

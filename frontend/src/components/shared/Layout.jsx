@@ -44,6 +44,7 @@ const Layout = () => {
   };
 
   return (
+    
     <div className='absolute right-0 top-0 left-0 bottom-0 w-screen h-screen overflow-hidden flex flex-col'>
       <AddAccountModal openModal={openAddAccountModal} setOpenModal={setOpenAddAccountModal}/>
       <AddItemModal openModal={openAddItemModal} setOpenModal={setOpenAddItemModal}/>

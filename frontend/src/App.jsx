@@ -41,62 +41,59 @@ import OrganisationCreatePage from "./pages/OrganisationCreatePage";
 
 const RegisterRoute = () => {
   localStorage.clear()
-  return <Register/>
+  return <Register />
 }
 
 const App = () => {
   return (
     <Router>
       <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Home/>}/>
-        <Route path='/Register' element={<RegisterRoute/>}/>
-        <Route path='/login' element={<Login/>}/>
-        <Route path='/confirm-email/:uidb64/:token' element={<VerifyEmail/>}/>
-        <Route path='/forgot-password' element={<ForgotPassword/>}/>
-        <Route path='/reset-password/:uidb64/:token' element={<ResetPassword/>}/>
-        <Route path='/accept-invite/:uidb64' element={<AcceptInvite/>}/>
-        <Route path='/' element={<Layout/>}>
-        <Route path='/organisation-create' element={<OrganisationCreatePage/>}/>
-        </Route>
-       
-      <Route path='/dashboard/:orgId' element={<Layout/>}>
-        <Route index element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
-        <Route path='stocks' element={<Stocks/>}></Route>
-        <Route path='bills' element={<Bills/>}></Route>
-        <Route path='bills/:id/payments' element={<SingleBillPayments/>}></Route>
-        <Route path='payments' element={<Payments/>}></Route>
-        <Route path='invoices' element={<Invoices/>}></Route>
-        <Route path='invoices/:id/payments' element={<SingleInvoicePayments/>}></Route>
-        <Route path='accounts' element={<Accounts/>}></Route>
-        <Route path='suppliers' element={<Suppliers/>}></Route>
-        <Route path='customers' element={<Customers/>}></Route>
-        <Route path='purchases' element={<Purchases/>}></Route>
-        <Route path='purchases/:id' element={<SinglePurchase/>}></Route>
-        <Route path='purchases/:id/purchase_returns' element={<SinglePurchaseReturns/>}></Route>
-        <Route path='purchase_returns' element={<PurchaseReturns/>}></Route>
-        <Route path='purchases/record' element={<RecordPurchase/>}></Route>
-        <Route path='purchases/bill' element={<PurchaseBill/>}></Route>
-        <Route path='sales' element={<Sales/>}></Route>
-        <Route path='sales/:id' element={<SingleSale/>}></Route>
-        <Route path='sales/:id/sales_returns' element={<SingleSalesReturns/>}></Route>
-        <Route path='sales/record' element={<RecordSales/>}></Route>
-        <Route path='sales/invoice' element={<SalesInvoice/>}/>
-        <Route path='sales_returns' element={<SalesReturns/>}/>
-        <Route path='journals' element={<Journals/>}></Route>
-        <Route path='journals/:id' element={<SingleJournal/>}></Route>
-        <Route path='journals/record' element={<RecordJournal/>}></Route>
-        <Route path='journals/bill' element={<JournalBill/>}/>
-        <Route path='journals/invoice' element={<JournalInvoice/>}/>
-        <Route path='ledgers'></Route>
-        <Route path='customers'></Route>
-        <Route path='suppliers'></Route>
-        <Route path='reports'></Route>
-      </Route>
-    </Routes>
-    </AuthProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path='/Register' element={<RegisterRoute />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/confirm-email/:uidb64/:token' element={<VerifyEmail />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+          <Route path='/reset-password/:uidb64/:token' element={<ResetPassword />} />
+          <Route path='/accept-invite/:uidb64' element={<AcceptInvite />} />
+          <Route path='/' element={<Layout />}>
+            <Route path='/organisation-create' element={<OrganisationCreatePage />} />
+          </Route>
+
+          <Route path='/dashboard/:orgId' element={<Layout />}>
+            <Route index element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path='stocks' element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
+            <Route path='bills' element={<ProtectedRoute><Bills /></ProtectedRoute>} />
+            <Route path='bills/:id/payments' element={<ProtectedRoute><SingleBillPayments /></ProtectedRoute>} />
+            <Route path='payments' element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+            <Route path='invoices' element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+            <Route path='invoices/:id/payments' element={<ProtectedRoute><SingleInvoicePayments /></ProtectedRoute>} />
+            <Route path='accounts' element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+            <Route path='suppliers' element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+            <Route path='customers' element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+            <Route path='purchases' element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
+            <Route path='purchases/:id' element={<ProtectedRoute><SinglePurchase /></ProtectedRoute>} />
+            <Route path='purchases/:id/purchase_returns' element={<ProtectedRoute><SinglePurchaseReturns /></ProtectedRoute>} />
+            <Route path='purchase_returns' element={<ProtectedRoute><PurchaseReturns /></ProtectedRoute>} />
+            <Route path='purchases/record' element={<ProtectedRoute><RecordPurchase /></ProtectedRoute>} />
+            <Route path='purchases/bill' element={<ProtectedRoute><PurchaseBill /></ProtectedRoute>} />
+            <Route path='sales' element={<ProtectedRoute><Sales /></ProtectedRoute>} />
+            <Route path='sales/:id' element={<ProtectedRoute><SingleSale /></ProtectedRoute>} />
+            <Route path='sales/:id/sales_returns' element={<ProtectedRoute><SingleSalesReturns /></ProtectedRoute>} />
+            <Route path='sales/record' element={<ProtectedRoute><RecordSales /></ProtectedRoute>} />
+            <Route path='sales/invoice' element={<ProtectedRoute><SalesInvoice /></ProtectedRoute>} />
+            <Route path='sales_returns' element={<ProtectedRoute><SalesReturns /></ProtectedRoute>} />
+            <Route path='journals' element={<ProtectedRoute><Journals /></ProtectedRoute>} />
+            <Route path='journals/:id' element={<ProtectedRoute><SingleJournal /></ProtectedRoute>} />
+            <Route path='journals/record' element={<ProtectedRoute><RecordJournal /></ProtectedRoute>} />
+            <Route path='journals/bill' element={<ProtectedRoute><JournalBill /></ProtectedRoute>} />
+            <Route path='journals/invoice' element={<ProtectedRoute><JournalInvoice /></ProtectedRoute>} />
+           
+          </Route>
+        </Routes>
+      </AuthProvider>
     </Router>
-    
+
   );
 };
 

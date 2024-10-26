@@ -42,10 +42,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (setLoginData, loginData) => {
-        localStorage.clear()
         const response = await postRequest(loginData, 'auth/login');
         if (response.success) {
-           
+            localStorage.clear()
             toast.success("Login successful!");
             localStorage.setItem('refreshToken', response?.data?.refresh);
             localStorage.setItem('accessToken', response?.data?.access)
@@ -123,3 +122,4 @@ export const AuthProvider = ({ children }) => {
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

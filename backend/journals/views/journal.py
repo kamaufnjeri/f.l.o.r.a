@@ -58,7 +58,7 @@ class JournalFilter(DjangoFilterBackend):
 
 
 class JournalAPIView(generics.ListCreateAPIView):
-    queryset = Journal.objects.all()
+    queryset = Journal.objects.all().order_by('created_at')
     serializer_class = JournalSerializer
     pagination_class = JournalPagination
     filter_backends = [JournalFilter, SearchFilter]

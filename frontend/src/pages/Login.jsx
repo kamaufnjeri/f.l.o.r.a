@@ -14,8 +14,6 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
     
 
-   
-
     const handleChange = (e, fieldName) => {
         setLoginData({...loginData, [fieldName]: e.target.value});
     }
@@ -23,7 +21,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-       login(setLoginData, loginData);
+        login(setLoginData, loginData);
         setIsLoading(false);
     }
   return (

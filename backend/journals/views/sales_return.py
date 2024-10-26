@@ -51,7 +51,7 @@ class SalesReturnFilter(DjangoFilterBackend, SearchFilter):
 
 
 class SalesReturnAPIView(generics.ListCreateAPIView):
-    queryset = SalesReturn.objects.all()
+    queryset = SalesReturn.objects.all().order_by('created_at')
     serializer_class = SalesReturnSerializer
     pagination_class = SalesReturnPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

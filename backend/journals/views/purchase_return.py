@@ -47,7 +47,7 @@ class PurchaseReturnFilter(DjangoFilterBackend, SearchFilter):
         
 
 class PurchaseReturnAPIView(generics.ListCreateAPIView):
-    queryset = PurchaseReturn.objects.all()
+    queryset = PurchaseReturn.objects.all().order_by('created_at')
     serializer_class = PurchaseReturnSerializer
     pagination_class = PurchaseReturnPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

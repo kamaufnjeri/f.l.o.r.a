@@ -37,7 +37,7 @@ class BillFilter(DjangoFilterBackend, SearchFilter):
         return queryset
         
 class BillApiView(generics.ListAPIView):
-    queryset = Bill.objects.all()
+    queryset = Bill.objects.all().order_by('created_at')
     serializer_class = BillDetailSerializer
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
     pagination_class = BillPagination

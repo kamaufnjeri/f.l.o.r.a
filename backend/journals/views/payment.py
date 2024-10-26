@@ -59,7 +59,7 @@ class PaymentFilter(DjangoFilterBackend, SearchFilter):
             raise Exception(str(e))
         
 class PaymentAPIView(generics.ListCreateAPIView):
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.all().order_by('created_at')
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
     pagination_class = PaymentPagination

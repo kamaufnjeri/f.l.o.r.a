@@ -17,7 +17,7 @@ class SupplierPagination(PageNumberPagination):
 
 
 class SupplierAPIVew(generics.ListCreateAPIView):
-    queryset = Supplier.objects.all()
+    queryset = Supplier.objects.all().order_by('created_at')
     serializer_class = SupplierSerializer
     pagination_class = SupplierPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]

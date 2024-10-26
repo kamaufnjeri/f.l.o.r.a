@@ -40,7 +40,7 @@ class InvoiceFilter(DjangoFilterBackend, SearchFilter):
         return queryset
         
 class InvoiceApiView(generics.ListAPIView):
-    queryset = Invoice.objects.all()
+    queryset = Invoice.objects.all().order_by('created_at')
     serializer_class = InvoiceDetailSerializer
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
     pagination_class = InvoicePagination
