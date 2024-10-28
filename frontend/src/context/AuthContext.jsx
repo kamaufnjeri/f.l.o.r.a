@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../lib/api'; // Ensure this points to your API library
+import api from '../lib/api';
 import { toast } from 'react-toastify';
 import { postRequest } from '../lib/helpers';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/shared/Loading';
 
 const AuthContext = createContext();
 
@@ -13,8 +14,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [currentOrg, setCurrentOrg] = useState(null)
-    const [loading, setLoading] = useState(true);
-    const navigate = useNavigate()
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
 
     useEffect(() => {
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
                     navigate("/login")
                   }
             }
-            setLoading(false);
+            setIsLoading(false);
         };
 
         fetchUser();
@@ -113,13 +114,15 @@ export const AuthProvider = ({ children }) => {
         currentOrg,
         setUser,
         setCurrentOrg,
-        loading,
         login,
         logout,
         isAuthenticated,
         changeCurrentOrg,
     };
-
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    if (isLoading) {
+        return <Loading/>
+    } else {
+        return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    }
 };
 

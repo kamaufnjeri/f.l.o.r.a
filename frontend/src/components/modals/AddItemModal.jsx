@@ -5,6 +5,7 @@ import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -17,6 +18,8 @@ const validationSchema = Yup.object({
 
 const AddItemModal = ({ openModal, setOpenModal }) => {
   const {orgId} = useParams();
+  const { getSelectOptions } = useSelectOptions();
+
   const handleCancel = () => {
     setOpenModal(false);
   };
@@ -47,7 +50,8 @@ const AddItemModal = ({ openModal, setOpenModal }) => {
           onSubmit={async (values, { resetForm }) => {
             const response = await postRequest(values, `${orgId}/stocks`, resetForm);
             if (response.success) {
-              toast.success('Recorded: Stock Item added successfully')
+              toast.success('Recorded: Stock Item added successfully');
+              getSelectOptions();
             } else {
               toast.error(`Error: ${response.error}`)
 

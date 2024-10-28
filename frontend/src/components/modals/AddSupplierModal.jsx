@@ -5,6 +5,7 @@ import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Supplier name is required'),
@@ -25,6 +26,7 @@ const validationSchema = Yup.object({
 
 const AddSupplierModal = ({ openModal, setOpenModal }) => {
   const { orgId } = useParams();
+  const { getSelectOptions } = useSelectOptions();
 
   const handleCancel = () => {
     setOpenModal(false);
@@ -55,6 +57,7 @@ const AddSupplierModal = ({ openModal, setOpenModal }) => {
             const response = await postRequest(values, `${orgId}/suppliers`, resetForm);
             if (response.success) {
               toast.success('Recorded: Supplier added successfully')
+              getSelectOptions();
             } else {
               toast.error(`Error: ${response.error}`)
             }

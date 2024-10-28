@@ -137,12 +137,12 @@ export const accountCategories = {
       }
     ],
     expense: [
-      {value: "operating_expenses", name: "Operatings Expense"},
-      {value: "cost_of_goods_sold", name: "Cost of Goods Sold"},
+      {value: "operating_expense", name: "Operating Expense"},
+      {value: "other_expense", name: "Other Expense"},
      
     ],
     income: [
-      {value: "sales_revenue", name: "Sales Revenue"},
+      {value: "operating_income", name: "Operating Income"},
       {value: "other_income", name: "Other Income"}
     ]
   }
@@ -220,7 +220,7 @@ export const accountSubCategories = {
             value: 'subordinated_debt'
         }
     ],
-    operating_expenses: [
+    operating_expense: [
         {
             name: 'Rent and Utilities',
             value: 'rent_and_utilities'
@@ -232,16 +232,29 @@ export const accountSubCategories = {
         {
             name: 'Marketing and Advertising',
             value: 'marketing_and_advertising'
-        }
-    ],
-    cost_of_goods_sold: [
-      {
+        },
+        {
             name: 'Cost of Goods Sold',
             value: 'cost_of_goods_sold'
         },
+        {
+            name: "Selling Expense",
+            value: "selling_expense"
+        }, 
+        {
+            value: "contra-expense",
+            name: "Contra-Expense"
+        }
+    ],
+    other_expense: [
+        {
+            name: "Interest Expense",
+            value: "interent_expense"
+        }
+     
        
     ],
-    sales_revenue: [
+    operating_income: [
         {
             name: 'Product Sales',
             value: 'product_sales'
@@ -249,8 +262,12 @@ export const accountSubCategories = {
         {
             name: 'Service Revenue',
             value: 'service_revenue'
+        },
+        {
+            value: "contra-revenue",
+            name:  "Contra-Revenue"
         }
-    ],
+        ],
     other_income: [
         {
             name: 'Interest Income',
@@ -259,7 +276,12 @@ export const accountSubCategories = {
         {
             name: 'Investment Income',
             value: 'investment_income'
-        }
+        },
+        {
+            name: 'Income from Discounts',
+            value: "income_from_discounts"
+        },
+        
     ]
 };
 

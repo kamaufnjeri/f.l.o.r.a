@@ -73,7 +73,7 @@ class JournalEntriesManager:
             raise serializers.ValidationError("Inventory account not found")
         try:
             
-            cogs_account = Account.objects.get(name="Cost of goods sold", organisation_id=organisation_id)
+            cogs_account = Account.objects.get(name="Cost of Goods Sold", organisation_id=organisation_id)
             
         except Account.DoesNotExist:
             raise serializers.ValidationError("Cost of goods sold account not found")

@@ -66,7 +66,7 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             sales_return = SalesReturn.objects.create(**validated_data)
             cogs, total_sales_price = sales_return_entries_manager.create_sales_return_entries(return_entries, sales_return, sales)
             try:
-                cogs_account = Account.objects.get(name="Cost of goods sold", organisation=validated_data.get('organisation'))
+                cogs_account = Account.objects.get(name="Cost of Goods Sold", organisation=validated_data.get('organisation'))
             except Account.DoesNotExist:
                 raise serializers.ValidationError('Cost of goods sold account not found')
             

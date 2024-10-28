@@ -10,6 +10,7 @@ import AccountsField from '../components/forms/AccountsField';
 import PurchaseEntriesFields from '../components/forms/PurchaseEntriesFields';
 import DiscountContainer from '../components/forms/DiscountContainer';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 const validationSchema = Yup.object({
     date: Yup.date().required('Date is required'),
@@ -45,11 +46,10 @@ const validationSchema = Yup.object({
 });
 
 const RecordPurchase = () => {
-    const [stocks, setStocks] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const scrollRef = useRef(null);
-    const [purchaseNo, setPurchaseNo] = useState('')
     const { orgId } = useParams();
+    const { stocks, serialNumbers, paymentAccounts, getSelectOptions } = useSelectOptions();
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -62,18 +62,6 @@ const RecordPurchase = () => {
         return 0;
     };
 
-    const getData = async () => {
-        const subCategory = 'cash_and_cash_equivalents'
-        const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
-        const newStocks = await getItems(`${orgId}/stocks`);
-        const purchaseNo = await getSerialNumber('PURCH', orgId)
-        setPurchaseNo(purchaseNo)
-        setAccounts(newAccounts)
-        setStocks(newStocks)
-    }
-    useEffect(() => {
-        getData()
-    }, [])
 
     return (
         <div className='flex-1 flex flex-col items-center justify-center'>
@@ -82,7 +70,7 @@ const RecordPurchase = () => {
                 initialValues={{
                     date: null,
                     description: '',
-                    serial_number: purchaseNo,
+                    serial_number: serialNumbers.purchase,
                     purchase_entries: [
                         { stock: null, purchased_quantity: 0, purchase_price: 0.0 }
                     ],
@@ -106,7 +94,7 @@ const RecordPurchase = () => {
                         const response = await postRequest(values, `${orgId}/purchases`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase recorded successfully')
-                            getData();
+                            getSelectOptions();
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -136,8 +124,8 @@ const RecordPurchase = () => {
                     }, [values.journal_entries, values.purchase_entries])
 
                     useEffect(() => {
-                        setFieldValue('serial_number', purchaseNo);
-                    }, [purchaseNo])
+                        setFieldValue('serial_number', serialNumbers.purchase);
+                    }, [serialNumbers])
                     return (<div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
                         <FormHeader header='Record Purchase' />
 
@@ -146,14 +134,14 @@ const RecordPurchase = () => {
                             onFinish={handleSubmit}
                         >
                             <div className='flex flex-row justify-between text-gray-800 mr-2'>
-                                <span>Purchase No : {purchaseNo}</span>
+                                <span>Purchase No : {serialNumbers.purchase}</span>
                             </div>
                             <div className='flex flex-row gap-2 w-full'>
                                 <div className='flex flex-col gap-2 w-[50%]'>
                                     <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue} />
                                 </div>
                                 <div className='w-[50%]'>
-                                    <AccountsField type='credit' values={values} setFieldValue={setFieldValue} header={'Purchase Payment Accounts'} accounts={accounts} />
+                                    <AccountsField type='credit' values={values} setFieldValue={setFieldValue} header={'Purchase Payment Accounts'} accounts={paymentAccounts} />
 
                                 </div>
 

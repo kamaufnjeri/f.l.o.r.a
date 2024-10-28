@@ -6,6 +6,7 @@ import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import { accountCategories, accountSubCategories, accountGroups } from '../../lib/constants';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Account name is required'),
@@ -23,6 +24,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
   const [categories, setCategories] = useState(accountCategories['asset']);
   const [subCategories, setSubCategories] = useState(accountSubCategories['current_asset'])
   const { orgId } = useParams();
+  const { getSelectOptions } = useSelectOptions();
 
   const handleCancel = () => {
     setOpenModal(false);
@@ -81,6 +83,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
               setCategories(accountCategories['asset'])
               setSubCategories(accountSubCategories['current_asset'])
               toast.success('Recorded: Account added successfully');
+              getSelectOptions();
             } else {
               toast.error(`Error: ${response.error}`);
             }

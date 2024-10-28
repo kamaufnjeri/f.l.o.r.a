@@ -10,6 +10,7 @@ import PurchaseEntriesFields from '../components/forms/PurchaseEntriesFields';
 import DiscountContainer from '../components/forms/DiscountContainer';
 import BillContainer from '../components/forms/BillContainer';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -41,12 +42,9 @@ const validationSchema = Yup.object({
     }).nullable()
   });
 const PurchaseBill = () => {
-    const [stocks, setStocks] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
     const scrollRef = useRef(null);
-    const [billNo, setBillNo] = useState('');
-    const [purchaseNo, setPurchaseNo] = useState('');
     const { orgId } = useParams();
+    const { stocks, serialNumbers, suppliers, getSelectOptions } = useSelectOptions();
 
     const getTotalPurchasePrice = (items) => {
         if (items) {
@@ -59,20 +57,7 @@ const PurchaseBill = () => {
         return 0;
     };
 
-    const getData = async () => {
-        const newStocks = await getItems(`${orgId}/stocks`);
-        const newSuppliers = await getItems(`${orgId}/suppliers`)
-        const billNo = await getSerialNumber('BILL', orgId)
-        const purchaseNo = await getSerialNumber('PURCH', orgId)
-        setBillNo(billNo)
-        setPurchaseNo(purchaseNo)
-        setStocks(newStocks);
-        setSuppliers(newSuppliers);
-    }
-    useEffect(() => {
-       
-        getData()
-    }, [])
+   
 
     return (
         <div className='flex-1 flex flex-col items-center justify-center'>
@@ -81,7 +66,7 @@ const PurchaseBill = () => {
                 initialValues={{
                     date: null,
                     description: '',
-                    serial_number: purchaseNo,
+                    serial_number: serialNumbers.purchase,
                     purchase_entries: [
                         { stock: null, purchased_quantity: 0, purchase_price: 0.0 }
                     ],
@@ -89,7 +74,7 @@ const PurchaseBill = () => {
                         amount_due: 0.00,
                         due_date: null,
                         supplier: null,
-                        serial_number: billNo
+                        serial_number: serialNumbers.bill
                     },
                     discount_received: {
                         discount_amount: 0.00,
@@ -107,7 +92,7 @@ const PurchaseBill = () => {
                         const response = await postRequest(values, `${orgId}/bills/purchases`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Purchase bill recorded successfully')
-                            getData()
+                            getSelectOptions()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -127,9 +112,9 @@ const PurchaseBill = () => {
                     }, [purchasePriceTotal, values.discount_received]);
 
                     useEffect(() => {
-                        setFieldValue('serial_number', purchaseNo)
-                    setFieldValue('bill.serial_number', billNo)
-                    }, [purchaseNo, billNo])
+                        setFieldValue('serial_number', serialNumbers.purchase)
+                    setFieldValue('bill.serial_number', serialNumbers.bill)
+                    }, [serialNumbers])
 
 
                  useEffect(() => {
@@ -143,7 +128,7 @@ const PurchaseBill = () => {
                             onFinish={handleSubmit}
                         >
                             <div className='flex flex-row justify-between text-gray-800 mr-2'>
-                                <span>Bill No : {billNo}</span><span>Purchase No : {purchaseNo}</span>
+                                <span>Bill No : {serialNumbers.bill}</span><span>Purchase No : {serialNumbers.purchase}</span>
                                 </div>
                             <div className='flex flex-row gap-2 w-full'>
                                 <div className='flex flex-col gap-2 w-[50%]'>

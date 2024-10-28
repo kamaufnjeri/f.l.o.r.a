@@ -9,6 +9,7 @@ import FormHeader from '../components/forms/FormHeader';
 import FormInitialField from '../components/forms/FormInitialField';
 import JournalEntries from '../components/forms/JournalEntries';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -28,24 +29,11 @@ const validationSchema = Yup.object({
 });
 
 const RecordJournal = () => {
-  const [accounts, setAccounts] = useState([]);
   const [debitCreditDiff, setDebitCreditDiff] = useState(0);
   const scrollRef = useRef(null);
-  const [journalNo, setJounalNo] = useState('');
   const { orgId } = useParams();
+  const { accounts, serialNumbers, getSelectOptions} = useSelectOptions();
 
-  const getData = async () => {
-    const newAccounts =await getItems(`${orgId}/accounts`);
-    const journalNo = await getSerialNumber('JOURN', orgId)
-    setJounalNo(journalNo)
-    setAccounts(newAccounts);
-  }
-  useEffect(() => {
-   
-    getData()
-
-
-  }, []);
 
   const getDebitCreditDiff = (entries) => {
     const totalDebitAmount = entries.reduce((sum, entry) => {
@@ -65,7 +53,7 @@ const RecordJournal = () => {
         initialValues={{
           date: null,
           description: '',
-          serial_number: journalNo,
+          serial_number: serialNumbers.journal,
           journal_entries: [
             { account: null, debit_credit: null, amount: 0.0 },
             { account: null, debit_credit: null, amount: 0.0 },
@@ -86,7 +74,7 @@ const RecordJournal = () => {
             const response = await postRequest(values, `${orgId}/journals`, resetForm)
             if (response.success) {
               toast.success('Recorded: Journal recorded successfully')
-              getData()
+              getSelectOptions()
             } else {
               toast.error(`Error: ${response.error}`)
             }
@@ -104,8 +92,8 @@ const RecordJournal = () => {
           }, [values.journal_entries]);
 
           useEffect(() => {
-            setFieldValue('serial_number', journalNo)
-          }, [journalNo])
+            setFieldValue('serial_number', serialNumbers.journal)
+          }, [serialNumbers])
 
           return (
             <div
@@ -119,7 +107,7 @@ const RecordJournal = () => {
                 onFinish={handleSubmit}
               >
                 <div className='flex flex-row justify-between text-gray-800 mr-2'>
-                      <span>Journal No : {journalNo}</span>
+                      <span>Journal No : {serialNumbers.journal}</span>
                   </div>
                 <div className='w-[80%]'>
                   <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue} />

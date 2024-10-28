@@ -24,30 +24,38 @@ ACCOUNT_STRUCTURE = {
         "owner_equity": [
             "retained_earnings",
             "owner_investment",
-            "drawings"
+            "drawings", 
+            "additional_contributions"
         ],
-        "additional_contributions": [
+        "other_equity": [
             "equity_from_loans",
             "subordinated_debt"
         ]
     },
     "expense": {
-        "operating_expenses": [
+        "operating_expense": [
             "rent_and_utilities",
-            "salaries_and_wages"
-        ],
-        "cost_of_goods_sold": [
+            "salaries_and_wages",
+            "selling_expense",
             "cost_of_goods_sold",
+            "marketing_and_advertising",
+            "contra-expense"
+        ],
+        "other_expense": [
+            "interent_expense"
         ]
+        
     },
     "income": {
-        "sales_revenue": [
+        "operating_income": [
             "product_sales",
-            "service_revenue"
+            "service_revenue",
+            "contra-revenue"
         ],
         "other_income": [
             "interest_income",
-            "investment_income"
+            "investment_income",
+            "income_from_discounts"
         ]
     }
 }
@@ -66,9 +74,9 @@ CATEGORIES = (
         ("long_term_liability", "Long-term Liability"),
         ("owner_equity", "Owner Equity"),
         ("other_equity", "Other Equity"),
-        ("operating_expenses", "Operating Expenses"),
-        ("cost_of_goods_sold", "Cost of Goods Sold"),
-        ("sales_revenue", "Sales Revenue"),
+        ("operating_expense", "Operating Expense"),
+        ("other_expense", "Other Expense"),
+        ("operating_income", "Operating Income"),
         ("other_income", "Other Income")
     )
 
@@ -92,8 +100,13 @@ SUB_CATEGORIES = (
         ("salaries_and_wages", "Salaries and Wages"),
         ("marketing_and_advertising", "Marketing and Advertising"),
         ("cost_of_goods_sold", "Cost of Goods Sold"),
+        ("contra-revenue", "Contra-Revenue"),
+        ("contra-expense", "Contra-Expense"),
+        ("selling_expense", "Selling Expense"),
+        ("interent_expense", "Interest Expense"),
         ("product_sales", "Product Sales"),
         ("service_revenue", "Service Revenue"),
         ("interest_income", "Interest Income"),
-        ("investment_income", "Investment Income")
+        ("investment_income", "Investment Income"),
+        ("income_from_discounts", "Income from Discounts")
     )

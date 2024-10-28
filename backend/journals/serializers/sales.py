@@ -71,7 +71,7 @@ class SalesSerializer(serializers.ModelSerializer):
             if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
                 discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
                 try:
-                    discount_account = Account.objects.get(name='Discount allowed', organisation_id=validated_data.get('organisation'))
+                    discount_account = Account.objects.get(name='Discount Allowed', organisation_id=validated_data.get('organisation'))
 
                 except Account.DoesNotExist:
                     raise serializers.ValidationError("Discount account not found")

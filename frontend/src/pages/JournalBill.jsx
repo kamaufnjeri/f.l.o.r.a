@@ -10,6 +10,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import BillContainer from '../components/forms/BillContainer';
 import BillInvoiceAccountsFields from '../components/forms/BillInvoiceAccountsFields';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -34,29 +35,9 @@ const validationSchema = Yup.object({
 });
 
 const JournalBill = () => {
-    const [accounts, setAccounts] = useState([]);
     const scrollRef = useRef(null);
-    const [suppliers, setSuppliers] = useState([]);
-    const [billNo, setBillNo] = useState('');
-    const [journalNo, setJounalNo] = useState('');
     const { orgId } = useParams();
-
-    const getData = async () => {
-        const newAccounts = await getItems(`${orgId}/accounts`, '?group=expense');
-        const newSuppliers = await getItems(`${orgId}/suppliers`);
-        
-        const billNo = await getSerialNumber('BILL', orgId)
-        const journalNo = await getSerialNumber('JOURN', orgId)
-        setBillNo(billNo)
-        setJounalNo(journalNo)
-        setAccounts(newAccounts);
-        setSuppliers(newSuppliers);
-    }
-    useEffect(() => {
-       
-        getData()
-
-    }, []);
+    const { suppliers, expenseAccounts, serialNumbers, getSelectOptions } = useSelectOptions();
 
    
     const getEntriesTotalAmount = (values) => {
@@ -72,7 +53,7 @@ const JournalBill = () => {
                 initialValues={{
                     date: null,
                     description: '',
-                    serial_number: journalNo,
+                    serial_number: serialNumbers.journal,
                     journal_entries: [
                         { account: null, debit_credit: 'debit', amount: 0.0 },
                     ],
@@ -80,7 +61,7 @@ const JournalBill = () => {
                         amount_due: 0.00,
                         due_date: null,
                         customer: null,
-                        serial_number: billNo
+                        serial_number: serialNumbers.bill
                     }
                 }}
                 validationSchema={validationSchema}
@@ -93,7 +74,7 @@ const JournalBill = () => {
                         const response = await postRequest(values, `${orgId}/bills/journals`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Journal bill recorded successfully')
-                            getData()
+                            getSelectOptions()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -111,9 +92,9 @@ const JournalBill = () => {
 
                     }, [values.journal_entries]);
                     useEffect(() => {
-                        setFieldValue('serial_number', journalNo)
-                    setFieldValue('bill.serial_number', billNo)
-                    }, [journalNo, billNo])
+                        setFieldValue('serial_number', serialNumbers.journal)
+                    setFieldValue('bill.serial_number', serialNumbers.bill)
+                    }, [serialNumbers])
 
                     return (
                         <div
@@ -128,7 +109,7 @@ const JournalBill = () => {
                                 onFinish={handleSubmit}
                             >
                                 <div className='flex flex-row justify-between text-gray-800 mr-2'>
-                                <span>Bill No : {billNo}</span><span>Journal No : {journalNo}</span>
+                                <span>Bill No : {serialNumbers.bill}</span><span>Journal No : {serialNumbers.journal}</span>
                             </div>
                                 <div className='flex flex-row gap-2 w-full'>
                                     <div className='flex flex-col gap-2 w-[50%]'>
@@ -137,7 +118,7 @@ const JournalBill = () => {
                                     <BillContainer values={values.bill} setFieldValue={setFieldValue} suppliers={suppliers} />
                                 </div>
 
-                                <BillInvoiceAccountsFields type='debit' values={values} setFieldValue={setFieldValue} header={'Accounts to bill Accounts'} accounts={accounts}/>
+                                <BillInvoiceAccountsFields type='debit' values={values} setFieldValue={setFieldValue} header={'Accounts to bill Accounts'} accounts={expenseAccounts}/>
                                 <Button type="primary" className='w-[30%] self-center' htmlType="submit">
                                     Record
                                 </Button>

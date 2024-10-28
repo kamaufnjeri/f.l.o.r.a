@@ -10,6 +10,7 @@ import FormInitialField from '../components/forms/FormInitialField';
 import InvoiceContainer from '../components/forms/InvoiceContainer';
 import BillInvoiceAccountsFields from '../components/forms/BillInvoiceAccountsFields';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 
 
@@ -35,29 +36,9 @@ const validationSchema = Yup.object({
 });
 
 const JournalInvoice = () => {
-    const [accounts, setAccounts] = useState([]);
-    const [customers, setCustomers] = useState([]);
     const scrollRef = useRef(null);
-    const [invoiceNo, setInvoiceNo] = useState('');
-    const [journalNo, setJounalNo] = useState('');
     const { orgId } = useParams();
-
-    const getData = async () => {
-        const newAccounts = await getItems(`${orgId}/accounts`, '?group=income');
-        const newCustomers = await getItems(`${orgId}/customers`)
-
-        const invoiceNo = await getSerialNumber('INV', orgId)
-        const journalNo = await getSerialNumber('JOURN', orgId)
-        setInvoiceNo(invoiceNo)
-        setJounalNo(journalNo)
-        setAccounts(newAccounts);
-        setCustomers(newCustomers);
-    }
-    useEffect(() => {
-       
-        getData()
-
-    }, []);
+    const { customers, incomeAccounts, serialNumbers, getSelectOptions } = useSelectOptions();
 
     
     const getEntriesTotalAmount = (values) => {
@@ -73,7 +54,7 @@ const JournalInvoice = () => {
                 initialValues={{
                     date: null,
                     description: '',
-                    serial_number: journalNo,
+                    serial_number: serialNumbers.journal,
                     journal_entries: [
                         { account: null, debit_credit: 'credit', amount: 0.0 },
                     ],
@@ -81,7 +62,7 @@ const JournalInvoice = () => {
                         amount_due: 0.00,
                         due_date: null,
                         customer: null,
-                        serial_number: invoiceNo
+                        serial_number: serialNumbers.invoice
                     }
                 }}
                 validationSchema={validationSchema}
@@ -93,7 +74,7 @@ const JournalInvoice = () => {
                         const response = await postRequest(values, `${orgId}/invoices/journals`, resetForm)
                         if (response.success) {
                             toast.success('Recorded: Journal invoice recorded successfully')
-                            getData()
+                            getSelectOptions()
                         } else {
                             toast.error(`Error: ${response.error}`)
                         }
@@ -111,9 +92,9 @@ const JournalInvoice = () => {
                     }, [values.journal_entries]);
 
                     useEffect(() => {
-                        setFieldValue('serial_number', journalNo)
-                    setFieldValue('invoice.serial_number', invoiceNo)
-                    }, [journalNo, invoiceNo])
+                        setFieldValue('serial_number', serialNumbers.journal)
+                    setFieldValue('invoice.serial_number', serialNumbers.invoice)
+                    }, [serialNumbers])
 
                     return (
                         <div
@@ -127,7 +108,7 @@ const JournalInvoice = () => {
                                 onFinish={handleSubmit}
                             >
                                 <div className='flex flex-row justify-between text-gray-800 p-1'>
-                                <span>Invoice No : {invoiceNo}</span><span>Journal No : {journalNo}</span>
+                                <span>Invoice No : {serialNumbers.invoice}</span><span>Journal No : {serialNumbers.journal}</span>
                                 </div>
                                 <div className='flex flex-row gap-2 w-full'>
                                     <div className='flex flex-col gap-2 w-[50%]'>
@@ -136,7 +117,7 @@ const JournalInvoice = () => {
                                     <InvoiceContainer values={values.invoice} setFieldValue={setFieldValue} customers={customers} />
                                 </div>
 
-                                <BillInvoiceAccountsFields type='credit' values={values} setFieldValue={setFieldValue} header={'Accounts to invoice'} accounts={accounts}/>
+                                <BillInvoiceAccountsFields type='credit' values={values} setFieldValue={setFieldValue} header={'Accounts to invoice'} accounts={incomeAccounts}/>
 
                                 <Button type="primary" className='w-[30%] self-center' htmlType="submit">
                                     Record

@@ -37,6 +37,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Home from "./pages/Home";
 import AcceptInvite from "./pages/AcceptInvite";
 import OrganisationCreatePage from "./pages/OrganisationCreatePage";
+import { SelectOptionsProvider } from "./context/SelectOptionsContext";
 
 
 const RegisterRoute = () => {
@@ -48,6 +49,7 @@ const App = () => {
   return (
     <Router>
       <AuthProvider>
+        <SelectOptionsProvider>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path='/Register' element={<RegisterRoute />} />
@@ -59,7 +61,6 @@ const App = () => {
           <Route path='/' element={<Layout />}>
             <Route path='/organisation-create' element={<OrganisationCreatePage />} />
           </Route>
-
           <Route path='/dashboard/:orgId' element={<Layout />}>
             <Route index element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path='stocks' element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
@@ -91,6 +92,7 @@ const App = () => {
            
           </Route>
         </Routes>
+        </SelectOptionsProvider>
       </AuthProvider>
     </Router>
 

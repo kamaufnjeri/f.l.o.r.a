@@ -77,7 +77,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
             if discount_received and (discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00):
                 discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
                 try:
-                    discount_account = Account.objects.get(name='Discount received', organisation_id=validated_data.get('organisation'))
+                    discount_account = Account.objects.get(name='Discount Received', organisation_id=validated_data.get('organisation'))
                 except Account.DoesNotExist:
                     raise serializers.ValidationError('Discount received account not found')
                 discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'credit')

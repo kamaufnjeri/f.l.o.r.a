@@ -3,6 +3,7 @@ import { postRequest } from '../lib/helpers';
 import { toast } from 'react-toastify';
 import Loading from '../components/shared/Loading';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const OrganisationCreate = ({ user, setCurrentOrg }) => {
     const { setUser } = useAuth();
@@ -13,7 +14,8 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
         org_phone_number: "",
         country: "",
         currency: "",
-    })
+    });
+    const navigate  = useNavigate()
 
 
 
@@ -37,6 +39,7 @@ const OrganisationCreate = ({ user, setCurrentOrg }) => {
             })
             setUser(response.data)
             setCurrentOrg(response.data?.current_organisation)
+            navigate(`/dashboard/${response.data.current_organisation.id}`)
         }
         else {
             toast.error(response.error);

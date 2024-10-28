@@ -10,6 +10,7 @@ import AccountsField from '../components/forms/AccountsField';
 import SalesEntriesField from '../components/forms/SalesEntriesField';
 import DiscountContainer from '../components/forms/DiscountContainer';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -47,11 +48,9 @@ const validationSchema = Yup.object({
 });
 
 const RecordSales = () => {
-  const [stocks, setStocks] = useState([]);
-  const [accounts, setAccounts] = useState([]);
   const scrollRef = useRef(null);
-  const [salesNo, setSalesNo] = useState('');
   const { orgId } = useParams();
+  const { serialNumbers, paymentAccounts, stocks, getSelectOptions } = useSelectOptions();
 
   const getTotalSalesPrice = (items) => {
     if (items) {
@@ -65,20 +64,6 @@ const RecordSales = () => {
   };
 
 
-  const getData = async () => {
-    const subCategory = 'cash_and_cash_equivalents'
-    const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
-    const newStocks = await getItems(`${orgId}/stocks`);
-    const saleNo = await getSerialNumber('SALE', orgId)
-    setSalesNo(saleNo);
-    setAccounts(newAccounts)
-    setStocks(newStocks)
-  }
-  useEffect(() => {
-   
-    getData()
-  }, []);
-
   return (
     <div className='flex-1 flex flex-col items-center justify-center'>
 
@@ -87,7 +72,7 @@ const RecordSales = () => {
         initialValues={{
           date: null,
           description: '',
-          serial_number: salesNo,
+          serial_number: serialNumbers.sales,
           sales_entries: [
             { stock: null, sold_quantity: 0, sales_price: 0.0 }
           ],
@@ -112,7 +97,7 @@ const RecordSales = () => {
 
             if (response.success) {
               toast.success('Recorded: Sales recorded successfully')
-              getData()
+              getSelectOptions()
             } else {
               toast.error(`Error: ${response.error}`)
             }
@@ -139,9 +124,9 @@ const RecordSales = () => {
             scrollBottom(scrollRef);
           }, [salesPriceTotal, values.sales_entries])
           useEffect(() => {
-            setFieldValue('serial_number', salesNo)
+            setFieldValue('serial_number', serialNumbers.sales)
 
-          }, [salesNo])
+          }, [serialNumbers])
 
           return (
             <div ref={scrollRef} className='flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] h-full overflow-y-auto custom-scrollbar'>
@@ -152,14 +137,14 @@ const RecordSales = () => {
                 onFinish={handleSubmit}
               >
                 <div className='flex flex-row justify-between text-gray-800 mr-2'>
-                                <span>Sales No : {salesNo}</span>
+                                <span>Sales No : {serialNumbers.sales}</span>
                             </div>
                 <div className='flex flex-row gap-2 w-full'>
                   <div className='flex flex-col gap-2 w-[50%]'>
                     <FormInitialField values={values} handleChange={handleChange} setFieldValue={setFieldValue}/>
                   </div>
                   <div className="w-[50%]">
-                  <AccountsField type='debit' values={values} setFieldValue={setFieldValue} header={'Sales Receipt Accounts'} accounts={accounts}/>
+                  <AccountsField type='debit' values={values} setFieldValue={setFieldValue} header={'Sales Receipt Accounts'} accounts={paymentAccounts}/>
                   </div>
                 </div>
                 <SalesEntriesField values={values} setFieldValue={setFieldValue} stocks={stocks} />

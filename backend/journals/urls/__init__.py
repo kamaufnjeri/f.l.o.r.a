@@ -15,7 +15,7 @@ from .supplier import urlpatterns as supplier_urls
 from .stock import urlpatterns as stock_urls
 from .custom_404 import urlpatterns as cutom_404_urls
 from .auth import urlpatterns as auth_urls
-from .get_serial_number import urlpatterns as serial_number_urls
+from .select_options import urlpatterns as select_options_urls
 from .organisation import urlpatterns as organisations_urls
 
 
@@ -33,7 +33,7 @@ urlpatterns = [
     path('<organisation_id>/sales_returns/', include(sales_return_urls)),
     path('<organisation_id>/suppliers/', include(supplier_urls)),
     path('<organisation_id>/stocks/', include(stock_urls)),
-    path('<organisation_id>/serial_number/', include(serial_number_urls)),
+    path('<organisation_id>/select_options/', include(select_options_urls)),
     path('organisations/', include(organisations_urls)),
     path('', include(custom_404)),
 

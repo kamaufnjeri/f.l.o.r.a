@@ -59,12 +59,12 @@ class AccountSerializer(serializers.ModelSerializer):
 
        
     def validate(self, data):
-    
         group = data.get('group')
         category = data.get('category')
         sub_category = data.get('sub_category')
 
         categories = ACCOUNT_STRUCTURE[group]
+        
         if category not in categories:
             raise serializers.ValidationError(
                 f'Category "{category}" under group "{group}" is not valid. Valid categories are: {", ".join(categories.keys())}'

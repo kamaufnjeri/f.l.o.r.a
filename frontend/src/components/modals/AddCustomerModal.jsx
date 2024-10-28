@@ -5,6 +5,7 @@ import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 
 const validationSchema = Yup.object({
@@ -26,6 +27,7 @@ const validationSchema = Yup.object({
 
 const AddCustomerModal = ({ openModal, setOpenModal }) => {
   const { orgId} = useParams();
+  const { getSelectOptions } = useSelectOptions();
 
   const handleCancel = () => {
     setOpenModal(false);
@@ -57,6 +59,7 @@ const AddCustomerModal = ({ openModal, setOpenModal }) => {
       
             if (response.success) {
               toast.success('Recorded: Customer added successfully')
+              getSelectOptions();
             } else {
               toast.error(`Error: ${response.error}`)
             }
