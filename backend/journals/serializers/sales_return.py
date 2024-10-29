@@ -3,7 +3,7 @@ from journals.models import SalesReturnEntries, SalesReturn, Sales, Account, Flo
 import decimal
 from django.db import transaction
 from .sales import SalesDetailSerializer
-from .account import AccountDetailsSerializer
+from .account import AccountDetailsSerializer, JournalEntrySerializer
 from journals.utils import JournalEntriesManager, SalesReturnEntriesManager
 
 sales_return_entries_manager = SalesReturnEntriesManager()
@@ -17,6 +17,8 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     stock_name = serializers.SerializerMethodField(read_only=True)
     stock = serializers.CharField(read_only=True)
+    return_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    quantity = serializers.SerializerMethodField(read_only=True)
 
 
     class Meta:
@@ -26,15 +28,19 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     def get_stock_name(self, obj):
         return obj.stock.name
     
+    def get_quantity(self, obj):
+        return f"{obj.return_quantity} {obj.stock.unit_alias}"
+    
 class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = SalesReturnEntriesSerializer(many=True)
     sales_no = serializers.SerializerMethodField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    journal_entries = JournalEntrySerializer(many=True, read_only=True)
 
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no', 'organisation', 'user']
+        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no', 'organisation', 'user', 'journal_entries']
         model = SalesReturn
 
     def get_sales_no(self, obj):
@@ -64,30 +70,25 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             validated_data['sales'] = sales
             
             sales_return = SalesReturn.objects.create(**validated_data)
-            cogs, total_sales_price = sales_return_entries_manager.create_sales_return_entries(return_entries, sales_return, sales)
-            try:
-                cogs_account = Account.objects.get(name="Cost of Goods Sold", organisation=validated_data.get('organisation'))
-            except Account.DoesNotExist:
-                raise serializers.ValidationError('Cost of goods sold account not found')
-            
-            try:
-                inventory_account = Account.objects.get(name="Inventory", organisation=validated_data.get('organisation'))
-            except Account.DoesNotExist:
-                raise serializers.ValidationError('Inventory account not found')
-            
+
+            discount_percentage = None
             sales_serializer = SalesDetailSerializer(sales).data
+            discount = sales_serializer.get('discount_allowed') 
+            if discount != None:
+                discount_percentage = discount.get("discount_percentage")
+            total_return_price = sales_return_entries_manager.create_sales_return_entries(return_entries, sales_return, sales, discount_percentage)
+            
+            
+            
             if sales_serializer.get('invoice') != None:
-                invoice = sales
-                invoice.amount_due -= decimal.Decimal(total_sales_price)
+                invoice = sales.invoice
+                invoice.amount_due -= decimal.Decimal(total_return_price)
                 invoice.save()
-            sales_return_account_data = journal_entries_manager.create_journal_entry(sales_return_account, total_sales_price, "debit")
+            sales_return_account_data = journal_entries_manager.create_journal_entry(sales_return_account, total_return_price, "debit")
 
-            receipt_journal_entries = sales_return_entries_manager.sales_return_journal_entries(sales_serializer.get('journal_entries'), total_sales_price)
+            receipt_journal_entries = sales_return_entries_manager.sales_return_journal_entries(sales_serializer.get('journal_entries'), total_return_price)
 
-            inventory_account_data = journal_entries_manager.create_journal_entry(inventory_account, cogs, "debit")
-
-            cogs_account_data = journal_entries_manager.create_journal_entry(cogs_account, cogs, "credit")
-            journal_entries_data = [sales_return_account_data, cogs_account_data, inventory_account_data]
+            journal_entries_data = [sales_return_account_data]
             journal_entries_data = journal_entries_data + receipt_journal_entries
             journal_entries_manager.validate_double_entry(journal_entries_data)
 

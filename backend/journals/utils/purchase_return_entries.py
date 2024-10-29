@@ -7,9 +7,8 @@ journal_entry_manager = JournalEntriesManager()
 
 
 class PurchaseReturnEntriesManager:
-    def create_purchase_return_entries(self, return_entries, purchase_return, purchase):
-        cogs = 0.00
-        account = None
+    def create_purchase_return_entries(self, return_entries, purchase_return, purchase, discount_percentage):
+        total_return_price = 0.00
         for entry in return_entries:
             purchase_entry_id = entry.get('purchase_entry')
             try:
@@ -21,13 +20,22 @@ class PurchaseReturnEntriesManager:
                 entry['purchase_entry'] = purchase_entry
                 stock = purchase_entry.stock
                 purchase_entry.remaining_quantity -= return_quantity
+                return_price = purchase_entry.purchase_price
+                if discount_percentage != None:
+                    return_price = return_price * (1 - (decimal.Decimal(discount_percentage) / 100))
+
+                stock_total_return_price = return_price * return_quantity
+
                 purchase_price = purchase_entry.purchase_price
-                return_cogs = purchase_price * return_quantity
-                cogs += float(return_cogs)
+
+                total_return_price += float(stock_total_return_price)
+                print(return_price)
+
                 PurchaseReturnEntries.objects.create(
                     purchase_return=purchase_return,
-                    cogs=return_cogs,
+                    cogs=stock_total_return_price,
                     purchase_price=purchase_price,
+                    return_price=return_price,
                     stock=stock,
                     **entry
                 )
@@ -36,7 +44,7 @@ class PurchaseReturnEntriesManager:
             else:
                 raise serializers.ValidationError(f"Stock quantity {return_quantity} is greater than available stock {purchase_entry.remaining_quantity}")
 
-        return cogs
+        return total_return_price
 
     def validate_purchase_return_entries(self, return_entries):
         format = [

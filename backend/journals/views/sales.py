@@ -52,7 +52,6 @@ class SalesAPIView(generics.ListCreateAPIView):
     serializer_class = SalesSerializer
     pagination_class = SalesPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
-
     filter_backends = [SalesFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
 

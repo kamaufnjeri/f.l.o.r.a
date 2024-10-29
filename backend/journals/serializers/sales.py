@@ -67,17 +67,16 @@ class SalesSerializer(serializers.ModelSerializer):
             journal_entries = validated_data.pop('journal_entries')
             discount_allowed = validated_data.pop('discount_allowed')
             sales = Sales.objects.create(**validated_data)
-            cogs, total_sales_price = sales_entries_manager.create_sales_entries(sales_entries, sales, StockDetailsSerializer)
+            total_sales_price = sales_entries_manager.create_sales_entries(sales_entries, sales, StockDetailsSerializer)
             if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
                 discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
                 try:
                     discount_account = Account.objects.get(name='Discount Allowed', organisation_id=validated_data.get('organisation'))
-
                 except Account.DoesNotExist:
-                    raise serializers.ValidationError("Discount account not found")
+                    raise serializers.ValidationError("Discount Allowed account not found")
                 discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'debit')
                 journal_entries.append(discount_account_data)
-            journal_entries = journal_entries_manager.sales_journal_entries_dict(journal_entries, cogs, total_sales_price, validated_data.get('organisation'))
+            journal_entries = journal_entries_manager.sales_journal_entries_dict(journal_entries, total_sales_price, validated_data.get('organisation'))
             journal_entries_manager.validate_double_entry(journal_entries)
             journal_entries_manager.create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
 

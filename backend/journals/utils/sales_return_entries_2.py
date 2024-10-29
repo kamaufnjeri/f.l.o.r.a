@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from journals.models import SalesEntries, SalesReturnEntries, Account
+from journals.models import SalesEntries, SalesReturnEntries, SalesPurchasePrice, Account
 from .journal_entries import JournalEntriesManager
 import decimal
 
@@ -16,8 +16,10 @@ class SalesReturnEntriesManager:
         if not return_entries:
             raise serializers.ValidationError(f"Sales return entries required in the format: {str(format)}")
         
-    def create_sales_return_entries(self, return_entries, sales_return, sales, discount_percentage):
-        total_return_price = 0.00
+    def create_sales_return_entries(self, return_entries, sales_return, sales):
+        cogs = 0.00
+        total_sales_price = 0.00
+        account = None
         for entry in return_entries:
             sales_entry_id= entry.get('sales_entry')
             try:
@@ -29,35 +31,65 @@ class SalesReturnEntriesManager:
             stock = sales_entry.stock
 
             return_quantity = entry.get('return_quantity')
-            return_price = sales_entry.sales_price
-            if discount_percentage != None:
-                return_price = return_price * (1 - (decimal.Decimal(discount_percentage) / 100))
+            sales_price = sales_entry.sales_price
             
             if return_quantity > sales_entry.remaining_quantity:
                 raise serializers.ValidationError(
                     f"Sales return quantity {return_quantity} is more than the amount sold {sales_entry.sold_quantity}"
                 )
             
-            total_return_price += float(return_price * return_quantity)
-           
-            sales_price = sales_entry.sales_price
+            total_sales_price += float(sales_price * return_quantity)
+            sales_purchase_price_entries = SalesPurchasePrice.objects.filter(
+                sales_entry=sales_entry
+            ).order_by('-purchase_entry__purchase__date')
+            price = sales_entry.sales_price
 
+            sales_returns_cogs, _ = self.reverse_fifo(sales_purchase_price_entries, return_quantity)
             SalesReturnEntries.objects.create(
                 sales_return=sales_return,
                 stock=stock,
-                sales_price=sales_price,
-                return_price=return_price,
+                sales_price=price,
+                cogs=sales_returns_cogs,
                 **entry
             )
             sales_entry.remaining_quantity -= return_quantity
             sales_entry.save()
+            cogs += float(sales_returns_cogs)
 
-        return total_return_price
+        return cogs, total_sales_price
 
-   
-    def sales_return_journal_entries(self, sales_journal_entries, total_return_price):
+    def reverse_fifo(self, sales_purchase_price_entries, return_quantity):
+        cogs = 0.00
+        sales_price = 0.00
+        remaining_quantity = return_quantity
+
+        for entry in sales_purchase_price_entries:
+            if remaining_quantity <= 0:
+                break
+
+            quantity_to_use = min(entry.remaining_quantity, remaining_quantity)
+            sales_purchase_cogs = entry.purchase_price * quantity_to_use
+            sales_price += float(entry.sales_price * quantity_to_use)
+            cogs += float(sales_purchase_cogs)
+            remaining_quantity -= quantity_to_use
+
+            # Update purchase entry
+            purchase_entry = entry.purchase_entry
+            purchase_entry.remaining_quantity += quantity_to_use
+            purchase_entry.save()
+
+            # Update sales purchase price entry
+            entry.remaining_quantity -= quantity_to_use
+            entry.save()
+
+        if remaining_quantity > 0:
+            raise serializers.ValidationError("Insufficient inventory to process the return quantity.")
+
+        return cogs, sales_price
+    
+    def sales_return_journal_entries(self, sales_journal_entries, total_sales_price):
         journal_entries = []
-        remaining_amount = total_return_price
+        remaining_amount = total_sales_price
 
         for entry in sales_journal_entries:
             if remaining_amount <= 0:

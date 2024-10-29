@@ -71,19 +71,19 @@ class PurchaseSerializer(serializers.ModelSerializer):
             purchase = Purchase.objects.create(**validated_data)
             cogs = purchase_entries_manager.create_purchase_entries(purchase_entries_data, purchase)
             try:
-                inventory_account = Account.objects.get(name="Inventory", organisation=validated_data.get('organisation'))
+                purchase_account = Account.objects.get(name="Purchase", organisation=validated_data.get('organisation'))
             except Account.DoesNotExist:
-                raise serializers.ValidationError('Inventory Account not found')
+                raise serializers.ValidationError('Purchase Account not found')
             if discount_received and (discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00):
                 discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
                 try:
                     discount_account = Account.objects.get(name='Discount Received', organisation_id=validated_data.get('organisation'))
                 except Account.DoesNotExist:
-                    raise serializers.ValidationError('Discount received account not found')
+                    raise serializers.ValidationError('Discount Received account not found')
                 discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'credit')
                 journal_entries.append(discount_account_data)
-            inventory_account_data = journal_entries_manager.create_journal_entry(inventory_account, cogs, "debit")
-            journal_entries.append(inventory_account_data)
+            purchase_account_data = journal_entries_manager.create_journal_entry(purchase_account, cogs, "debit")
+            journal_entries.append(purchase_account_data)
             journal_entries_manager.validate_double_entry(journal_entries)
             journal_entries_manager.create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
 

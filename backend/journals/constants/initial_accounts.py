@@ -18,19 +18,13 @@ INITIAL_ACCOUNTS = [
         "sub_category": "owner_investment"
     },
     {
-        "name": "Inventory",
-        "group": "asset",
-        "category": "current_asset",
-        "sub_category": "inventory"
-    },
-    {
-        "name": "Cost of Goods Sold",
+        "name": "Purchase",
         "group": "expense",
         "category": "operating_expense",
         "sub_category": "cost_of_goods_sold"
     },
     {
-        "name": "Sales Revenue",
+        "name": "Sales",
         "group": "income",
         "category": "operating_income",
         "sub_category": "product_sales"

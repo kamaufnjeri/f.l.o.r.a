@@ -180,9 +180,9 @@ const PurchaseReturns = () => {
               <ul className='flex flex-col w-full'>
                 {purchase_return.return_entries.map((entry, index) => (
                   <li key={index} className='w-full flex flex-row'>
-                    <span className='border-gray-800 border-r-2 p-1 w-[63.8%]'>{entry.stock_name}</span>
+                    <span className='border-gray-800 border-r-2 border-b-2  p-1 w-[63.8%]'>{entry.stock_name}</span>
                     <span className='p-1 w-[36.2%] border-gray-800 border-b-2'>
-                      {entry.return_quantity}
+                      {entry.quantity}
                     </span>
                   </li>
                 ))}

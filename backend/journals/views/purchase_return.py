@@ -66,7 +66,7 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
                     serialized_data = self.get_serializer(paginated_queryset, many=True)
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
+                    "message": "Purchase Returns retrieved successfully with pagination",
                     "data": serialized_data.data
                 }) 
 

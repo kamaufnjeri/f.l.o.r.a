@@ -11,4 +11,5 @@ class SalesReturnEntries(BaseModel):
     stock = models.ForeignKey(Stock, related_name='sales_return_entries', on_delete=models.CASCADE)
     return_quantity = models.IntegerField()
     sales_price = models.DecimalField(max_digits=15, decimal_places=2)
-    cogs = models.DecimalField(max_digits=15, decimal_places=2)
+    return_price = models.DecimalField(max_digits=15, decimal_places=2)
+

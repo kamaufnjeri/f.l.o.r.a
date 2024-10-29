@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.db import transaction
-from journals.models import Stock, PurchaseEntries, FloraUser, Organisation
+from journals.models import Stock, PurchaseEntries, SalesEntries, FloraUser, Organisation
 from datetime import date
 from .purchase_entries import PurchaseEntriesSerializer
 
@@ -28,8 +28,14 @@ class StockSerializer(serializers.ModelSerializer):
             stock=obj,
             remaining_quantity__gt=0
         ).order_by('purchase__date')
-        total_quantity = sum(entry.remaining_quantity for entry in purchase_entries)
+        sales_entries = SalesEntries.objects.filter(
+            stock=obj,
+            remaining_quantity__gt=0
+        )
+        total_quantity = sum(entry.remaining_quantity for entry in purchase_entries) - sum(entry.remaining_quantity for entry in sales_entries)
+
         return total_quantity
+    
     def validate(self, data):
         opening_stock_quantity = data.get('opening_stock_quantity')
         opening_stock_rate = data.get('opening_stock_rate')

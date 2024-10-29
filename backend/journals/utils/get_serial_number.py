@@ -18,10 +18,10 @@ class SerialNumbers:
         bills =  Bill.objects.filter(organisation=organisation)
 
         journal_serial_no = self.get_serial_number(journals, 'JOURN', len(journals))
-        sales_serial_no = self.get_serial_number(journals, 'SALE', len(journals))
-        purchase_serial_no = self.get_serial_number(journals, 'PURCH', len(journals))
-        invoice_serial_no = self.get_serial_number(journals, 'INV', len(journals))
-        bill_serial_no = self.get_serial_number(journals, 'BILL', len(journals))
+        sales_serial_no = self.get_serial_number(sales, 'SALE', len(sales))
+        purchase_serial_no = self.get_serial_number(purchases, 'PURCH', len(purchases))
+        invoice_serial_no = self.get_serial_number(invoices, 'INV', len(invoices))
+        bill_serial_no = self.get_serial_number(bills, 'BILL', len(bills))
 
         serial_numbers = {
             "journal": journal_serial_no,
@@ -30,6 +30,7 @@ class SerialNumbers:
             "bill": bill_serial_no,
             "invoice": invoice_serial_no
         }
+        print('')
 
         return serial_numbers
 

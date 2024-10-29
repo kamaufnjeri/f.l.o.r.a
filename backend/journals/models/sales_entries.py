@@ -10,7 +10,6 @@ class SalesEntries(BaseModel):
     remaining_quantity = models.IntegerField()
     sold_quantity = models.IntegerField()
     sales_price = models.DecimalField(max_digits=15, decimal_places=2)
-    cogs = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 
     def __str__(self):
         return self.stock.name

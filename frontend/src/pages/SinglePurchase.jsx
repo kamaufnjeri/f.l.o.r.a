@@ -42,7 +42,6 @@ const SinglePurchase = () => {
   }
   const hideJournalEntries = () => {
     setShowJournalEntries(!showJournalEntries)
-    console.log(purchase.journal_entries)
     if (buttonName === 'Show Journal Entries') {
       SetButtonName('Hide Journal Entries')
     } else {
@@ -190,7 +189,7 @@ const SinglePurchase = () => {
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
             <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.stock_name}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.purchase_price}</span>
-            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.purchased_quantity}</span>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.quantity}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.cogs}</span>
           </div>))}
         <div className='w-full flex flex-row text-xl font-bold border-b-2 border-gray-800 border-l-2'>

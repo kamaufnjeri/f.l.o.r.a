@@ -26,11 +26,12 @@ class JournalEntriesManager:
                         group in ("liability", "capital", "income") and entry_data.get('debit_credit') == "debit"
                     )
             ) and current_balance < entry_data.get('amount'):
-                raise serializers.ValidationError(
-                    f'Account {account_serializer.get("name")} has insufficient balance'
-                )
-        
+                if account_serializer.get('sub_category') not in ("contra-revenue", "contra-expense"):
+                    raise serializers.ValidationError(
+                        f'Account {account_serializer.get("name")} has insufficient balance'
+                    )
                 
+        
             entry_data['account'] = account
 
             if type == "journal":
@@ -48,6 +49,8 @@ class JournalEntriesManager:
                 JournalEntries.objects.create(sales_return=table, **entry_data)
             elif type == "payments":
                 JournalEntries.objects.create(payments=table, **entry_data)
+            else:
+                raise serializers.ValidationError("Invalid choice: Valid choices are 'journal', 'purchase', 'sales', 'purchase_return', 'payments' or 'sales_return'")
 
     def validate_journal_entries(self, journal_entries):
         format = [
@@ -65,29 +68,14 @@ class JournalEntriesManager:
         if debit_total != credit_total:
             raise serializers.ValidationError("For every journal entered the debit and credit amounts need to be equal")
         
-    def sales_journal_entries_dict(self, journal_entries, cogs, total_sales_price, organisation_id):
+    def sales_journal_entries_dict(self, journal_entries, total_sales_price, organisation_id):
         try:
-            inventory_account = Account.objects.get(name="Inventory", organisation_id=organisation_id)
-           
+            sales_account = Account.objects.get(name="Sales", organisation_id=organisation_id)
         except Account.DoesNotExist:
-            raise serializers.ValidationError("Inventory account not found")
-        try:
-            
-            cogs_account = Account.objects.get(name="Cost of Goods Sold", organisation_id=organisation_id)
-            
-        except Account.DoesNotExist:
-            raise serializers.ValidationError("Cost of goods sold account not found")
-        try:
-           
-            sales_revenue_account = Account.objects.get(name="Sales Revenue", organisation_id=organisation_id)
-        except Account.DoesNotExist:
-            raise serializers.ValidationError("Sales Revenue accounts not found")
-        inventory_account_data = self.create_journal_entry(inventory_account, decimal.Decimal(cogs), "credit")
-        sales_revenue_data = self.create_journal_entry(sales_revenue_account, decimal.Decimal(total_sales_price),"credit")
-        cogs_data = self.create_journal_entry(cogs_account, decimal.Decimal(cogs), "debit")
-        journal_entries.append(inventory_account_data)
-        journal_entries.append(sales_revenue_data)
-        journal_entries.append(cogs_data)
+            raise serializers.ValidationError("Sales accounts not found")
+        print(total_sales_price)
+        sales_account_data = self.create_journal_entry(sales_account, decimal.Decimal(total_sales_price), "credit")
+        journal_entries.append(sales_account_data)
 
         return journal_entries
     

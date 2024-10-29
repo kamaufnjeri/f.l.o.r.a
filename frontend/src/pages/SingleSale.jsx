@@ -193,7 +193,7 @@ const SingleSale = () => {
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
             <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.stock_name}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.sales_price}</span>
-            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.sold_quantity}</span>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.quantity}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.sales_price * entry.sold_quantity}</span>
           </div>))}
         <div className='w-full flex flex-row text-xl font-bold border-b-2 border-gray-800 border-l-2'>

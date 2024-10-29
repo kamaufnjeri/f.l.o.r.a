@@ -159,8 +159,4 @@ class PurchasePurchaseReturnsApiView(generics.ListAPIView):
                 'error': 'Bad Request',
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'error': 'Internal server error',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        

@@ -229,7 +229,7 @@ const Purchases = () => {
           </Link>
         ))}
       </div>
-      <PrevNext pageNo={pageNo} data={purchasesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+      { purchasesData && <PrevNext pageNo={pageNo} data={purchasesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>}
 
     </div>
   )
