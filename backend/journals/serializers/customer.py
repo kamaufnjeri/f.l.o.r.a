@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from journals.models import Customer, Account, Invoice, FloraUser, Organisation
+from journals.models import Customer, Account, Invoice, FloraUser, Organisation, SubCategory
 from django.db import transaction
 
 
@@ -22,7 +22,11 @@ class CustomerSerializer(serializers.ModelSerializer):
     def create(self, data):
         try:
             with transaction.atomic():
-                account = Account.objects.create(name=f"{data.get('name')} a/c", organisation=data.get('organisation'), user=data.get('user'), group="asset", category="current_asset", sub_category='accounts_receivable')
+                try:
+                    belongs_to = SubCategory.objects.get(category__organisation=data.get('organisation'), value="accounts_receivable")
+                except SubCategory.DoesNotExist:
+                    raise serializers.ValidationError(f"Accounts Receivable account not found")
+                account = Account.objects.create(name=f"{data.get('name')} a/c", organisation=data.get('organisation'), user=data.get('user'), belongs_to=belongs_to)
                 customer = Customer.objects.create(account=account, **data)
                 return customer
             

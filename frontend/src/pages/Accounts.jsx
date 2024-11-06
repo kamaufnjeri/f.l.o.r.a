@@ -20,6 +20,7 @@ const Accounts = () => {
   const getData = async () => {
     const newAccountsData = await getItems(`${orgId}/accounts`, `?paginate=true`);
     setAccountsData(newAccountsData);
+    console.log(newAccountsData)
     setPageNo(1);
 }
   useEffect(() => {
@@ -75,7 +76,7 @@ const Accounts = () => {
       <FormHeader header='Accounts List' />
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
-        <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Enter name, group, (sub) category' value={searchItem.name} onChange={e => handleChange(e)} />
+        <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Enter name of account' value={searchItem.name} onChange={e => handleChange(e)} />
         <button className='w-[30%] border-2 bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         {accounts.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
           {accounts.map((account) => (<span className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{account.name}</span>))}

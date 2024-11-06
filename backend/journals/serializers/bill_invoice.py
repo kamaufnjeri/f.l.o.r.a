@@ -99,6 +99,9 @@ class InvoiceDetailSerializer(InvoiceSerializer):
         elif hasattr(obj, 'sales') and obj.sales is not None:
             type = 'sales'
             url = f'sales/{obj.sales.id}'
+        elif hasattr(obj, 'service_income') and obj.service_income is not None:
+            type = 'service'
+            url = f'services/service_income/{obj.service_income.id}'
            
         due_diff = obj.due_date - today
         due_days = due_diff.days

@@ -4,6 +4,8 @@ import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
 import PaymentModal from '../components/modals/PaymentModal';
 import PurchaseReturnModal from '../components/modals/PurchaseReturnModal';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
+import downloadPDF from '../lib/download/download';
+import Loading from '../components/shared/Loading'
 
 const SinglePurchase = () => {
   const { id } = useParams();
@@ -13,6 +15,7 @@ const SinglePurchase = () => {
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [openPurchaseReturnModal, setOpenPurchaseReturnModal] = useState();
   const { orgId } = useParams();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -24,9 +27,11 @@ const SinglePurchase = () => {
   }
 
   const getData = async () => {
+    setIsLoading(true)
     const purchase = await getItems(`${orgId}/purchases/${id}`);
     setPurchase(purchase)
-    console.log(purchase)
+    setIsLoading(false)
+
   }
 
   useEffect(() => {
@@ -48,8 +53,22 @@ const SinglePurchase = () => {
       SetButtonName('Show Journal Entries')
     }
   }
+
+  const downloadPurchasePdf = () => {
+    setIsLoading(true)
+    let title = 'Purchase'
+
+
+    if (purchase?.items_data?.type === 'bill') {
+      title = title.concat(' bill')
+    }
+    downloadPDF(purchase, orgId, title)
+    setIsLoading(false)
+  }
+
   return (
-    <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
+    <div className='flex flex-col gap-4 relative overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
+      {isLoading && <Loading/>}
       <PurchaseReturnModal title={`Purchase return of purchase# ${purchase?.serial_number}`}
         setOpenModal={setOpenPurchaseReturnModal}
         onPurchaseReturn={onPaymentSuccess}
@@ -78,13 +97,12 @@ const SinglePurchase = () => {
             <button onClick={() => showModal(setOpenPurchaseReturnModal)} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
               Return purchase
             </button>
-            {purchase?.has_returns &&
-               (
-                <Link to={`purchase_returns`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
-                  Purchase returns
-                </Link>
-              )}
-            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+            {parseFloat(purchase?.returns_total) > 0 && (
+              <Link to="purchase_returns" className="hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm">
+                Purchase returns
+              </Link>
+            )}
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPurchasePdf}>
               Download
             </button>
             <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
@@ -132,30 +150,13 @@ const SinglePurchase = () => {
               </span>
             </div>
             <div className='flex flex-row gap-5 w-[50%] px-2'>
-              <h5 className='w-[40%] text-lg font-bold'>
-                Amount Due:
-              </h5>
-              <span className='w-[60%] text-black font-semibold'>
-                {purchase?.bill?.amount_due}
-              </span>
-            </div>
-          </div>
-            <div className='w-full flex flex-row'>
-              <div className='flex flex-row gap-5 w-[50%] px-2'>
-                <h5 className='w-[40%] text-lg font-bold'>
-                  Amount Paid:
-                </h5>
-                <span className='w-[60%] text-black font-semibold'>
-                  {purchase?.bill?.amount_paid}
-                </span>
-              </div>
-              <div className='flex flex-row gap-5 w-[50%] px-2'>
                 <button onClick={() => showModal(setOpenPaymentModal)} className={`w-[40%] bg-green-700 text-white rounded-md h-90px border-2 border-green-700 hover:bg-white hover:text-green-700`}>
                   Pay
                 </button>
 
               </div>
-            </div>
+          </div>
+           
           </>
 
 
@@ -192,34 +193,71 @@ const SinglePurchase = () => {
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.quantity}</span>
             <span className='w-[20%] border-gray-800 border-r-2 p-1'>{entry.cogs}</span>
           </div>))}
-        <div className='w-full flex flex-row text-xl font-bold border-b-2 border-gray-800 border-l-2'>
-          <span className='w-[40%] border-gray-800 border-r-2 p-1 text-sm'><i>({purchase.description})</i></span>
-          <span className='w-[20%] border-gray-800 border-r-2 underline p-1'>Total</span>
-          <span className='w-[20%] border-gray-800 border-r-2 underline p-1'>{purchase?.items_data?.total_quantity}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 underline p-1'>{purchase?.items_data?.total_amount}</span>
+        <div className='w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'><i>({purchase.description})</i></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800 underline border-r-2 p-1'>Sub Total</span>
+          <span className='w-[20%] border-gray-800 underline border-r-2 p-1'>{purchase?.items_data?.total_quantity}</span>
+          <span className='w-[20%] border-gray-800 underline border-r-2 p-1'>{purchase?.items_data?.total_amount}</span>
+          
         </div>
-        {purchase?.discount_received &&
-          <div className='flex flex-col gap-2'>
-            <div className='w-full flex flex-row p-1'>
-              <div className='flex flex-row gap-5 w-[50%]'>
-                <h5 className='w-[50%] text-lg font-bold'>
-                  Discount percentage
-                </h5>
-                <span className='w-[50%] text-black font-bold'>
-                  {purchase?.discount_received?.discount_percentage}%
-                </span>
-              </div>
-              <div className='flex flex-row gap-5 w-[50%]'>
-                <h5 className='w-[50%] text-lg font-bold'>
-                  Discount Amount
-                </h5>
-                <span className='w-[50%] text-black font-bold'>
-                  {purchase?.discount_received?.discount_amount}
-                </span>
-              </div>
-            </div>
+        {purchase?.discount_received && <div className='w-full flex flex-row text-xl font-bold border-gray-800 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800  p-1'>Discount {purchase?.discount_received?.discount_percentage}%</span>
+          <span className='w-[20%] '></span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{purchase?.discount_received?.discount_amount}</span>
+          
+        </div>}
+        {purchase?.items_data?.type === 'bill' && <><div className='w-full flex flex-row text-xl font-bold border-gray-800 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800  p-1'>Amount Paid</span>
+          <span className='w-[20%] '></span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{purchase?.bill?.amount_paid}</span>
+          
+        </div>
+        <div className='w-full flex flex-row text-xl font-bold border-gray-800 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800 text-2xl underline p-1'>Amount Due</span>
+          <span className='w-[20%] '></span>
+          <span className='w-[20%] border-gray-800 text-2xl underline border-r-2 p-1'>{purchase?.bill?.amount_due}</span>
+        </div>
+        </>}
+        {parseFloat(purchase?.returns_total) > 0 && <><div className='w-full flex flex-row text-xl font-bold border-gray-800 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800  p-1'>Returns</span>
+          <span className='w-[20%] '></span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{purchase?.returns_total}</span>
+          
+        </div></>}
+        {parseFloat(purchase?.items_data?.cash) > 0 && <><div className='w-full flex flex-row text-xl font-bold border-gray-800 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] border-gray-800  p-1'>Amount Paid</span>
+          <span className='w-[20%] '></span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{purchase?.items_data.cash}</span>
+          
+        </div></>}
+        <div className='w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-t-2 border-l-2'>
+          <span className='w-[40%] border-gray-800 p-1 text-sm'></span>
+          <div>
+          </div>
+          <span className='w-[20%] underline p-1'>Total</span>
+          <span className='w-[20%]'></span>
+          <span className='w-[20%] border-gray-800 underline border-r-2 p-1'>{purchase?.items_data?.total_amount}</span>
+          
+        </div>
 
-          </div>}
+        
         <div className='w-full flex flex-col p-1'>
           {showJournalEntries &&
             <div className='p-1 flex flex-col w-full'>
@@ -244,8 +282,9 @@ const SinglePurchase = () => {
                     </div>)}
                   <div className={`flex flex-row flex-1`}>
                     <i className='text-sm w-[60%] p-1'>({purchase.description})</i>
-                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.purchase_entries_total?.debit_total}</span>
-                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.purchase_entries_total?.debit_total}</span>
+
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
+                    <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{purchase?.journal_entries_total?.debit_total}</span>
                   </div>
                 </span>
               </div>

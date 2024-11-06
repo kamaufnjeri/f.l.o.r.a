@@ -8,6 +8,7 @@ class Sales(BaseModel):
     serial_number = models.CharField(max_length=200)
     organisation = models.ForeignKey('Organisation', related_name='sales', on_delete=models.CASCADE)
     user = models.ForeignKey('FloraUser', related_name='sales', on_delete=models.CASCADE)
+    returns_total = models.DecimalField(max_digits=15, default=0.00, decimal_places=2)
 
 
     def __str__(self):

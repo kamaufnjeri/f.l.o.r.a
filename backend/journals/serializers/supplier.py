@@ -1,4 +1,4 @@
-from journals.models import Supplier, Account, Bill, FloraUser, Organisation
+from journals.models import Supplier, Account, Bill, FloraUser, Organisation, SubCategory
 from rest_framework import serializers
 from django.db import transaction
 
@@ -21,7 +21,11 @@ class SupplierSerializer(serializers.ModelSerializer):
     def create(self, data):
         try:
             with transaction.atomic():
-                account = Account.objects.create(name=f"{data.get('name')} a/c", group="liability",  organisation=data.get('organisation'), user=data.get('user'), category="current_liability", sub_category='accounts_payable')
+                try:
+                    belongs_to = SubCategory.objects.get(category__organisation=data.get('organisation'), value="accounts_payable")
+                except SubCategory.DoesNotExist:
+                    raise serializers.ValidationError(f"Accounts Payable account not found")
+                account = Account.objects.create(name=f"{data.get('name')} a/c", organisation=data.get('organisation'), user=data.get('user'), belongs_to=belongs_to)
                 supplier = Supplier.objects.create(account=account, **data)
 
                 return supplier

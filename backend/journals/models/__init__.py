@@ -1,4 +1,4 @@
-from .account import Account
+from .account import Account, FixedGroup, SubCategory, Category
 from .bill import Bill
 from .customer import Customer
 from .discount import Discount
@@ -20,3 +20,4 @@ from .supplier import Supplier
 from .organisation import Organisation
 from .organisation_membership import OrganisationMembership
 from .user import FloraUser
+from .service import Service, ServiceIncome, ServiceIncomeEntry

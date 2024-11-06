@@ -1,29 +1,114 @@
 from rest_framework import serializers
-from journals.models import Account, JournalEntries, Organisation, FloraUser
-from django.db import models
+from journals.models import Account, JournalEntries, Organisation, FloraUser, SubCategory, Category, FixedGroup
+from django.db import models, transaction
 from .journal_entries import JournalEntrySerializer
 from journals.constants import ACCOUNT_STRUCTURE, GROUPS, CATEGORIES, SUB_CATEGORIES
 
 
-def validate_choice(value, choices):
-    if value not in dict(choices):
-        valid_choices = ', '.join(dict(choices).keys())
-        raise serializers.ValidationError(f'Invalid choice "{value}". Valid choices are: {valid_choices}')
-    
-class AccountSerializer(serializers.ModelSerializer):
+class FixedGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FixedGroup
+        fields = ["name", "value", "id"]
+
+
+class CategorySerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    group = serializers.CharField(validators=[lambda value: validate_choice(value, GROUPS)])
-    category = serializers.CharField(validators=[lambda value: validate_choice(value, CATEGORIES)])
-    sub_category = serializers.CharField(validators=[lambda value: validate_choice(value, SUB_CATEGORIES)]) 
-    account_balance = serializers.SerializerMethodField(read_only=True)
+    group = serializers.PrimaryKeyRelatedField(queryset=FixedGroup.objects.all()) 
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    value = serializers.CharField(read_only=True)
 
 
     class Meta:
-        fields = ['id', 'name', 'group', 'category', 'sub_category', 'opening_balance', 'opening_balance_type', 'account_balance', 'organisation', 'user']
-        required_fields = ['name', 'category', 'sub_category']
+        model = Category
+        fields = ["id", "name", "value", "organisation", "user", "group"]
+
+    def validate(self, data):
+        organisation_id = data.get('organisation')
+
+        try:
+            category = Category.objects.get(name=data.get('name'), organisation_id=organisation_id)
+            raise serializers.ValidationError(f"Category {data.get('name')} already exists")
+        except Category.DoesNotExist:
+            return data
+        
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                value = validated_data.get('name').lower().replace(" ", "_")
+                category = Category.objects.create(**validated_data, value=value)
+
+        
+                return category
+        except Exception as e:
+            raise Exception(str(e))
+
+    
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    organisation = serializers.CharField(write_only=True)
+    value = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = SubCategory
+        fields = ["id", "name", "value", "category", "organisation"]
+
+    def validate(self, data):
+        organisation_id = data.get('organisation')
+
+        try:
+            sub_category = SubCategory.objects.get(name=data.get('name'), category__organisation_id=organisation_id)
+            raise serializers.ValidationError(f"Sub category {data.get('name')} already exists")
+        except SubCategory.DoesNotExist:
+            return data
+        
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                validated_data.pop('organisation')
+                value = validated_data.get('name').lower().replace(" ", "_")
+                sub_category = SubCategory.objects.create(**validated_data, value=value)
+                return sub_category
+        except Exception as e:
+            raise Exception(str(e))
+
+
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    belongs_to = serializers.PrimaryKeyRelatedField(queryset=SubCategory.objects.all())
+    account_balance = serializers.SerializerMethodField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    sub_category = serializers.SerializerMethodField(read_only=True)
+    group = serializers.SerializerMethodField(read_only=True)
+    category = serializers.SerializerMethodField(read_only=True)
+
+
+    class Meta:
+        fields = ['id', 'name', 'belongs_to', 'opening_balance', 'opening_balance_type', 'account_balance', 'organisation', 'user', 'sub_category', "category", "group"]
+        required_fields = ['name', "belongs_to"]
         model = Account
+
+    def get_sub_category(self, obj):
+        if obj.belongs_to:
+            return obj.belongs_to.name
+        return None
+    
+    def get_group(self, obj):
+        if obj.belongs_to and obj.belongs_to.category and obj.belongs_to.category.group:
+            return obj.belongs_to.category.group.name
+        return None
+
+    def get_category(self, obj):
+        if obj.belongs_to and obj.belongs_to.category:
+            
+            return obj.belongs_to.category.name
+        return None
+
 
     def get_account_balance(self, obj):
         to_date = self.context.get('to_date', None)
@@ -51,52 +136,56 @@ class AccountSerializer(serializers.ModelSerializer):
             else:
                 credit_total += obj.opening_balance
         
-        if obj.group in ('asset', 'expense'):
-            return debit_total - credit_total
-        else:
-            return credit_total - debit_total 
+        if obj.belongs_to and obj.belongs_to.category and obj.belongs_to.category.group:
+
+            if obj.belongs_to.category.group.value in ('asset', 'expense'):
+
+                return debit_total - credit_total
+            else:
+                return credit_total - debit_total 
 
 
        
     def validate(self, data):
-        group = data.get('group')
-        category = data.get('category')
-        sub_category = data.get('sub_category')
+        organisation_id = data.get('organisation')
 
-        categories = ACCOUNT_STRUCTURE[group]
-        
-        if category not in categories:
-            raise serializers.ValidationError(
-                f'Category "{category}" under group "{group}" is not valid. Valid categories are: {", ".join(categories.keys())}'
-            )
-        
-        sub_categories = categories[category]
-        
-        if sub_category not in sub_categories:
-            raise serializers.ValidationError(
-                f'Subcategory "{sub_category}" under category "{category}" is not valid. Valid subcategories are: {", ".join(sub_categories)}'
-            )
-        
         opening_balance_type = ['debit', 'credit']
-        
-        if data.get('opening_balance_type') and data.get('opening_balance_type') not in opening_balance_type:
-            raise serializers.ValidationError(f'Opening balance type can only be: {" and ".join(opening_balance_type)}')
-        
-        if (data.get('opening_balance') and not data.get('opening_balance_type')) or (
-            data.get('opening_balance_type') and not data.get('opening_balance')
-        ):
-            raise serializers.ValidationError(
-                f'Both opening balance and opening balance type must be given'
-            )
-        return data
+        try:
+            account = Account.objects.get(name=data.get('name'), organisation_id=organisation_id)
+            raise serializers.ValidationError(f"Account {data.get('name')} already exists")
+        except Account.DoesNotExist:
+            if data.get('opening_balance_type') and data.get('opening_balance_type') not in opening_balance_type:
+                raise serializers.ValidationError(f'Opening balance type can only be: {" and ".join(opening_balance_type)}')
+            
+            if (data.get('opening_balance') and not data.get('opening_balance_type')) or (
+                data.get('opening_balance_type') and not data.get('opening_balance')
+            ):
+                raise serializers.ValidationError(
+                    f'Both opening balance and opening balance type must be given'
+                )
+            
+
+            return data
+
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                account = Account.objects.create(**validated_data)
+                print(validated_data)
+                return account
+        except Exception as e:
+            raise Exception(str(e))
 
 
 class AccountDetailsSerializer(AccountSerializer):
     journal_entries = JournalEntrySerializer(many=True)
+   
 
     class Meta:
         model = Account
         fields = AccountSerializer.Meta.fields + ['journal_entries']
 
+   
 
+   
     

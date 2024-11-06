@@ -57,7 +57,7 @@ const Bills = () => {
 
     const handleStatusChange = async (e) => {
 
-        setSearchItem({ ...searchItem, date: e.target.value });
+        setSearchItem({ ...searchItem, status: e.target.value });
         const queyParamsUrl = invoiceBillQueryParam({
             search: '',
             dueDays: searchItem.dueDays,
@@ -137,7 +137,7 @@ const Bills = () => {
                         </div>
                         {bills.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {bills.map((bill) => (<Link to={`/${bill?.bill_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{bill.serial_number}</Link>))}
+                            {bills.map((bill) => (<Link to={`/dashboard/${orgId}/${bill?.bill_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{bill.serial_number}</Link>))}
                         </div>}
                     </div>
 
@@ -160,7 +160,7 @@ const Bills = () => {
 
                 </div>
                 {billsData?.results?.data && billsData.results.data.map((bill, index) => (
-                    <Link to={`/${bill?.bill_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={bill.id}>
+                    <Link to={`/dashboard/${orgId}/${bill?.bill_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={bill.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{bill.serial_number}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.due_date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(bill.bill_data.type)}</span>

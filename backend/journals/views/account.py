@@ -1,16 +1,74 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
-from journals.serializers import AccountSerializer, AccountDetailsSerializer
+from journals.serializers import AccountSerializer, AccountDetailsSerializer, CategorySerializer, SubCategorySerializer
 from journals.utils import flatten_errors
 from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES
 from django.db.models import Q
-from journals.models import Account, Organisation, OrganisationMembership
+from journals.models import Account, Organisation, OrganisationMembership, SubCategory, Category
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from journals.permissions import IsUserInOrganisation
 
+
+
+class CategoryAPIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            print(f"Validation Error: {e.detail}") 
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Internal Error: {e}") 
+            return Response({
+                'error': 'Internal server error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class SubCategoryAPIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    queryset = SubCategory.objects.all()
+    serializer_class = SubCategorySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer = self.serializer_class(data=serializer_data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            print(f"Validation Error: {e.detail}") 
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Internal Error: {e}") 
+            return Response({
+                'error': 'Internal server error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class AccountPagination(PageNumberPagination):
     page_size = 10
@@ -24,8 +82,8 @@ class AccountAPIView(generics.ListCreateAPIView):
     serializer_class = AccountSerializer
     pagination_class = AccountPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'group', 'category', 'sub_category']
-    filterset_fields = ['name', 'group', 'category', 'sub_category']
+    search_fields = ['name']
+    filterset_fields = ['name']
 
 
 
@@ -58,12 +116,7 @@ class AccountAPIView(generics.ListCreateAPIView):
                 'error': 'Bad Request',
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'error': 'Internal server error',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+       
 
     def post(self, request, *args, **kwargs):
 

@@ -20,7 +20,6 @@ const SingleInvoicePayments = () => {
 
         getData();
     }, [])
-   
     const nextPage = async () => {
         try {
             const response = await axios.get(paymentsData.next);

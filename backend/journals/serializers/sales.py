@@ -28,7 +28,7 @@ class SalesSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'date', 'description', 'sales_entries',
             'journal_entries', 'discount_allowed', 'invoice',
-            "serial_number", 'items_data', 'user', 'organisation'
+            "serial_number", 'items_data', 'user', 'organisation',
         ]
 
     
@@ -41,17 +41,26 @@ class SalesSerializer(serializers.ModelSerializer):
         total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity']) )for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         amount_due = 0
+        cash_paid = 0
 
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             amount_due = obj.invoice.amount_due
             type = 'invoice'
+        else:
+            type = type
+            cash_paid = total_amount
+            if hasattr(obj, 'discount_allowed') and obj.discount_allowed is not None:
+                cash_paid -= float(obj.discount_allowed.discount_amount)
+        
+            cash_paid -= float(obj.returns_total)
 
         return {
             "list": items_list,
             "type": type,
             "total_amount": total_amount,
             "total_quantity": total_quantity,
-            "amount_due": amount_due
+            "amount_due": amount_due,
+            "cash": cash_paid
         }
 
     def validate(self, data):
@@ -87,11 +96,12 @@ class SalesDetailSerializer(SalesSerializer):
     journal_entries = JournalEntrySerializer(many=True, read_only=True)
     discount_allowed = DiscountSerializer(allow_null=True, required=False, read_only=True)
     invoice = InvoiceSerializer(read_only=True)
-    has_returns = serializers.SerializerMethodField(read_only=True)
+    returns_total = serializers.DecimalField(max_digits=15, read_only=True, decimal_places=2)
+
 
     class Meta:
         model = Sales
-        fields = SalesSerializer.Meta.fields + ["has_returns"]
+        fields = SalesSerializer.Meta.fields + ["returns_total"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -110,9 +120,3 @@ class SalesDetailSerializer(SalesSerializer):
 
         return data
     
-    def get_has_returns(self, obj):
-        if hasattr(obj, "sales_return") and obj.sales_return.exists():
-            
-            return True
-
-        return False

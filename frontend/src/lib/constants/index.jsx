@@ -1,5 +1,6 @@
 import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, FaChartPie, FaUsers, FaTruck } from 'react-icons/fa';
 import { IoMdSettings, IoMdHelp  } from "react-icons/io";
+import { MdWork } from 'react-icons/md';
 
 
 export const dueDaysOptions = [
@@ -40,6 +41,10 @@ export const statusOptions = [
         name: "Unpaid",
         value: "unpaid"
     },
+    {
+        name: "Partially Paid",
+        value: "partially_paid"
+    }
     
 ]
 export const sortOptions = [
@@ -83,208 +88,6 @@ export const dateOptions = [
         value: '*',
     }
 ]
-export const accountGroups = [
-{
-    name: 'Asset',
-    value: 'asset'
-},
-{
-    name: 'Liability',
-    value: 'liability'
-},
-{
-    name: 'Capital', 
-    value: 'capital'
-},
-{
-    name: 'Expense',
-    value: 'expense'
-},
-{
-    name: 'Income',
-    value: 'income'
-}
-];
-export const accountCategories = {
-    asset: [
-      {
-        name: 'Current Asset',
-        value: 'current_asset'
-      },
-      {
-        name: 'Non-current Asset',
-        value: 'non_current_asset'
-      }
-    ],
-    liability: [
-      {
-        name: 'Current Liability',
-        value: 'current_liability'
-      },
-      {
-        name: 'Long-Term Liability',
-        value: 'long_term_liability'
-      }
-    ],
-    capital: [
-      {
-        name: 'Other Equity',
-        value: 'other_equity'
-      },
-      {
-        name: 'Owner Equity',
-        value: 'owner_equity'
-      }
-    ],
-    expense: [
-      {value: "operating_expense", name: "Operating Expense"},
-      {value: "other_expense", name: "Other Expense"},
-     
-    ],
-    income: [
-      {value: "operating_income", name: "Operating Income"},
-      {value: "other_income", name: "Other Income"}
-    ]
-  }
-
-export const accountSubCategories = {
-    current_asset: [
-        {
-            name: 'Cash and Cash Equivalents',
-            value: 'cash_and_cash_equivalents'
-        },
-        {
-            name: 'Accounts Receivable',
-            value: 'accounts_receivable'
-        },
-        {
-            name: 'Inventory',
-            value: 'inventory'
-        }
-    ],
-    non_current_asset: [
-        {
-            name: 'Property, Plant, and Equipment',
-            value: 'property_plant_equipment'
-        },
-        {
-            name: 'Intangible Assets',
-            value: 'intangible_assets'
-        }
-    ],
-    current_liability: [
-        {
-            name: 'Accounts Payable',
-            value: 'accounts_payable'
-        },
-        {
-            name: 'Short-term Loans',
-            value: 'short_term_loans'
-        }
-    ],
-    long_term_liability: [
-        {
-            name: 'Long-term Loans',
-            value: 'long_term_loans'
-        },
-        {
-            name: 'Mortgage Payable',
-            value: 'mortgage_payable'
-        }
-    ],
-    owner_equity: [
-        {
-            name: 'Retained Earnings',
-            value: 'retained_earnings'
-        },
-        {
-            name: 'Owner Investment',
-            value: 'owner_investment'
-        },
-        {
-            name: 'Additional Contributions',
-            value: 'additional_contributions'
-        },
-        {
-            name: 'Drawings',
-            value: 'drawings'
-        }
-    ],
-    other_equity: [
-        {
-            name: 'Equity from Loans',
-            value: 'equity_from_loans'
-        },
-        {
-            name: 'Subordinated Debt',
-            value: 'subordinated_debt'
-        }
-    ],
-    operating_expense: [
-        {
-            name: 'Rent and Utilities',
-            value: 'rent_and_utilities'
-        },
-        {
-            name: 'Salaries and Wages',
-            value: 'salaries_and_wages'
-        },
-        {
-            name: 'Marketing and Advertising',
-            value: 'marketing_and_advertising'
-        },
-        {
-            name: 'Cost of Goods Sold',
-            value: 'cost_of_goods_sold'
-        },
-        {
-            name: "Selling Expense",
-            value: "selling_expense"
-        }, 
-        {
-            value: "contra-expense",
-            name: "Contra-Expense"
-        }
-    ],
-    other_expense: [
-        {
-            name: "Interest Expense",
-            value: "interent_expense"
-        }
-     
-       
-    ],
-    operating_income: [
-        {
-            name: 'Product Sales',
-            value: 'product_sales'
-        },
-        {
-            name: 'Service Revenue',
-            value: 'service_revenue'
-        },
-        {
-            value: "contra-revenue",
-            name:  "Contra-Revenue"
-        }
-        ],
-    other_income: [
-        {
-            name: 'Interest Income',
-            value: 'interest_income'
-        },
-        {
-            name: 'Investment Income',
-            value: 'investment_income'
-        },
-        {
-            name: 'Income from Discounts',
-            value: "income_from_discounts"
-        },
-        
-    ]
-};
-
 
 export const sidebarIcons = [
   {
@@ -364,6 +167,32 @@ export const sidebarIcons = [
         {
             name: 'View journals',
             url: 'journals'
+        }
+    ]
+  },
+  {
+    name: "Services",
+    icon: <MdWork className='text-xl'/>,
+    lists: [
+        {
+            name: 'Add Service',
+            url: null
+        },
+        {
+            name: 'Record Services Income',
+            url: 'services/record_service_income'
+        },
+        {
+            name: 'Services Income Invoice',
+            url: 'services/invoice'
+        },
+        {
+            name: 'View Services Provided',
+            url: 'services'
+        },
+        {
+            name: 'View Services Income',
+            url: 'services/service_income'
         }
     ]
   },

@@ -16,6 +16,10 @@ export const SelectOptionsProvider = ({ children }) => {
     const [incomeAccounts, setIncomeAccounts] = useState([]);
     const [expenseAccounts, setExpenseAccounts] = useState([]);
     const [serialNumbers, setSerialNumbers] = useState([]);
+    const [fixedGroups, setFixedGoups] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+    const [services, setServices] = useState([]);
     const { currentOrg } = useAuth();
     const [ isLoading, setIsLoading ] = useState(true);
 
@@ -32,6 +36,10 @@ export const SelectOptionsProvider = ({ children }) => {
                 setExpenseAccounts(response.expense_accounts || []);
                 setIncomeAccounts(response.income_accounts || []);
                 setSerialNumbers(response.serial_numbers || []);
+                setSubCategories(response.sub_categories || []);
+                setCategories(response.categories || []);
+                setFixedGoups(response.fixed_groups || []);
+                setServices(response.services || []);
             } catch (error) {
                 console.error("Failed to fetch select options:", error);
             }
@@ -51,6 +59,10 @@ export const SelectOptionsProvider = ({ children }) => {
         setExpenseAccounts([]);
         setIncomeAccounts([]);
         setSerialNumbers([]);
+        setFixedGoups([]);
+        setCategories([]);
+        setSubCategories([]);
+        setServices([]);
     }
 
     useEffect(() => {
@@ -66,6 +78,10 @@ export const SelectOptionsProvider = ({ children }) => {
         suppliers,
         customers,
         serialNumbers,
+        subCategories,
+        fixedGroups,
+        categories,
+        services,
         getSelectOptions,
         clearData,
     };

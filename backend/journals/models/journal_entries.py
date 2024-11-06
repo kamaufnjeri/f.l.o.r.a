@@ -7,7 +7,7 @@ from .purchase_return import PurchaseReturn
 from .sales_return import SalesReturn
 from .payment import Payment
 from .journal import Journal
-
+from .service import ServiceIncome
 
 class JournalEntries(BaseModel):
     DEBIT_CREDIT = (
@@ -23,6 +23,7 @@ class JournalEntries(BaseModel):
     purchase_return = models.ForeignKey(PurchaseReturn, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
     sales_return = models.ForeignKey(SalesReturn, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
     payments = models.ForeignKey(Payment, related_name="journal_entries", on_delete=models.CASCADE, blank=True, null=True)
+    service_income = models.ForeignKey(ServiceIncome, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.debit_credit

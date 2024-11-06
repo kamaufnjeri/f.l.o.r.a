@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
 import PaymentModal from '../components/modals/PaymentModal';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
+import downloadPDF from '../lib/download/download';
+import Loading from '../components/shared/Loading';
 
 const SingleJournal = () => {
   const { id } = useParams();
@@ -12,7 +14,7 @@ const SingleJournal = () => {
   const [invoiceId, setInvoiceId] = useState(null);
   const [billId, setBillId] = useState(null);
   const [type, setType] = useState('');
-
+  const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const { orgId } = useParams();
   const openDropDown = () => {
@@ -29,6 +31,7 @@ const SingleJournal = () => {
   };
 
   const getData = async () => {
+    setIsLoading(true)
     const journal = await getItems(`${orgId}/journals/${id}`);
     setJournal(journal)
     if (journal.type == 'invoice') {
@@ -41,7 +44,7 @@ const SingleJournal = () => {
       setBillId(journal?.bill?.id)
       setType('credit')
     }
-
+    setIsLoading(false)
 
   }
   useEffect(() => {
@@ -53,8 +56,26 @@ const SingleJournal = () => {
     getData()
   }
 
+  const downloadJournalPDF = () => {
+    setIsLoading(true)
+    let title = 'Journal'
+
+    if (journal.type == 'invoice') {
+      title = title.concat(' invoice')
+
+    } else if (journal.type == 'bill') {
+      title = title.concat(' bill')
+
+    }
+    
+    
+    downloadPDF(journal, orgId, title)
+    setIsLoading(false)
+  }
   return (
-    <div className='flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
+    <div className='flex flex-col gap-4 overflow-y-auto relative overflow-x-hidden custom-scrollbar h-full'>
+              {isLoading && <Loading/>}
+
       <PaymentModal
         openModal={openPaymentModal}
         setOpenModal={setOpenPaymentModal}
@@ -78,7 +99,7 @@ const SingleJournal = () => {
             ) && <Link to={journal.type === 'bill' ? `/dashboard/${orgId}/bills/${journal?.bill?.id}/payments` : `/dashboard/${orgId}/invoices/${journal?.invoice?.id}/payments`} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
                 Paments
               </Link>}
-            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadJournalPDF}>
               Download
             </button>
             <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
@@ -186,7 +207,7 @@ const SingleJournal = () => {
             <div className={`flex flex-row flex-1`}>
               <i className='text-sm w-[60%] p-1'>({journal.description})</i>
               <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
-              <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
+              <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.credit_total}</span>
             </div>
           </span>
         </div>

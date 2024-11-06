@@ -2,8 +2,8 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
 from django.db import models
-from journals.models import Journal, Sales, Invoice, Payment
-from journals.serializers import JournalInvoiceSerializer, SalesInvoiceSerializer, InvoiceDetailSerializer, PaymentSerializer
+from journals.models import Journal, Sales, Invoice, Payment, ServiceIncome
+from journals.serializers import JournalInvoiceSerializer, SalesInvoiceSerializer, InvoiceDetailSerializer, PaymentSerializer, ServiceIncomeInvoiceSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -138,6 +138,34 @@ class SalesInvoiceAPIView(generics.CreateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class ServiceIncomeInvoiceAPIView(generics.CreateAPIView):
+    queryset = ServiceIncome.objects.filter(invoice__isnull=False)
+    serializer_class = ServiceIncomeInvoiceSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer_data = request.data.copy()
+
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
+            serializer = self.serializer_class(data=serializer_data)
+
+            serializer.is_valid(raise_exception=True)
+
+
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            print(f"Validation Error: {e.detail}") 
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+      
 
 class InvoicePaymentsApiView(generics.ListAPIView):
     serializer_class = PaymentSerializer

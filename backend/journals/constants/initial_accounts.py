@@ -1,58 +1,95 @@
-INITIAL_ACCOUNTS = [
+INITIAL_DATA = [
     {
-        "name": "Cash",
-        "group": "asset",
-        "category": "current_asset",
-        "sub_category": "cash_and_cash_equivalents"
+        "category": {"name": "Current Asset", "group": "Asset"},
+        "sub_categories": [
+            {
+                "name": "Cash and Cash Equivalents",
+                "accounts": [
+                    {"name": "Cash"},
+                    {"name": "Bank"}
+                ]
+            },
+            {
+                "name": "Accounts Receivable",
+                "accounts": []
+            }
+        ]
     },
     {
-        "name": "Bank",
-        "group": "asset",
-        "category": "current_asset",
-        "sub_category": "cash_and_cash_equivalents"
+        "category": {"name": "Current Liability", "group": "Liability"},
+        "sub_categories": [
+            {
+                "name": "Accounts Payable",
+                "accounts": []
+            }
+        ]
     },
     {
-        "name": "Capital",
-        "group": "capital",
-        "category": "owner_equity",
-        "sub_category": "owner_investment"
+        "category": {"name": "Owner Equity", "group": "Capital"},
+        "sub_categories": [
+            {
+                "name": "Owner Investment",
+                "accounts": [
+                    {"name": "Capital"}
+                ]
+            }
+        ]
     },
     {
-        "name": "Purchase",
-        "group": "expense",
-        "category": "operating_expense",
-        "sub_category": "cost_of_goods_sold"
+        "category": {"name": "Operating Expense", "group": "Expense"},
+        "sub_categories": [
+            {
+                "name": "Cost of Goods Sold",
+                "accounts": [
+                    {"name": "Purchase"}
+                ]
+            },
+            {
+                "name": "Selling Expense",
+                "accounts": [
+                    {"name": "Discount Allowed"}
+                ]
+            },
+            {
+                "name": "Contra-Expense",
+                "accounts": [
+                    {"name": "Purchase Return"}
+                ]
+            }
+        ]
     },
     {
-        "name": "Sales",
-        "group": "income",
-        "category": "operating_income",
-        "sub_category": "product_sales"
+        "category": {"name": "Operating Income", "group": "Income"},
+        "sub_categories": [
+            {
+                "name": "Product Sales",
+                "accounts": [
+                    {"name": "Sales"}
+                ]
+            },
+            {
+                "name": "Contra-Revenue",
+                "accounts": [
+                    {"name": "Sales Return"}
+                ]
+            },
+            {
+                "name": "Service Income",
+               " accounts": [
+                   {"name": "Service Income"}
+               ]
+            }
+        ]
     },
     {
-        "name": "Discount Received",
-        "group": "income",
-        "category": "other_income",
-        "sub_category": "income_from_discounts"
-    }, 
-    {
-        "name": "Discount Allowed",
-        "group": "expense",
-        "category": "operating_expense",
-        "sub_category": "selling_expense"
-    },
-    {
-        
-        "name": "Sales Return",
-        "group": "income",
-        "category": "operating_income",
-        "sub_category": "contra-revenue"
-    }, 
-    {
-       "name": "Purchase Return",
-        "group": "expense",
-        "category": "operating_expense",
-        "sub_category": "contra-expense"
+        "category": {"name": "Other Income", "group": "Income"},
+        "sub_categories": [
+            {
+                "name": "Income from Discounts",
+                "accounts": [
+                    {"name": "Discount Received"}
+                ]
+            }
+        ]
     }
-
 ]

@@ -5,20 +5,13 @@ import InputNumberField from '../forms/InputNumberField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import { getItems } from '../../lib/helpers';
 import { useParams } from 'react-router-dom';
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 const PaymentAccountsFields = ({values, setFieldValue, type}) => {
-  const [accounts, setAccounts] = useState([]);
-  const { orgId } = useParams();
+  const { paymentAccounts } = useSelectOptions();
 
-  const getData = async () => {
-    const subCategory = 'cash_and_cash_equivalents'
-    const newAccounts = await getItems(`${orgId}/accounts`, `?sub_category=${subCategory}`);
-    
-    setAccounts(newAccounts)
-}
-useEffect(() => {
-    getData()
-}, []);
+
+
   return (
     <div className='flex flex-col gap-2 w-full'>
         <Row className='flex flex-row w-full text-xl font-bold'><Col className='w-full'><span>
@@ -42,7 +35,7 @@ useEffect(() => {
                         value={entry.account}
                         name={`account`}
                         setFieldValue={setFieldValue}
-                        options={accounts.map(account => ({ value: account.id, label: account.name }))}
+                        options={paymentAccounts.map(account => ({ value: account.id, label: account.name }))}
                         keyName={`journal_entries[${index}].account`}
                     />
 

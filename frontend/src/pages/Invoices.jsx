@@ -16,6 +16,7 @@ const Invoices = () => {
     dueDays: 'all',
     status: 'all', 
   })
+
   const { orgId } = useParams();
   const [invoices, setInvoices] = useState([]);
   const [invoicesData, setInvoicesData] = useState([]);
@@ -28,6 +29,7 @@ const Invoices = () => {
 
     getData();
   }, [])
+
   const handleChange = async (e) => {
     setSearchItem({ ...searchItem, name: e.target.value });
     const queyParamsUrl = invoiceBillQueryParam({
@@ -58,7 +60,7 @@ const Invoices = () => {
  
   const handleStatusChange = async (e) => {
    
-      setSearchItem({ ...searchItem, date: e.target.value });
+      setSearchItem({ ...searchItem, status: e.target.value });
       const queyParamsUrl = invoiceBillQueryParam({
         search: '',
         dueDays: searchItem.dueDays,
@@ -138,7 +140,7 @@ const Invoices = () => {
                         </div>
             {invoices.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {invoices.map((invoice) => (<Link to={`/${invoice?.invoice_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{invoice.serial_number}</Link>))}
+              {invoices.map((invoice) => (<Link to={`/dashboard/${orgId}/${invoice?.invoice_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{invoice.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -150,7 +152,7 @@ const Invoices = () => {
 
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Bill #</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Invoice #</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Due Date</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>Type</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1'>Customer</span>
@@ -161,7 +163,7 @@ const Invoices = () => {
 
         </div>
         {invoicesData?.results?.data && invoicesData.results.data.map((invoice, index) => (
-          <Link to={`/${invoice?.invoice_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={invoice.id}>
+          <Link to={`/dashboard/${orgId}/${invoice?.invoice_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={invoice.id}>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{invoice.serial_number}</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.due_date}</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(invoice.invoice_data.type)}</span>

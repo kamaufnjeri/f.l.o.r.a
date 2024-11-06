@@ -3,12 +3,14 @@ from django.db import models
 from .customer import Customer
 from .journal import Journal
 from .sales import Sales
+from .service import ServiceIncome
 from journals.constants import STATUS
 
 
 class Invoice(BaseModel):
     journal = models.OneToOneField(Journal, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE)
     sales = models.OneToOneField(Sales, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE, default=None)
+    service_income = models.OneToOneField(ServiceIncome, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=200, choices=STATUS)
     due_date = models.DateField()
     total_amount = models.DecimalField(max_digits=15, decimal_places=2)

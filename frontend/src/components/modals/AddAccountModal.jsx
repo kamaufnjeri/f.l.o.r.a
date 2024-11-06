@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Input, Select, InputNumber } from 'antd';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import { postRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
-import { accountCategories, accountSubCategories, accountGroups } from '../../lib/constants';
 import { useParams } from 'react-router-dom';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
+import { FaPlus } from 'react-icons/fa';
+import AddSubCategoryModal from './AddSubCategoryModal';
+import SelectField from '../forms/SelectField';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Account name is required'),
-  group: Yup.string().required('Account group is required'),
-  category: Yup.string().required('Category is required'),
-  sub_category: Yup.string().required('Sub category is required'),
+  belongs_to: Yup.string().required('Account belongs to is equired'),
   opening_balance: Yup.string().nullable(),
   opening_balance_type: Yup.string().nullable(),
 });
@@ -21,38 +21,16 @@ const { Option } = Select;
 
 const AddAccountModal = ({ openModal, setOpenModal }) => {
   const [entryTypes] = useState(['debit', 'credit']);
-  const [categories, setCategories] = useState(accountCategories['asset']);
-  const [subCategories, setSubCategories] = useState(accountSubCategories['current_asset'])
+  const { subCategories } = useSelectOptions();
   const { orgId } = useParams();
   const { getSelectOptions } = useSelectOptions();
+  const [openSubCategoryModal, setOpenSubCategoryModal] = useState(false);
 
   const handleCancel = () => {
     setOpenModal(false);
   };
 
-  const handleSelectionChange = (type, value, setFieldValue) => {
-    if (type === 'group') {
-      const newCategories = accountCategories[value] || [];
-      setCategories(newCategories);
-      if (newCategories.length > 0) {
-        const firstCategoryValue = newCategories[0].value;
-        setFieldValue('category', firstCategoryValue);
-        const newSubCategories = accountSubCategories[firstCategoryValue] || [];
-        setSubCategories(newSubCategories);
-        if (newSubCategories.length > 0) {
-          setFieldValue('sub_category', newSubCategories[0].value);
-        }
-      }
-    } else {
-      const newSubCategories = accountSubCategories[value] || [];
-      setSubCategories(newSubCategories);
-      if (newSubCategories.length > 0) {
-        setFieldValue('sub_category', newSubCategories[0].value);
-      }
-    }
-  };
-  
-
+ 
   return (
     <>
       <Modal
@@ -70,9 +48,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
           validationSchema={validationSchema}
           initialValues={{
             name: '',
-            group: 'asset',
-            category: 'current_asset',
-            sub_category: 'cash_and_cash_equivalents',
+            belongs_to: subCategories[0]?.id,
             opening_balance: 0.00,
             opening_balance_type: '',
           }}
@@ -80,9 +56,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
             const response = await postRequest(values, `${orgId}/accounts`, resetForm);
             
             if (response.success) {
-              setCategories(accountCategories['asset'])
-              setSubCategories(accountSubCategories['current_asset'])
-              toast.success('Recorded: Account added successfully');
+              toast.success('Account added successfully')
               getSelectOptions();
             } else {
               toast.error(`Error: ${response.error}`);
@@ -103,82 +77,34 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                     name="name"
                     value={values.name}
                     onChange={handleChange}
-                    placeholder="Enter account name"
+                    placeholder="Enter subCategory name"
                   />
                 </Form.Item>
               </div>
 
+             
+             
               <div className="flex flex-row gap-5 items-start">
-                <label htmlFor="group" className="w-[20%]">Group</label>
-                <Form.Item
-                  validateStatus={values.group ? '' : 'error'}
-                  className="w-[60%]"
-                  help={values.group ? '' : 'Group is required'}
-                >
-                  <Select
-                    name="group"
-                    value={values.group}
-                    defaultValue={values.group}
-                    onChange={(value) => {
-                      setFieldValue('group', value);
-                      handleSelectionChange('group', value, setFieldValue);
-                    }}
-                    placeholder="Enter Group"
-                  >
-                    {accountGroups && accountGroups.map((group) => (
-                      <Option key={group.value} value={group.value}>
-                        {group.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </div>
-              <div className="flex flex-row gap-5 items-start">
-                <label htmlFor="category" className="w-[20%]">Category</label>
-                <Form.Item
-                  validateStatus={values.category ? '' : 'error'}
-                  className="w-[60%]"
-                  help={values.category ? '' : 'Category is required'}
-                >
-                  <Select
-                    name="category"
-                    value={values.category}
-                    defaultValue={values.category}
-                    onChange={(value) => {
-                      setFieldValue('category', value);
-                      handleSelectionChange('category', value, setFieldValue);
-                    }}
-                    placeholder="Enter category"
-                  >
-                    {categories && categories.map((category) => (
-                      <Option key={category.value} value={category.value}>
-                        {category.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </div>
-              <div className="flex flex-row gap-5 items-start">
-                <label htmlFor="sub_category" className="w-[20%]">Sub category</label>
-                <Form.Item
-                  validateStatus={values.sub_category ? '' : 'error'}
-                  className="w-[60%]"
-                  help={values.sub_category ? '' : 'Sub category is required'}
-                >
-                  <Select
-                    name="sub_category"
-                    value={values.sub_category}
-                    defaultValue={values.sub_category}
-                    onChange={(value) => setFieldValue('sub_category', value)}
-                    placeholder="Enter sub category"
-                  >
-                    {subCategories && subCategories.map((subCategory) => (
-                      <Option key={subCategory.value} value={subCategory.value}>
-                        {subCategory.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+              <AddSubCategoryModal openModal={openSubCategoryModal} setOpenModal={setOpenSubCategoryModal} />
+
+                <label htmlFor="belongs_to" className="w-[20%]">Belongs to</label>
+                <span className='w-[60%]'>
+                <SelectField
+                            value={values.belongs_to}
+                            className='w-[60%]'
+                            name={`belongs_to`}
+                            setFieldValue={setFieldValue}
+                            options={subCategories.map(subCategory => ({ value: subCategory.id, label: subCategory.name }))}
+                            keyName={`belongs_to`}
+                        />
+                </span>
+            
+                <span
+                onClick={() => setOpenSubCategoryModal(true)}
+                 className='flex p-1 items-center justify-between h-8 w-8 rounded-full border-4 cursor-pointer border-gray-800 text-xl hover:text-purple-800 hover:border-purple-800'>
+                <FaPlus/>
+                </span>
+                
               </div>
 
               <div className="flex flex-row gap-5 items-start">
@@ -205,7 +131,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                 <label htmlFor="opening_balance_type" className="w-[20%]">Opening balance type</label>
                 <Form.Item
                   className="w-[60%]"
-                  help={values.opening_balance_type ? '' : 'Debit/Credit is required if account balance is given'}
+                  help={values.opening_balance_type ? '' : 'Debit/Credit is required if opening balance is given'}
                 >
                   <Select
                     placeholder="Select opening balance type"

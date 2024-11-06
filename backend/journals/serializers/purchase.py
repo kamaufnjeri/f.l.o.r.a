@@ -39,17 +39,26 @@ class PurchaseSerializer(serializers.ModelSerializer):
         total_amount = sum((float(entry['purchase_price']) * float(entry['purchased_quantity']) )for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
         total_quantity = sum(int(entry['purchased_quantity'] ) for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
         amount_due = 0
+        cash_paid = 0
 
         if hasattr(obj, 'bill') and obj.bill is not None:
             amount_due = obj.bill.amount_due
             type = 'bill'
+        else:
+            type = type
+            cash_paid = total_amount
+            if hasattr(obj, 'discount_received') and obj.discount_received is not None:
+                cash_paid -= float(obj.discount_received.discount_amount)
+        
+            cash_paid -= float(obj.returns_total)
 
         return {
             "list": items_list,
             "type": type,
             "total_amount": total_amount,
             "total_quantity": total_quantity,
-            "amount_due": amount_due
+            "amount_due": amount_due,
+            'cash': cash_paid
         }
     
     
@@ -94,14 +103,15 @@ class PurchaseDetailSerializer(PurchaseSerializer):
     journal_entries = JournalEntrySerializer(many=True, read_only=True)
     discount_received = DiscountSerializer(allow_null=True, required=False, read_only=True)
     bill = BillSerializer(read_only=True)
-    has_returns = serializers.SerializerMethodField(read_only=True)
+    returns_total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
     class Meta:
         model = Purchase
-        fields = PurchaseSerializer.Meta.fields + ["has_returns"]
+        fields = PurchaseSerializer.Meta.fields + ["returns_total"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        print(data.get('returns_totals'))
         
         journal_entries = data.get('journal_entries', [])
         
@@ -117,10 +127,3 @@ class PurchaseDetailSerializer(PurchaseSerializer):
         
 
         return data
-
-    def get_has_returns(self, obj):
-        if hasattr(obj, "purchase_return") and obj.purchase_return.exists():
-            
-            return True
-
-        return False

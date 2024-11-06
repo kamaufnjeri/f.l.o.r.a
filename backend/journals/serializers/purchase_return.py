@@ -67,7 +67,6 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
         model = PurchaseReturn
 
     def get_purchase_no(self, obj):
-        print(obj.journal_entries)
         return obj.purchase.serial_number
     
 
@@ -107,6 +106,7 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
                 bill.save()
             
             purchase_return_account_data = journal_entries_manager.create_journal_entry(purchase_return_account, cogs, "credit")
+            purchase.returns_total += decimal.Decimal(cogs)
 
             payment_journal_entries = purchase_return_entries_manager.purchase_return_journal_entries(purchase_serializer.get('journal_entries'), cogs)
 
@@ -116,5 +116,6 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
             journal_entries_manager.validate_double_entry(journal_entries_data)
 
             journal_entries_manager.create_journal_entries(journal_entries_data, "purchase_return", purchase_return, AccountDetailsSerializer)
+            purchase.save()
 
         return purchase_return

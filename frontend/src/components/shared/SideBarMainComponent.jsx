@@ -8,6 +8,7 @@ import { sidebarIcons } from '../../lib/constants';
 import AddCustomerModal from '../modals/AddCustomerModal';
 import AddSupplierModal from '../modals/AddSupplierModal';
 import { useAuth } from '../../context/AuthContext';
+import AddServiceModal from '../modals/AddServiceModal';
 
 const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) => {
   const dropButtonssRef = useRef([]);
@@ -16,6 +17,7 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
   const dropIconRef = useRef([]);
   const [openAddACustomerModal, setOpenAddCustomerModal] = useState(false);
   const [openAddSupplierModal, setOpenAddSupplierModal] = useState(false);
+  const [openAddServiceModal, setOpenAddServiceModal] = useState(false);
 
   const dropItemsRef = useRef([]);
 
@@ -39,6 +41,9 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
         if (iconItem.name === 'Add supplier') {
           updatedItem.onClick = () => setOpenAddSupplierModal(true);
         }
+        if (iconItem.name === 'Add Service') {
+          updatedItem.onClick = () => setOpenAddServiceModal(true);
+        }
       }
       return updatedItem;
     })
@@ -59,6 +64,7 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
     <div className='flex-1 flex flex-col ml-2 overflow-y-auto custom-scrollbar'>
       <AddCustomerModal openModal={openAddACustomerModal} setOpenModal={setOpenAddCustomerModal} />
       <AddSupplierModal openModal={openAddSupplierModal} setOpenModal={setOpenAddSupplierModal} />
+      <AddServiceModal openModal={openAddServiceModal} setOpenModal={setOpenAddServiceModal}/>
       <div className='flex flex-row'> 
         <div className='w-1/6 flex flex-col gap-4'>
           {user && user?.user_organisations.map((organisation, index) => (
@@ -103,7 +109,7 @@ const SideBarMainComponent = ({ setOpenAddItemModal, setOpenAddAccountModal }) =
               </div>
               <div
                 ref={(el) => dropItemsRef.current[index] = el}
-                className='flex-col ml-5 mb-1 mr-1 rounded-sm font-medium drop-items-hidden'
+                className='flex-col ml-2 mb-1 mr-1 rounded-sm font-medium drop-items-hidden'
               >
                 {iconItem.lists.map((listItem, index) => (
                   <ShowListItem key={listItem.name} listItem={listItem} pathname={pathname} orgId={currentOrg.id}/>
@@ -129,7 +135,7 @@ const ShowListItem = ({ listItem, pathname, orgId }) => {
     return (
       <Link
         to={listItem.url}
-        className={`block hover:bg-neutral-200 rounded-sm pb-1 pl-2 ${pathname ===  listItemUrl? 'text-purple-700' : 'text-neutral-700'}`}
+        className={`block hover:bg-neutral-200 rounded-sm text-sm pb-1 pl-2 ${pathname ===  listItemUrl? 'text-purple-700' : 'text-neutral-700'}`}
       >
         <div className='flex flex-row gap-2 items-center'>
           <GoDotFill />
@@ -141,7 +147,7 @@ const ShowListItem = ({ listItem, pathname, orgId }) => {
     return (
       <button
         onClick={handleClick}
-        className={`block hover:bg-neutral-200 rounded-sm pb-1 pl-2 text-neutral-700 w-full`}
+        className={`block hover:bg-neutral-200 text-sm rounded-sm pb-1 pl-2 text-neutral-700 w-full`}
       >
         <div className='flex flex-row gap-2 items-center'>
           <GoDotFill />

@@ -87,10 +87,11 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             sales_return_account_data = journal_entries_manager.create_journal_entry(sales_return_account, total_return_price, "debit")
 
             receipt_journal_entries = sales_return_entries_manager.sales_return_journal_entries(sales_serializer.get('journal_entries'), total_return_price)
-
+            sales.returns_total -= decimal.Decimal(total_return_price)
             journal_entries_data = [sales_return_account_data]
             journal_entries_data = journal_entries_data + receipt_journal_entries
             journal_entries_manager.validate_double_entry(journal_entries_data)
+            sales.save()
 
             journal_entries_manager.create_journal_entries(journal_entries_data, "sales_return", sales_return, AccountDetailsSerializer)
 
