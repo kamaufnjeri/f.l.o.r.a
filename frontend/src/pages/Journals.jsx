@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../lib/api';
 import { Link, useParams } from 'react-router-dom';
@@ -11,11 +11,13 @@ import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
 import PrevNext from '../components/shared/PrevNext';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 const Journals = () => {
     const [openDateModal, setOpenDateModal] = useState(false);
     const [searchItem, setSearchItem] = useState({
         name: '',
+        search: '',
         journals: '',
         date: '',
         sortBy: '',
@@ -32,6 +34,16 @@ const Journals = () => {
     const [journals, setJournals] = useState([]);
     const [journalsData, setJournalsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
+    const [isVisible, setIsVisible] = useState(false);
+
+    const openDropDown = () => {
+        setIsVisible(true);
+    }
+
+    const closeDropDown = () => {
+        setIsVisible(false);
+    }
+
     const getData = async () => {
         const newJournalsData = await getItems(`${orgId}/journals`, `?paginate=true`);
         setJournalsData(newJournalsData);
@@ -41,7 +53,7 @@ const Journals = () => {
         getData();
     }, [])
     const handleChange = async (e) => {
-        setSearchItem({ ...searchItem, name: e.target.value });
+        setSearchItem(prev => ({ ...prev, name: e.target.value, search: '' }));
         const queyParamsUrl = getQueryParams({
             type: 'journals',
             paginate: false,
@@ -54,7 +66,7 @@ const Journals = () => {
         setJournals(newJournals)
     }
     const handleJournalsChange = async (e) => {
-        setSearchItem({ ...searchItem, journals: e.target.value });
+        setSearchItem(prev => ({ ...prev, journals: e.target.value, search: '' }));
         const queyParamsUrl = getQueryParams({
             type: 'journals',
             paginate: true,
@@ -76,7 +88,7 @@ const Journals = () => {
             showModal(setOpenDateModal);
         } else {
 
-            setSearchItem({ ...searchItem, date: e.target.value });
+            setSearchItem(prev => ({ ...prev, date: e.target.value, search: '' }));
             const queyParamsUrl = getQueryParams({
                 type: 'journals',
                 paginate: true,
@@ -93,7 +105,7 @@ const Journals = () => {
 
     }
     const handleSortsChange = async (e) => {
-        setSearchItem({ ...searchItem, sortBy: e.target.value });
+        setSearchItem(prev => ({ ...prev, sortBy: e.target.value, search: '' }));
         const queyParamsUrl = getQueryParams({
             type: 'journals',
             paginate: true,
@@ -120,7 +132,7 @@ const Journals = () => {
         const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournalsData(newJournalsData);
         setPageNo(1);
-        setSearchItem({ ...searchItem, name: '' })
+        setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }))
     }
 
     const nextPage = async () => {
@@ -153,8 +165,20 @@ const Journals = () => {
             toast.error(`Error': Error fetching Journals`);
         }
     }
+    console.log(journalsData)
 
-
+    const downloadPDF = () => {
+        const querlParams = getQueryParams({
+            type: 'journals',
+            paginate: false,
+            search: searchItem.search,
+            date: searchItem.date,
+            sortBy: searchItem.sortBy,
+            typeValue: searchItem.journals
+        });
+        const url = `/${orgId}/journals/download/${querlParams}`;
+        downloadListPDF(url, 'Journal Entries')
+    }
     return (
         <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
             <FromToDateModal
@@ -172,17 +196,17 @@ const Journals = () => {
                     <div className='w-[90%] relative h-[90%] flex flex-row gap-1'>
                         <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter journal number or description' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
-                            
+
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                            <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='journals' handleTypesChange={handleJournalsChange}/>
+                                <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='journals' handleTypesChange={handleJournalsChange} />
 
                             </div>
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange}/>
+                                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
                             </div>
                             <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                               <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange}/>
+                                <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange} />
                             </div>
                         </div>
                         {journals.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
@@ -193,7 +217,15 @@ const Journals = () => {
 
                     <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
                 </form>
+                <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+                <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+                    <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
 
+                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+                        Download
+                    </button>
+                </div>
             </div>
 
 
@@ -204,7 +236,7 @@ const Journals = () => {
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
                     <span className='w-[60%] border-gray-800 border-r-2 flex flex-col'>
                         <div className='flex flex-row flex-1'>
-                            <span className='w-[60%] p-1'>Account</span>
+                            <span className='w-[60%] p-1'>Description</span>
                             <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
                             <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
                         </div>
@@ -213,7 +245,7 @@ const Journals = () => {
 
 
                 </div>
-                {journalsData?.results?.data && journalsData.results.data.map((journal, index) => (
+                {journalsData?.results?.data?.journals && journalsData.results.data?.journals.map((journal, index) => (
                     <Link to={`${journal.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={journal.id}>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.serial_number}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{journal.date}</span>
@@ -224,21 +256,31 @@ const Journals = () => {
                             {journal.journal_entries.map((entry, index) =>
                                 <div className={`flex flex-row flex-1`} key={index}>
                                     <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
+                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
+                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
                                 </div>)}
                             <div className={`flex flex-row flex-1`}>
                                 <i className='text-sm w-[60%] p-1'>({journal.description})</i>
-                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
-                                <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
+
                             </div>
                         </span>
 
 
                     </Link>
+
                 ))}
+                {journalsData?.results?.data?.totals && <span className='text-right text-xl font-bold w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer'>
+
+
+                    <span className='w-[76%] border-gray-800 border-r-2 p-1 underline '>Total</span>
+
+                    <span className='w-[12%] border-gray-800 border-r-2 p-1 underline'>{journalsData?.results?.data?.totals.credit_total}</span>
+                    <span className='w-[12%] border-gray-800 border-r-2 p-1 underline'>{journalsData?.results?.data?.totals.debit_total}</span>
+
+
+                </span>}
             </div>
-            <PrevNext pageNo={pageNo} data={journalsData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+            <PrevNext pageNo={pageNo} data={journalsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
         </div>
     )

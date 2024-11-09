@@ -21,7 +21,6 @@ class GenerateServiceIncomePDF:
         self.story = []
         self.styles = getSampleStyleSheet()
         self.width, self.height = letter
-        print(self.title)
 
 
     def create_pdf(self):

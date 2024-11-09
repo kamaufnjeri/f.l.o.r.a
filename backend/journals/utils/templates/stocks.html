@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ css_path }}">
+
+    <title>{{ title }}</title>
+    
+</head>
+<body>
+
+    <header >
+        <table>
+        <tbody>
+            
+            <tr>
+                <td>
+                    <h1>{{ organisation.org_name }}</h1>
+                    <h2>{{ report_title }}</h2>
+                </td>
+                <td style="text-align: right;"><img src="{{ logo_path }}" alt="Logo"></td>
+            </tr>
+            <tr>
+                <td>
+                </td>
+                <td style="text-align: right;"><i><strong>{{ author_full }}</strong></i></td>
+            </tr>
+            
+        </tbody>
+        </table>
+    </header>
+    <aside>
+        <table>
+            {% if search_filters %}
+            
+               
+            </thead>
+            <tbody>
+                {% for key, value in search_filters.items() %}
+                <tr>
+                    <td>
+                        <ul>
+                            {% if key == 'Search Term' %}
+                            <li><strong>{{ key }}: </strong>'{{ value }}'</li>
+
+                            {% else %}
+                            <li><strong>{{ key }}: </strong>{{ value }}</li>
+                            {% endif %}
+                            
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+            {% endif %}
+        </table>
+       
+    </aside>
+
+
+    <section>
+        <table>
+            <thead>
+                <tr>
+                    <th>No #</th>
+                    <th>Item Name</th>
+                    <th>Unit Name</th>
+                    <th>Quantity</th>
+                   
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in data %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ stock.get('name') }}</td>
+                    <td>{{ stock.get('unit_name') }}</td>
+                    <td>{{ stock.get('total_quantity') }} {{ stock.get('unit_alias') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</body>
+</html>

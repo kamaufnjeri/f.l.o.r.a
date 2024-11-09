@@ -11,6 +11,8 @@ from datetime import datetime
 from journals.utils import date_filtering, sort_filtering
 from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
+from journals.utils.generate_pdfs import GenerateListsPDF
+from django.http import HttpResponse
 
 
 class JournalPagination(PageNumberPagination):
@@ -54,6 +56,11 @@ class JournalFilter(DjangoFilterBackend):
             raise Exception(str(e))
 
 
+def get_totals(data):
+    debit_total = sum(journal.get('journal_entries_total').get("debit_total") for journal in data)
+    credit_total = sum(journal.get('journal_entries_total').get("credit_total") for journal in data)
+
+    return debit_total, credit_total
 
 
 
@@ -65,8 +72,6 @@ class JournalAPIView(generics.ListCreateAPIView):
     search_fields = ['serial_number', 'description']
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
-
-
     def get(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
@@ -77,14 +82,25 @@ class JournalAPIView(generics.ListCreateAPIView):
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
                     serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    debit_total, credit_total = get_totals(serialized_data.data)
+                    data = {
+                        "journals": serialized_data.data,
+                        "totals": {
+                            "debit_total": debit_total,
+                            "credit_total": credit_total
+                        }
+                    }
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "message": "Journals retrieved successfully with pagination",
+                    "data": data
                 }) 
 
             else:
                 serializer = self.get_serializer(queryset, many=True)
+
+        
+
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
         
@@ -124,6 +140,56 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+class DownloadJournalAPIView(generics.ListCreateAPIView):
+    queryset = Journal.objects.all().order_by('created_at')
+    serializer_class = JournalSerializer
+    pagination_class = JournalPagination
+    filter_backends = [JournalFilter, SearchFilter]
+    search_fields = ['serial_number', 'description']
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+            debit_total, credit_total = get_totals(serializer.data)
+            data = {
+                        "journals": serializer.data,
+                        "totals": {
+                            "debit_total": debit_total,
+                            "credit_total": credit_total
+                        }
+                    }
+
+            pdf_generator = GenerateListsPDF(title, request.user.current_org, data, filter_data, filename='journals.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 class JournalDetailAPIView(generics.RetrieveAPIView):
     serializer_class = JournalDetailSerializer
     queryset = Journal.objects.all()

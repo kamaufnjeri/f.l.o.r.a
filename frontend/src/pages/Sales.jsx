@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../lib/api';
 import { Link, useParams } from 'react-router-dom';
@@ -11,15 +11,27 @@ import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
 import PrevNext from '../components/shared/PrevNext';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 const Sales = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
   const [searchItem, setSearchItem] = useState({
     name: '',
+    search: '',
     sales: '',
     date: '',
     sortBy: '',
   })
+  const [isVisible, setIsVisible] = useState(false);
+
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const { orgId } = useParams();
   const [selectOptions, setSelectOptions] = useState([
     { name: "All", value: "all" },
@@ -39,7 +51,8 @@ const Sales = () => {
     getData();
   }, [])
   const handleChange = async (e) => {
-    setSearchItem({ ...searchItem, name: e.target.value });
+    setSearchItem(prev => ({ ...prev, name: e.target.value, search: '' }));
+
     const queyParamsUrl = getQueryParams({
       type: 'sales',
       paginate: false,
@@ -53,7 +66,8 @@ const Sales = () => {
     setSales(newSales)
   }
   const handleSalesChange = async (e) => {
-    setSearchItem({ ...searchItem, sales: e.target.value });
+    setSearchItem(prev => ({ ...prev, sales: e.target.value, search: '' }));
+
     const queyParamsUrl = getQueryParams({
       type: 'sales',
       paginate: true,
@@ -76,7 +90,7 @@ const Sales = () => {
       showModal(setOpenDateModal);
     } else {
 
-      setSearchItem({ ...searchItem, date: e.target.value });
+      setSearchItem(prev => ({ ...prev, date: e.target.value, search: '' }));
       const queyParamsUrl = getQueryParams({
         type: 'sales',
         paginate: true,
@@ -93,7 +107,7 @@ const Sales = () => {
 
   }
   const handleSortsChange = async (e) => {
-    setSearchItem({ ...searchItem, sortBy: e.target.value });
+    setSearchItem(prev => ({ ...prev, sortBy: e.target.value, search: '' }));
     const queyParamsUrl = getQueryParams({
       type: 'sales',
       paginate: true,
@@ -120,7 +134,7 @@ const Sales = () => {
     const newSalesData = await getItems(`${orgId}/sales`, queyParamsUrl);
     setSalesData(newSalesData);
     setPageNo(1);
-    setSearchItem({ ...searchItem, name: '' })
+    setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }))
   }
 
   const nextPage = async () => {
@@ -152,6 +166,19 @@ const Sales = () => {
     catch (error) {
       toast.error(`Error': Error fetching Sales`);
     }
+  }
+  const downloadPDF = () => {
+    const querlParams = getQueryParams({
+      type: 'sales',
+      paginate: false,
+      search: searchItem.search,
+      date: searchItem.date,
+      sortBy: searchItem.sortBy,
+      typeValue: searchItem.sales
+    });
+    const url = `/${orgId}/sales/download/${querlParams}`;
+    console.log(url)
+    downloadListPDF(url, 'Sales List')
   }
 
   return (
@@ -191,6 +218,15 @@ const Sales = () => {
 
           <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
+        <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+           
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+              Download
+            </button>
+          </div>
 
       </div>
 

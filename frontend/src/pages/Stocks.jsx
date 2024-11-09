@@ -2,31 +2,44 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { getItems } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import PrevNext from '../components/shared/PrevNext';
 import { useParams } from 'react-router-dom';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 
 const Stocks = () => {
   const [searchItem, setSearchItem] = useState({
-    name: ''
+    name: '',
+    search: ''
   })
   const { orgId } = useParams();
   const [stocks, setStocks] = useState([]);
   const [stocksData, setStocksData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const getData = async () => {
     const newStocksData = await getItems(`${orgId}/stocks`, `?paginate=true`);
     setStocksData(newStocksData);
+    searchItem({ name: '',  search: ''})
 }
   useEffect(() => {
    
     getData();
 }, [])
   const handleChange = async (e) => {
-    setSearchItem({ name: e.target.value });
+    setSearchItem(prev => ({search: prev.search, name: e.target.value }));
     const newStocks = await getItems(`${orgId}/stocks`, `?search=${e.target.value}`);
     setStocks(newStocks)
   }
@@ -35,7 +48,7 @@ const Stocks = () => {
     const newStocksData = await getItems(`${orgId}/stocks`, `?search=${searchItem.name}&paginate=true`);
     setStocksData(newStocksData);
     setPageNo(1);
-    setSearchItem({ name: '' })
+    setSearchItem(prev => ({ name: '', search: prev.name }))
   }
 
   const nextPage = async () => {
@@ -68,9 +81,12 @@ const Stocks = () => {
       toast.error(`Error': Error fetching stocks`);
     }
   }
-
+  const downloadPDF = () => {
+    const url = `/${orgId}/stocks/download/?search=${searchItem.search}`
+    downloadListPDF(url, 'Stocks List')
+  }
   return (
-    <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2'>
+    <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2 relative'>
       <FormHeader header='Stocks List' />
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
@@ -83,6 +99,15 @@ const Stocks = () => {
       <div onClick={getData} className='self-end p-1 cursor-pointer w-[10%] hover:text-purple-800 hover:border-purple-800 font-bold rounded-md border-2 border-gray-800'>
         Reset
       </div>
+      <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+           
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+              Download
+            </button>
+          </div>
       </div>
       
 

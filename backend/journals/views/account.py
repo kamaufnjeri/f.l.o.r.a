@@ -4,12 +4,14 @@ from journals.serializers import AccountSerializer, AccountDetailsSerializer, Ca
 from journals.utils import flatten_errors
 from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES
 from django.db.models import Q
-from journals.models import Account, Organisation, OrganisationMembership, SubCategory, Category
+from journals.models import Account, SubCategory, Category
+from journals.utils.generate_pdfs import GenerateListsPDF
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from journals.permissions import IsUserInOrganisation
+from django.http import HttpResponse
 
 
 
@@ -116,6 +118,12 @@ class AccountAPIView(generics.ListCreateAPIView):
                 'error': 'Bad Request',
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
        
 
     def post(self, request, *args, **kwargs):
@@ -143,6 +151,47 @@ class AccountAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class DownloadAccountsAPIView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    queryset = Account.objects.all().order_by('created_at')
+    serializer_class = AccountSerializer
+    pagination_class = AccountPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
+    filterset_fields = ['name']
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user.current_org, serializer.data, filter_data, filename='accounts.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+        
 class AccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountDetailsSerializer
