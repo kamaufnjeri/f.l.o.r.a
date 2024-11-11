@@ -133,7 +133,7 @@ class DownloadPurchaseAPIView(generics.ListCreateAPIView):
           
             serializer = self.get_serializer(queryset, many=True)
 
-            pdf_generator = GenerateListsPDF(title, request.user.current_org, serializer.data, filter_data, filename='purchases.html')
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='purchases.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')
@@ -184,7 +184,7 @@ class PurchasePurchaseReturnsApiView(generics.ListAPIView):
                     serialized_data = self.get_serializer(paginated_queryset, many=True)
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
+                    "message": "Purchase returns retrieved successfully with pagination",
                     "data": serialized_data.data
                 }) 
 
@@ -201,7 +201,45 @@ class PurchasePurchaseReturnsApiView(generics.ListAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class DownloadPurchasePurchaseReturnsApiView(generics.ListAPIView):
+    serializer_class = PurchaseReturnSerializer
+    queryset = PurchaseReturn.objects.all()
+    pagination_class = PurchasePagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            pk = kwargs.get('pk')
+            queryset = self.get_queryset()
+            data = queryset.filter(purchase_id=pk).order_by('-date')
+
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(data, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, None, filename='returns.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

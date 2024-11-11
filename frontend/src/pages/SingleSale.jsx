@@ -49,7 +49,7 @@ const SingleSale = () => {
 
   const downloadSalesPdf = () => {
     setIsLoading(true)
-    let title = 'Sale'
+    let title = 'Sales'
 
 
     if (sale?.items_data?.type === 'invoice') {

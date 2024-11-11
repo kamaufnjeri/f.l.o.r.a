@@ -13,16 +13,13 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     sales_return = serializers.CharField(write_only=True, required=False)
     sales_entry = serializers.CharField(write_only=True)
-    sales_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     stock_name = serializers.SerializerMethodField(read_only=True)
-    stock = serializers.CharField(read_only=True)
     return_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     quantity = serializers.SerializerMethodField(read_only=True)
 
 
     class Meta:
-        fields = '__all__'
+        fields =  ['sales_return', 'sales_entry', 'stock_name', 'return_price', 'quantity', 'return_quantity', 'id']
         model = SalesReturnEntries
 
     def get_stock_name(self, obj):
@@ -31,6 +28,8 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     def get_quantity(self, obj):
         return f"{obj.return_quantity} {obj.stock.unit_alias}"
     
+  
+    
 class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     return_entries = SalesReturnEntriesSerializer(many=True)
@@ -38,13 +37,24 @@ class SalesReturnSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     journal_entries = JournalEntrySerializer(many=True, read_only=True)
+    items_data = serializers.SerializerMethodField(read_only=True)
+
 
     class Meta:
-        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no', 'organisation', 'user', 'journal_entries']
+        fields = ['id', 'date', 'description', 'return_entries', 'sales', 'sales_no', 'organisation', 'user', 'journal_entries', 'items_data']
         model = SalesReturn
 
     def get_sales_no(self, obj):
         return obj.sales.serial_number
+    
+    def get_items_data(self, obj):
+        entries = SalesReturnEntriesSerializer(obj.return_entries.all(), many=True).data
+        total_amount = sum((float(entry.get("return_quantity")) * float(entry.get("return_price")))  for entry in entries)
+        total_quantity = sum(int(entry.get("return_quantity")) for entry in entries)
+        return {
+            "total_amount": total_amount,
+            "total_quantity": total_quantity
+        }
 
     def validate(self, data):
         sales_return_entries = data.get('return_entries')

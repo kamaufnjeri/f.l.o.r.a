@@ -9,6 +9,8 @@ from rest_framework.pagination import PageNumberPagination
 from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
 from journals.utils import flatten_errors, date_filtering, sort_filtering
+from journals.utils.generate_pdfs import GenerateListsPDF
+from django.http import HttpResponse
 
 
 class ServicePagination(PageNumberPagination):
@@ -85,6 +87,45 @@ class ServiceAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+class DownloadServiceAPIView(generics.ListCreateAPIView):
+    queryset = Service.objects.all().order_by('created_at')
+    serializer_class = ServiceSerializer
+    pagination_class = ServicePagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'description']
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='services.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class ServiceIncomePagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -188,6 +229,45 @@ class ServiceIncomeAPIView(generics.ListCreateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+class DownloadServiceIncomeAPIView(generics.ListCreateAPIView):
+    queryset = ServiceIncome.objects.all().order_by('created_at')
+    serializer_class = ServiceIncomeSerializer
+    pagination_class = ServiceIncomePagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    filter_backends = [ServiceIncomeFilter, SearchFilter]
+    search_fields = ['serial_number', 'description']    
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='service_income.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class ServiceIncomeDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ServiceIncomeDetailSerializer

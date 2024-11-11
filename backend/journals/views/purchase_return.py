@@ -9,6 +9,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
+from journals.utils.generate_pdfs import GenerateListsPDF
+from django.http import HttpResponse
 
 
 class PurchaseReturnPagination(PageNumberPagination):
@@ -110,3 +112,42 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+class DownloadPurchaseReturnAPIView(generics.ListCreateAPIView):
+    queryset = PurchaseReturn.objects.all().order_by('created_at')
+    serializer_class = PurchaseReturnSerializer
+    pagination_class = PurchaseReturnPagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    filter_backends = [PurchaseReturnFilter]
+    search_fields = ['description']
+
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='purchase_returns.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

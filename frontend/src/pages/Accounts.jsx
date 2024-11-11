@@ -51,7 +51,6 @@ const Accounts = () => {
     setPageNo(1);
     setSearchItem(prev => ({ name: '', search: prev.name }))
   }
-console.log(searchItem)
   const nextPage = async () => {
     try {
       const response = await api.get(accountsData.next);

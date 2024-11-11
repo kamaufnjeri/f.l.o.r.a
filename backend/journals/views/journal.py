@@ -167,7 +167,7 @@ class DownloadJournalAPIView(generics.ListCreateAPIView):
                         }
                     }
 
-            pdf_generator = GenerateListsPDF(title, request.user.current_org, data, filter_data, filename='journals.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='journals.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

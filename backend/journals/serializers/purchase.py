@@ -111,7 +111,6 @@ class PurchaseDetailSerializer(PurchaseSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        print(data.get('returns_totals'))
         
         journal_entries = data.get('journal_entries', [])
         

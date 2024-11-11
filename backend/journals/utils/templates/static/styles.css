@@ -25,11 +25,6 @@ section {
     width: 100%;
 }
 
-header section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
 
 header h1  {
     color: darkmagenta;
@@ -39,7 +34,7 @@ header h1  {
 }
 header h2 {
     color: darkmagenta;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: bolder;
     margin: 0;
 }
@@ -88,4 +83,10 @@ section th {
 section td {
     text-align: left;
     padding: 4px;
+}
+
+footer {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 300;
 }

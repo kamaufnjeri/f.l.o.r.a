@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, getQueryParams } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaTimes, FaEllipsisV } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../lib/api';
 import { Link, useParams } from 'react-router-dom';
@@ -11,6 +11,7 @@ import TypesFilter from '../components/filters/TypesFilter';
 import DateFilter from '../components/filters/DateFilter';
 import SortFilter from '../components/filters/SortFilter';
 import PrevNext from '../components/shared/PrevNext';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 const ServiceIncome = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
@@ -19,7 +20,18 @@ const ServiceIncome = () => {
     service_income: '',
     date: '',
     sortBy: '',
+    search: ''
   })
+  const [isVisible, setIsVisible] = useState(false);
+
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const { orgId } = useParams();
   const [selectOptions, setSelectOptions] = useState([
     { name: "All", value: "all" },
@@ -39,7 +51,7 @@ const ServiceIncome = () => {
     getData();
   }, [])
   const handleChange = async (e) => {
-    setSearchItem({ ...searchItem, name: e.target.value });
+    setSearchItem(prev => ({ ...prev, name: e.target.value, search: '' }));
     const queyParamsUrl = getQueryParams({
       type: 'service_income',
       paginate: false,
@@ -53,7 +65,7 @@ const ServiceIncome = () => {
     setServiceIncome(newServiceIncome)
   }
   const handleServiceIncomeChange = async (e) => {
-    setSearchItem({ ...searchItem, service_income: e.target.value });
+    setSearchItem(prev => ({ ...prev, service_income: e.target.value, search: '' }));
     const queyParamsUrl = getQueryParams({
       type: 'service_income',
       paginate: true,
@@ -76,7 +88,7 @@ const ServiceIncome = () => {
       showModal(setOpenDateModal);
     } else {
 
-      setSearchItem({ ...searchItem, date: e.target.value });
+      setSearchItem(prev => ({ ...prev, date: e.target.value, search: '' }));
       const queyParamsUrl = getQueryParams({
         type: 'service_income',
         paginate: true,
@@ -93,7 +105,7 @@ const ServiceIncome = () => {
 
   }
   const handleSortsChange = async (e) => {
-    setSearchItem({ ...searchItem, sortBy: e.target.value });
+    setSearchItem(prev => ({ ...prev, sortBy: e.target.value, search: '' }));
     const queyParamsUrl = getQueryParams({
       type: 'service_income',
       paginate: true,
@@ -120,7 +132,20 @@ const ServiceIncome = () => {
     const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
     setServiceIncomeData(newServiceIncomeData);
     setPageNo(1);
-    setSearchItem({ ...searchItem, name: '' })
+    setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }))
+  }
+
+  const downloadPDF = () => {
+    const querlParams = getQueryParams({
+      type: 'service_income',
+      paginate: false,
+      search: searchItem.search,
+      date: searchItem.date,
+      sortBy: searchItem.sortBy,
+      typeValue: searchItem.service_income
+    });
+    const url = `/${orgId}/services/service_income/download/${querlParams}`;
+    downloadListPDF(url, 'Service Income')
   }
 
   const nextPage = async () => {
@@ -165,7 +190,7 @@ const ServiceIncome = () => {
         setPageNo={setPageNo}
         type='services/service_income'
       />
-      <FormHeader header='ServiceIncome List' />
+      <FormHeader header='Service Income' />
       <div className='flex flex-row w-full items-center justify-between'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
           <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
@@ -191,6 +216,15 @@ const ServiceIncome = () => {
 
           <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
+        <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+           
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+              Download
+            </button>
+          </div>
 
       </div>
 
@@ -200,7 +234,7 @@ const ServiceIncome = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Service Income #</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-          <span className='w-[35%] border-gray-800 border-r-2 p-1'>Items</span>
+          <span className='w-[35%] border-gray-800 border-r-2 p-1'>Services</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Amount</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>Due amount</span>
 

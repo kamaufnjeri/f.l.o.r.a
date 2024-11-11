@@ -169,7 +169,7 @@ class DownloadAccountsAPIView(generics.ListCreateAPIView):
           
             serializer = self.get_serializer(queryset, many=True)
 
-            pdf_generator = GenerateListsPDF(title, request.user.current_org, serializer.data, filter_data, filename='accounts.html')
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='accounts.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

@@ -25,21 +25,19 @@ class PaymentSerializer(serializers.ModelSerializer):
     def get_payment_data(self, obj):
         type = ''
         url = ''
-        bill_no = ''
-        invoice_no = ''
+        serial_no = ''
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             type = 'invoice'
-            invoice_no = obj.invoice.serial_number
+            serial_no = obj.invoice.serial_number
             url = InvoiceDetailSerializer(obj.invoice).data.get("invoice_data").get("url")
         elif hasattr(obj, 'bill') and obj.bill is not None:
             type = 'bill'
-            bill_no = obj.bill.serial_number
+            serial_no = obj.bill.serial_number
             url = BillDetailSerializer(obj.bill).data.get("bill_data").get("url")
         
         data = {
             "type": type,
-            "bill_no": bill_no,
-            "invoice_no": invoice_no,
+            "serial_no": serial_no,
             "url": url
         }
     

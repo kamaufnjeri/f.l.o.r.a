@@ -77,7 +77,7 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
                     name="name"
                     value={values.name}
                     onChange={handleChange}
-                    placeholder="Enter subCategory name"
+                    placeholder="Enter account name"
                   />
                 </Form.Item>
               </div>

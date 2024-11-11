@@ -178,7 +178,7 @@ const Sales = () => {
     });
     const url = `/${orgId}/sales/download/${querlParams}`;
     console.log(url)
-    downloadListPDF(url, 'Sales List')
+    downloadListPDF(url, 'Sales')
   }
 
   return (
@@ -192,7 +192,7 @@ const Sales = () => {
         setPageNo={setPageNo}
         type='sales'
       />
-      <FormHeader header='Sales List' />
+      <FormHeader header='Sales' />
       <div className='flex flex-row w-full items-center justify-between'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
           <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>

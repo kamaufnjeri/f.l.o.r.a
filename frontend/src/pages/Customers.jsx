@@ -2,30 +2,44 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { getItems } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../lib/api';
 import { useParams } from 'react-router-dom';
 import PrevNext from '../components/shared/PrevNext';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 const Customers = () => {
   const [searchItem, setSearchItem] = useState({
-    name: ''
+    name: '',
+    search: '',
   })
   const { orgId } = useParams();
   const [customers, setCustomers] = useState([]);
   const [customersData, setCustomersData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const getData = async () => {
     const newCustomersData = await getItems(`${orgId}/customers`, `?paginate=true`);
     setCustomersData(newCustomersData);
+    setSearchItem({ name: '', search: ''})
+
 }
   useEffect(() => {
    
     getData();
 }, [])
   const handleChange = async (e) => {
-    setSearchItem({ name: e.target.value });
+    setSearchItem(prev => ({ search: prev.search, name: e.target.value }))
     const newCustomers = await getItems(`${orgId}/customers`, `?search=${e.target.value}`);
     setCustomers(newCustomers)
   }
@@ -34,7 +48,7 @@ const Customers = () => {
     const newCustomersData = await getItems(`${orgId}/customers`, `?search=${searchItem.name}&paginate=true`);
     setCustomersData(newCustomersData);
     setPageNo(1);
-    setSearchItem({ name: '' })
+    setSearchItem(prev => ({ name: '', search: prev.name }))
   }
 
   const nextPage = async () => {
@@ -67,6 +81,10 @@ const Customers = () => {
       toast.error(`Error': Error fetching customers`);
     }
   }
+  const downloadPDF = () => {
+    const url = `/${orgId}/customers/download/?search=${searchItem.search}`
+    downloadListPDF(url, 'Customers')
+  }
 
   return (
     <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
@@ -83,13 +101,25 @@ const Customers = () => {
         Reset
       </div>
       </div>
+      <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+           
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+              Download
+            </button>
+           
+
+
+          </div>
       
 
       <div className='overflow-auto custom-scrollbar flex flex-col flex-1 h-full w-full m-2'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No.</span>
-          <span className='w-[30%] border-gray-800 border-r-2 p-1 '>Name</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Email</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1 '>Name</span>
+          <span className='w-[30%] border-gray-800 border-r-2 p-1'>Email</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Phone No.</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Amount Due</span>
         </div>
@@ -99,7 +129,7 @@ const Customers = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>{customer.name}</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>{customer.email}</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>{customer.phone_number}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{customer.amount_due}</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{customer.amount_due}</span>
 
         </div>
         ))}

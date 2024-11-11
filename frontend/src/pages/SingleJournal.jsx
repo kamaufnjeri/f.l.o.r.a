@@ -188,7 +188,7 @@ const SingleJournal = () => {
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-full border-gray-800 border-r-2 flex flex-col'>
             <div className='w-full flex flex-row flex-1'>
-              <span className='w-[60%] p-1'>Account</span>
+              <span className='w-[60%] p-1'>Description</span>
               <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
               <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
             </div>

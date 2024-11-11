@@ -176,8 +176,7 @@ const Purchases = () => {
       typeValue: searchItem.purchases
     });
     const url = `/${orgId}/purchases/download/${querlParams}`;
-    console.log(url)
-    downloadListPDF(url, 'Purchases List')
+    downloadListPDF(url, 'Purchases')
   }
   return (
     <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
@@ -190,7 +189,7 @@ const Purchases = () => {
         setPageNo={setPageNo}
         type='purchases'
       />
-      <FormHeader header='Purchases List' />
+      <FormHeader header='Purchases' />
       <div className='flex flex-row w-full items-center justify-between'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
           <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>

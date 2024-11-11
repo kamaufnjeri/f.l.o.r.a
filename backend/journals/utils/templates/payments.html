@@ -54,7 +54,8 @@
         <table>
             <thead>
                 <tr style="border-bottom: 3px;">
-                    <th>Journal #</th>
+                    <th>Payment #</th>
+                    <th>Bill/Invoice #</th>
                     <th>Date</th>
                     <th>Type</th>
                     <th colspan="2">Description</th>
@@ -63,9 +64,9 @@
                 </tr>
             </thead>
             <tbody>
-                {% for journal in data.get('journals') %}
-                    
-                    {% for entry in journal.get('journal_entries') %}
+                {% for payment in data.get('payments') %}
+                    {% set col = loop.index %}
+                    {% for entry in payment.get('journal_entries') %}
                     {% if loop.index == 1 %}
                     {%set first_entry = true %}
                     {% else %}
@@ -74,10 +75,14 @@
                     {% endif %}
                     <tr>
                         {% if first_entry %}
-                            <td>{{ journal.get('serial_number') }}</td>
-                            <td >{{ journal.get('date') }}</td>
-                            <td >{{ journal.get('type') }}</td>
+                            <td>{{ col }}</td>
+                            <td>
+                                {{payment.get('payment_data').get('serial_no')}}
+                            </td>
+                            <td >{{ payment.get('date') }}</td>
+                            <td >{{ payment.get('payment_data').get('type').title() }}</td>
                         {% else %}
+                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
@@ -110,7 +115,9 @@
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
-                        <td colspan="2"><i>({{ journal.get('description') }})</i></td>
+                        <td>&nbsp;</td>
+
+                        <td colspan="2"><i>({{ payment.get('description') }})</i></td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
@@ -118,7 +125,7 @@
                 {% endfor %}
                 
                 <tr style="font-weight: bold; text-decoration: underline; font-size: 16px; border-bottom: 3px;">
-                    <td colspan="5" style="text-align: right;">Total</td>
+                    <td colspan="6" style="text-align: right;">Total</td>
                     <td  style="text-align: right;">{{ data.get('totals').get('debit_total') }}</td>
                     <td  style="text-align: right;">{{ data.get('totals').get('credit_total') }}</td>
                 </tr>

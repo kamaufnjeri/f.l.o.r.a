@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from django.http import HttpResponse
-from journals.utils.generate_pdfs import GeneratePurchasePDF, GenerateSalePDF, GenerateJournalPDF, GenerateServiceIncomePDF
+from journals.utils.generate_pdfs import  GenerateSinglePDF
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -10,25 +10,24 @@ class GeneratePDFAPIView(APIView):
         
         title = data.get('title', '').replace(' ', "_")
         
-        filename = f"{title}_report.pdf"
+        filename = f"{title}.pdf"
 
         
         try:
-            pdf_generator = None
             if 'Purchase' in title:
-                pdf_generator = GeneratePurchasePDF(title, request.user.current_org, data.get('data'))
+                filename = 'single_purchase.html'
             elif 'Sale' in title:
-                pdf_generator = GenerateSalePDF(title, request.user.current_org, data.get('data'))
+                filename= 'single_sales.html'
             elif 'Journal' in title:
-                pdf_generator = GenerateJournalPDF(title, request.user.current_org, data.get('data'))
+                filename = 'single_journal.html'
 
             elif 'Service' in title:
-                pdf_generator = GenerateServiceIncomePDF(title, request.user.current_org, data.get('data'))
+                filename = 'single_service_income.html'
 
             else:
                 raise ValueError("Invalid title")
             
-
+            pdf_generator = GenerateSinglePDF(title, request.user, data.get('data'), filename=filename)
             if pdf_generator is None:
                 return Response({"error": "Invalid report type."}, status=status.HTTP_400_BAD_REQUEST)
             

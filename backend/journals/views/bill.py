@@ -9,7 +9,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from journals.permissions import IsUserInOrganisation
-
+from journals.utils.generate_pdfs import GenerateListsPDF
+from django.http import HttpResponse
+from .journal import get_totals
     
 class BillPagination(PageNumberPagination):
     page_size = 10
@@ -76,6 +78,47 @@ class BillApiView(generics.ListAPIView):
                 'error': 'Internal server error',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DownloadBillApiView(generics.ListAPIView):
+    queryset = Bill.objects.all().order_by('created_at')
+    serializer_class = BillDetailSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    pagination_class = BillPagination
+    filter_backends = [BillFilter]
+    search_fields = ['serial_number', 'supplier']
+
+    def post(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+
+            filter_data = request.query_params.dict()
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(queryset, many=True)
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='bills.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 class PurchaseBillAPIView(generics.CreateAPIView):
     queryset = Purchase.objects.filter(bill__isnull=False)
@@ -159,10 +202,19 @@ class BillPaymentsApiView(generics.ListAPIView):
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
                     serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    debit_total, credit_total = get_totals(serialized_data.data)
+
+                    data = {
+                    "payments": serialized_data.data,
+                        "totals": {
+                            "debit_total": debit_total,
+                            "credit_total": credit_total
+                        }
+                    }
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "message": "Payments retrieved successfully with pagination",
+                    "data": data
                 }) 
 
             else:
@@ -179,5 +231,52 @@ class BillPaymentsApiView(generics.ListAPIView):
         except Exception as e:
             return Response({
                 'error': 'Internal server error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DownloadBillPaymentsApiView(generics.ListAPIView):
+    serializer_class = PaymentSerializer
+    queryset = Payment.objects.all()
+    pagination_class = BillPagination
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            pk = kwargs.get('pk')
+            queryset = self.get_queryset()
+            data = queryset.filter(bill_id=pk).order_by('-date')
+           
+            title = request.data.get('title')
+          
+            serializer = self.get_serializer(data, many=True)
+
+            debit_total, credit_total = get_totals(serializer.data)
+            data = {
+                        "payments": serializer.data,
+                        "totals": {
+                            "debit_total": debit_total,
+                            "credit_total": credit_total
+                        }
+                    }
+
+            pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='payments.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

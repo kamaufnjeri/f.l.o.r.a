@@ -103,7 +103,7 @@ class DownloadStockAPIView(generics.ListCreateAPIView):
           
             serializer = self.get_serializer(queryset, many=True)
 
-            pdf_generator = GenerateListsPDF(title, request.user.current_org, serializer.data, filter_data, filename='stocks.html')
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='stocks.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')
@@ -119,6 +119,7 @@ class DownloadStockAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

@@ -2,33 +2,47 @@ import React, { useEffect, useState } from 'react'
 import FormHeader from '../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
 import { capitalizeFirstLetter, getItems, replaceDash } from '../lib/helpers';
-import { FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../lib/api';
 import { useParams } from 'react-router-dom';
 import PrevNext from '../components/shared/PrevNext';
+import { downloadListPDF } from '../lib/download/downloadList';
 
 
 const Services = () => {
   const [searchItem, setSearchItem] = useState({
-    name: ''
+    name: '',
+    search: '',
   })
   const { orgId } = useParams();
   const [services, setServices] = useState([]);
   const [servicesData, setServicesData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const openDropDown = () => {
+    setIsVisible(true);
+  }
+
+  const closeDropDown = () => {
+    setIsVisible(false);
+  }
+
   const getData = async () => {
     const newServicesData = await getItems(`${orgId}/services`, `?paginate=true`);
     setServicesData(newServicesData);
     console.log(newServicesData)
     setPageNo(1);
+    setSearchItem({ name: '', search: ''})
+
 }
   useEffect(() => {
    
     getData();
 }, [])
   const handleChange = async (e) => {
-    setSearchItem({ name: e.target.value });
+    setSearchItem(prev => ({ search: prev.search, name: e.target.value }))
     const newServices = await getItems(`${orgId}/services`, `?search=${e.target.value}`);
     setServices(newServices)
   }
@@ -37,7 +51,7 @@ const Services = () => {
     const newservicesData = await getItems(`${orgId}/services`, `?search=${searchItem.name}&paginate=true`);
     setServicesData(newservicesData);
     setPageNo(1);
-    setSearchItem({ name: '' })
+    setSearchItem(prev => ({ name: '', search: prev.name }))
   }
 
   const nextPage = async () => {
@@ -70,6 +84,10 @@ const Services = () => {
       toast.error(`Error': Error fetching services`);
     }
   }
+  const downloadPDF = () => {
+    const url = `/${orgId}/services/download/?search=${searchItem.search}`
+    downloadListPDF(url, 'Services')
+  }
 
   return (
     <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
@@ -86,6 +104,18 @@ const Services = () => {
         Reset
       </div>
       </div>
+      <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+           
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
+              Download
+            </button>
+           
+
+
+          </div>
       
 
       <div className='overflow-auto custom-scrollbar flex flex-col flex-1 h-full w-full m-2'>

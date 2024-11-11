@@ -190,7 +190,7 @@ const Journals = () => {
                 setPageNo={setPageNo}
                 type='journals'
             />
-            <FormHeader header='Journals List' />
+            <FormHeader header='Journal Entries' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-1'>
                     <div className='w-[90%] relative h-[90%] flex flex-row gap-1'>

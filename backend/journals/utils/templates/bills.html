@@ -64,23 +64,28 @@
         <table>
             <thead>
                 <tr>
-                    <th>No #</th>
-                    <th>Account Name</th>
-                    <th>Group</th>
-                    <th>Category</th>
-                    <th>Sub Category</th>
-                    <th>Balance ({{ organisation.currency }})</th>
+                    <th>Bill #</th>
+                    <th>Due Date</th>
+                    <th>Type</th>
+                    <th>Supplier</th>
+                    <th>Status</th>
+                    <th>Amount Paid ({{ organisation.currency }})</th>
+                    <th>Amount Due ({{ organisation.currency }})</th>
+                    <th>Due Days </th>
                 </tr>
             </thead>
             <tbody>
-                {% for account in data %}
+                {% for bill in data %}
                 <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ account.get('name') }}</td>
-                    <td>{{ account.get('group') }}</td>
-                    <td>{{ account.get('category') }}</td>
-                    <td>{{ account.get('sub_category') }}</td>
-                    <td>{{ account.get('account_balance') }}</td>
+                    <td>{{ bill.get('serial_number') }}</td>
+                    <td>{{ bill.get('due_date') }}</td>
+                    <td>{{ bill.get('bill_data').get('type').title() }}</td>
+                    <td>{{ bill.get('supplier_name') }}</td>
+                    <td>{{ bill.get('status').title().replace('_', ' ') }}</td>
+                    <td>{{ bill.get('amount_paid') }}</td>
+                    <td>{{ bill.get('amount_due') }}</td>
+                    <td>{{ bill.get('bill_data').get('due_days')}}</td>
+
                 </tr>
                 {% endfor %}
             </tbody>

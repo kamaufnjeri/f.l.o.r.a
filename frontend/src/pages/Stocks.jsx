@@ -83,7 +83,7 @@ const Stocks = () => {
   }
   const downloadPDF = () => {
     const url = `/${orgId}/stocks/download/?search=${searchItem.search}`
-    downloadListPDF(url, 'Stocks List')
+    downloadListPDF(url, 'Stocks')
   }
   return (
     <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2 relative'>
