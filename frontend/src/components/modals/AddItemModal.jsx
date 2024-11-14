@@ -53,7 +53,7 @@ const AddItemModal = ({ openModal, setOpenModal }) => {
               toast.success('Recorded: Stock Item added successfully');
               getSelectOptions();
             } else {
-              toast.error(`Error: ${response.error}`)
+              toast.error(`${response.error}`)
 
             }
           }}

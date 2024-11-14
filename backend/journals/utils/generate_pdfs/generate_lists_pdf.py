@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 from xhtml2pdf import pisa
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 import os
 
@@ -17,7 +17,7 @@ class GenerateListsPDF:
         self.css_path = f"{self.template_path}/static/styles.css"
         self.template_filename = filename 
         self.logo_path = './images/logo.png'
-        self.generated_date = datetime.today().strftime('%Y-%m-%d')
+        self.generated_date = datetime.today().date()
         self.generated_time = datetime.today().strftime("%I:%M %p")
 
     def create_pdf(self):
@@ -112,7 +112,20 @@ class GenerateListsPDF:
     
     def get_date(self, value):
         new_value = ''
-        if "to" in value and value != 'today':
+        today = self.generated_date
+
+        if value == 'today':
+            new_value =f'For {today}'
+        elif value == 'yesterday':
+            yesterday = today - timedelta(days=1)
+            new_value = f'For {yesterday}'
+        elif value == 'this_week':
+            start_week = today - timedelta(days=today.weekday())
+            new_value = f"From {start_week} to {today}"
+        elif value == 'this_month':
+            start_month = today.replace(day=1)
+            new_value = f"From {start_month} to {today}"
+        elif "to" in value and value != 'today':
             new_value = f"From {value.replace('to', ' to ')}"
         elif value == 'all':
             new_value = f"For the period ending {self.generated_date}"

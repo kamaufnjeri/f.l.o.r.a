@@ -197,17 +197,19 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
     serializer_class = AccountDetailsSerializer
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['to_date'] = self.request.query_params.get('to_date')
-        return context
 
     def get(self, request, *args, **kwargs):
         account_id = kwargs.get('pk')
 
         try:
-            account = Account.objects.get(id=account_id)
-            serializer = self.serializer_class(account, context=self.get_serializer_context())
+            account = self.get_object()
+            context = self.get_serializer_context()
+
+            date_param = request.query_params.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.get_serializer(account, context=context)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Account.DoesNotExist:
@@ -224,6 +226,127 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def patch(self, request, *args, **kwargs):
+        account_id = kwargs.get('pk')
+        try:
+            partial = kwargs.pop('partial', True)
+            data = request.data.copy()
+            data['organisation'] = kwargs.get('organisation_id')
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Account.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The account of ID {account_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def delete(self, request, *args, **kwargs):
+        account_id = kwargs.get('pk')
+
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+
+            has_entries = False
+            
+            for data in serializer.data.get('account_data', {}).get('entries', []):
+                amount = data.get('amount', 0)
+                entry_type = data.get('entry_type')
+                if entry_type not in ('Opening balance', 'Closing balance') and amount > 0:
+                    has_entries = True
+                    break
+
+            if not has_entries:
+                instance.delete() 
+                return Response({"detail": "Account item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                raise serializers.ValidationError("Cannot delete account with associated entries or non-zero closing balance.")
+
+        except Account.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The account with ID {account_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class DownloadAccountDetailAPIView(generics.RetrieveAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountDetailsSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def post(self, request, *args, **kwargs):
+        account_id = kwargs.get('pk')
+
+        try:
+            account = self.get_object()
+            context = self.get_serializer_context()
+            title = request.data.get('title')
+
+
+            filter_data = request.query_params.dict()
+            date_param = filter_data.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.serializer_class(account, context=context)
+
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='single_account.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

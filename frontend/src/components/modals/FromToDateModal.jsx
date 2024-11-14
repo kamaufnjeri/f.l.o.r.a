@@ -13,7 +13,7 @@ const validationSchema = Yup.object({
 
 })
 
-const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, setData, setPageNo, type }) => {
+const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, setData, setPageNo=null, type }) => {
     const handleCancel = () => {
         setOpenModal(false);
 
@@ -44,18 +44,29 @@ const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, s
                     onSubmit={async (values, { resetForm }) => {
                         const customRange = `${values.from}to${values.to}`
                         setSearchItem({ ...searchItem, date: customRange });
-                        const queryParamsUrl = getQueryParams({
-                            type: type,
-                            paginate: true,
-                            search: '',
-                            date: customRange,
-                            sortBy: searchItem.sortBy,
-                            typeValue: searchItem[type]
-                        })
+                        let queryParamsUrl = ''
+                        if (type.includes('stocks')) {
+                            queryParamsUrl = `?date=${customRange}`
+                            
+                        } else {
+                            queryParamsUrl = getQueryParams({
+                                type: type,
+                                paginate: true,
+                                search: '',
+                                date: customRange,
+                                sortBy: searchItem.sortBy,
+                                typeValue: searchItem[type]
+                            })
+                        }
+                       
                         const newData = await getItems(`${orgId}/${type}`, queryParamsUrl);
                         setData(newData);
-                        setPageNo(1);
+                        if (setPageNo) {
+                            setPageNo(1);
+
+                        }
                         resetForm();
+                        setOpenModal(false)
                         handleCancel();
                     }}
                 >

@@ -3,6 +3,7 @@ from journals.models import Account, JournalEntries, Organisation, FloraUser, Su
 from django.db import models, transaction
 from .journal_entries import JournalEntrySerializer
 from journals.constants import ACCOUNT_STRUCTURE, GROUPS, CATEGORIES, SUB_CATEGORIES
+from journals.utils import AccountUtils
 
 
 class FixedGroupSerializer(serializers.ModelSerializer):
@@ -121,7 +122,9 @@ class AccountSerializer(serializers.ModelSerializer):
                     models.Q(sales__date__lte=to_date) |
                     models.Q(purchase__date__lte=to_date) |
                     models.Q(purchase_return__date__lte=to_date) |
-                    models.Q(sales_return__date__lte=to_date)
+                    models.Q(sales_return__date__lte=to_date) |
+                    models.Q(payments__date__lte=to_date) |
+                    models.Q(service_income__date__lte=to_date)
                 )
             )
         else:
@@ -178,14 +181,44 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class AccountDetailsSerializer(AccountSerializer):
-    journal_entries = JournalEntrySerializer(many=True)
+    account_data = serializers.SerializerMethodField(read_only=True)
    
-
+    
     class Meta:
         model = Account
-        fields = AccountSerializer.Meta.fields + ['journal_entries']
+        fields = AccountSerializer.Meta.fields + ['account_data']
+
+    def validate(self, data):
+        organisation_id = data.pop('organisation')
+
+        if 'name' in data:
+            new_name = data['name']
+            account_id = self.instance.id  
+            
+            try:
+                account = Account.objects.exclude(id=account_id).get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Account with name {new_name} already exists in this organisation.")
+            except Account.DoesNotExist:
+                pass  
+        if self.partial:
+            allowed_fields = {'name'}
+            for field in data.keys():
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(f"{field} is not allowed in a partial update.")
+
+        return data
 
    
+    
+    def get_account_data(self, obj):
+        date_param = self.context.get('date', None)
+
+        account_data = AccountUtils(obj, period=date_param).get_account_data()
+        
+        
+        return account_data
+
+    
 
    
     

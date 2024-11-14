@@ -43,6 +43,10 @@ import RecordServiceIncome from "./pages/RecordServiceIncome";
 import ServiceIncomeInvoice from "./pages/ServiceIncomeInvoice";
 import ServiceIncome from "./pages/ServiceIncome";
 import SingleServiceIncome from "./pages/SingleServiceIncome";
+import SingleStock from "./pages/SingleStock";
+import SingleAccount from "./pages/SingleAccount";
+import SingleCustomer from "./pages/SingleCustomer";
+import SingleSupplier from "./pages/SingleSupplier";
 
 
 const RegisterRoute = () => {
@@ -69,6 +73,7 @@ const App = () => {
           <Route path='/dashboard/:orgId' element={<Layout />}>
             <Route index element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path='stocks' element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
+            <Route path='stocks/:id' element={<ProtectedRoute><SingleStock/></ProtectedRoute>}/>
             <Route path='services' element={<ProtectedRoute><Services/></ProtectedRoute>}/>
             <Route path='services/record_service_income' element={<ProtectedRoute><RecordServiceIncome/></ProtectedRoute>}/>
             <Route path='services/invoice' element={<ProtectedRoute><ServiceIncomeInvoice/></ProtectedRoute>}/>
@@ -80,8 +85,11 @@ const App = () => {
             <Route path='invoices' element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
             <Route path='invoices/:id/payments' element={<ProtectedRoute><SingleInvoicePayments /></ProtectedRoute>} />
             <Route path='accounts' element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+            <Route path='accounts/:id' element={<ProtectedRoute><SingleAccount /></ProtectedRoute>} />
             <Route path='suppliers' element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+            <Route path='suppliers/:id' element={<ProtectedRoute><SingleSupplier /></ProtectedRoute>} />
             <Route path='customers' element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+            <Route path='customers/:id' element={<ProtectedRoute><SingleCustomer /></ProtectedRoute>} />
             <Route path='purchases' element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
             <Route path='purchases/:id' element={<ProtectedRoute><SinglePurchase /></ProtectedRoute>} />
             <Route path='purchases/:id/purchase_returns' element={<ProtectedRoute><SinglePurchaseReturns /></ProtectedRoute>} />

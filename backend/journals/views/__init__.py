@@ -1,6 +1,6 @@
-from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView
+from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView, DownloadAccountDetailAPIView
 from .bill import PurchaseBillAPIView, JournalBillAPIView, BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
-from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAPIVew
+from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAPIVew, DownloadCustomerDetailAPIView
 from .invoice import  SalesInvoiceAPIView, JournalInvoiceAPIView, InvoiceApiView, InvoicePaymentsApiView, ServiceIncomeInvoiceAPIView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
 from .journal import JournalAPIView, JournalDetailAPIView, DownloadJournalAPIView
 from .payment import PaymentAPIView, DownloadPaymentAPIView
@@ -8,8 +8,8 @@ from .purchase import PurchaseAPIView, PurchaseDetailAPIView, PurchasePurchaseRe
 from .purchase_return import PurchaseReturnAPIView, DownloadPurchaseReturnAPIView
 from .sales import SalesAPIView, SalesDetailAPIView, SalesSalesReturnsApiView, DownloadSalesAPIView, DownloadSalesSalesReturnsApiView
 from .sales_return import SalesReturnAPIView, DownloadSalesReturnAPIView
-from .stock import StockAPIView, StockDetailAPIView, DownloadStockAPIView
-from .supplier import SupplierAPIVew, SupplierDetailsAPIView, DownloadSupplierAPIVew
+from .stock import StockAPIView, StockDetailAPIView, DownloadStockAPIView, DownloadStockDetailAPIView
+from .supplier import SupplierAPIVew, SupplierDetailsAPIView, DownloadSupplierAPIVew, DownloadSupplierDetailAPIView
 from .custom_404 import Custom404APIView
 from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView, MeAPIView, LogoutView
 from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView, ChangeCurrentOrgApiView

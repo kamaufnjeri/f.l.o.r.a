@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from django.db import transaction
-from journals.models import Stock, PurchaseEntries, SalesEntries, FloraUser, Organisation
+from journals.models import Stock, PurchaseEntries, SalesEntries, FloraUser, Organisation, PurchaseReturnEntries, SalesReturnEntries
 from datetime import date
-from .purchase_entries import PurchaseEntriesSerializer
+from journals.utils import StockUtils
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -39,6 +39,17 @@ class StockSerializer(serializers.ModelSerializer):
     def validate(self, data):
         opening_stock_quantity = data.get('opening_stock_quantity')
         opening_stock_rate = data.get('opening_stock_rate')
+        organisation_id = data.get('organisation')
+
+        
+        if 'name' in data:
+            new_name = data['name']
+            
+            try:
+                stock = Stock.objects.get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Stock with name {new_name} already exists in this organisation.")
+            except Stock.DoesNotExist:
+                pass  
 
         if (opening_stock_quantity and not opening_stock_rate) or (
             opening_stock_rate and not opening_stock_quantity
@@ -70,22 +81,42 @@ class StockSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise Exception(str(e))
             
-class StockDetailsSerializer(StockSerializer):
-    purchase_entries = serializers.SerializerMethodField(read_only=True)
-    opening_stock_rate = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    opening_stock_quantity = serializers.IntegerField(read_only=True)
+class StockDetailsSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    stock_summary = serializers.SerializerMethodField(read_only=True)
+   
     
     class Meta:
         model = Stock
-        fields = StockSerializer.Meta.fields + ['purchase_entries']
+        fields = ['name', 'unit_alias', 'unit_name', 'stock_summary', 'id', 'organisation']
+
+    def validate(self, data):
+        organisation_id = data.pop('organisation')
+        if 'name' in data:
+            new_name = data['name']
+            stock_id = self.instance.id  
+            
+            try:
+                stock = Stock.objects.exclude(id=stock_id).get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Stock with name {new_name} already exists in this organisation.")
+            except Stock.DoesNotExist:
+                pass  
+        if self.partial:
+            allowed_fields = {'name', 'unit_name', 'unit_alias'}
+            for field in data.keys():
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(f"{field} is not allowed in a partial update.")
+        return data
 
    
     
-    def get_purchase_entries(self, obj):
-        purchase_entries = PurchaseEntries.objects.filter(
-            stock=obj,
-            remaining_quantity__gt=0  
-        ).order_by('purchase__date')  
+    def get_stock_summary(self, obj):
+        date_param = self.context.get('date', None)
 
-        serializer = PurchaseEntriesSerializer(purchase_entries, many=True)
-        return serializer.data
+        stock_entries = StockUtils(obj, period=date_param).get_entries()
+        
+        
+        return stock_entries
+
+    
+

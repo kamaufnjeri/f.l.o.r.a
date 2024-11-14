@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ css_path }}">
+
+    <title>{{ title }}</title>
+
+</head>
+
+<body>
+
+    <header>
+        <table>
+            <tbody>
+
+                <tr>
+                    <td>
+                        <h1>{{ organisation.org_name }}</h1>
+                        <h2>{{ report_title }}</h2>
+                    </td>
+                    <td style="text-align: right;"><img src="{{ logo_path }}" alt="Logo"></td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td style="text-align: right;"><i><strong>{{ author_full }}</strong></i></td>
+                </tr>
+
+            </tbody>
+        </table>
+    </header>
+    <aside>
+        <table>
+            {% if search_filters %}
+
+            <tbody>
+                {% for key, value in search_filters.items() %}
+                <tr>
+                    <td>
+                        <ul>
+                            {% if key == 'Search Term' %}
+                            <li><strong>{{ key }}: </strong>'{{ value }}'</li>
+
+                            {% else %}
+                            <li><strong>{{ key }}: </strong>{{ value }}</li>
+                            {% endif %}
+
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+            {% endif %}
+        </table>
+    </aside>
+    <aside>
+        <table>
+            <tbody>
+                <tr>
+                    <td><span><strong>Name: </strong>{{ data.get('name')}}</span></td>
+                    <td><span><strong>Email: </strong>{{ data.get('email')}}</span></td>
+                    <td><span><strong>Phone Number: </strong>{{ data.get('phone_number')}}</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </aside>
+
+    <section>
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Due Days</th>
+                    <th colspan="2">Details</th>
+                    <th>Amount Paid ({{ organisation.currency }})</th>
+                    <th>Amount Due ({{ organisation.currency }})</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data.get('customer_data').get('invoices')%}
+                {% for invoice in data.get('customer_data').get('invoices') %}
+                
+                <tr>
+                    <td>
+                        {% if invoice.get('invoice_no') %}
+                        {{ invoice.get('invoice_no') }}</td>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ invoice.get('date') }}</td>
+                    <td>
+                        {% if invoice.get('due_date') %}
+                        {{ invoice.get('due_date') }}</td>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    <td>{{ invoice.get('invoice_type') }}</td>
+                    <td>
+                        {% if invoice.get('status') %}
+                        {{ invoice.get('status') }}</td>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if invoice.get('due_days') %}
+                        {{ invoice.get('due_days') }}</td>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
+                    <td colspan="2">{{ invoice.get('description')}} </td>
+                    <td style="text-align: right;">{{ invoice.get('amount_paid') }}</td>
+                    <td style="text-align: right;"> {{ invoice.get('amount_due') }}</td>
+
+                   
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% set totals = data.get('customer_data').get('totals') %}
+
+                {% if totals %}
+                <tr style="font-weight: bold; text-decoration: underline;">
+                    <td colspan="8" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ totals.get('amount_paid') }}</td>
+                    <td style="text-align: right;">{{ totals.get('amount_paid') }}</td>
+                </tr>
+                
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+   
+    <footer>
+        <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>
+    </footer>
+</body>
+
+</html>

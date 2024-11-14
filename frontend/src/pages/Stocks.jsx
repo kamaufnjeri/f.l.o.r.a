@@ -6,7 +6,7 @@ import { FaAngleDoubleRight, FaAngleDoubleLeft, FaEllipsisV, FaTimes } from 'rea
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import PrevNext from '../components/shared/PrevNext';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { downloadListPDF } from '../lib/download/downloadList';
 
 
@@ -20,6 +20,7 @@ const Stocks = () => {
   const [stocksData, setStocksData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
+  const [header, setHeader] = useState('Stocks')
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -32,6 +33,8 @@ const Stocks = () => {
   const getData = async () => {
     const newStocksData = await getItems(`${orgId}/stocks`, `?paginate=true`);
     setStocksData(newStocksData);
+    setHeader('Stocks')
+
     searchItem({ name: '',  search: ''})
 }
   useEffect(() => {
@@ -48,6 +51,7 @@ const Stocks = () => {
     const newStocksData = await getItems(`${orgId}/stocks`, `?search=${searchItem.name}&paginate=true`);
     setStocksData(newStocksData);
     setPageNo(1);
+    setHeader(`Stocks matching '${searchItem.name}'`)
     setSearchItem(prev => ({ name: '', search: prev.name }))
   }
 
@@ -87,20 +91,19 @@ const Stocks = () => {
   }
   return (
     <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2 relative'>
-      <FormHeader header='Stocks List' />
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
         <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Search stocks by name' value={searchItem.name} onChange={e => handleChange(e)} />
         <button className='w-[30%] border-2 bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         {stocks.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
-          {stocks.map((stock) => (<span className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{stock.name}</span>))}
+          {stocks.map((stock) => (<Link  to={`${stock.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{stock.name}</Link>))}
         </div>}
       </form>
       <div onClick={getData} className='self-end p-1 cursor-pointer w-[10%] hover:text-purple-800 hover:border-purple-800 font-bold rounded-md border-2 border-gray-800'>
         Reset
       </div>
-      <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
-          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+      <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
+          <div className={`absolute right-1 top-8 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
            
@@ -109,7 +112,8 @@ const Stocks = () => {
             </button>
           </div>
       </div>
-      
+      <FormHeader header={header} />
+
 
       <div className='overflow-auto custom-scrollbar flex flex-col h-[500px] w-full p-1'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
@@ -119,12 +123,12 @@ const Stocks = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Quantity</span>
         </div>
         {stocksData?.results?.data && stocksData.results.data.map((stock, index) => (
-          <div className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={stock.id}>
+          <Link to={stock.id} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={stock.id}>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}.</span>
           <span className='w-[40%] border-gray-800 border-r-2 p-1'>{stock.name}</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>{stock.unit_name}</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>{stock.total_quantity} {stock.unit_alias}</span>
-        </div>
+        </Link>
         ))}
       </div>
       <PrevNext pageNo={pageNo} data={stocksData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>

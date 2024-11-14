@@ -19,7 +19,7 @@ const DateFilter = ({ handleDatesChange, searchItem }) => {
       ))}
 
       {searchItem?.date && !searchItem.date.includes('today') && searchItem.date.includes('to') && (
-        <option value={searchItem.date}>{searchItem.date}</option>
+        <option value={searchItem.date}>From {searchItem.date.replace('to', ' to ')}</option>
       )}
     </select>
   )

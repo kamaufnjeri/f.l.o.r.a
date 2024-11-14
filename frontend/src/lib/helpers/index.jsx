@@ -55,6 +55,84 @@ export const postRequest = async (values, url, resetForm=null) => {
   }
 };
 
+export const patchRequest = async (values, url) => {
+  try {
+    const response = await api.patch(`/${url}/`, values);
+
+    if (response.status === 201 || response.status === 200 || response.status == 202) {
+     
+      return { success: true, error: null, data: response.data }
+
+    } else {
+      return { success: false, error: 'Unexpected error' }
+    }
+  } catch (error) {
+    let errorMessage = 'An error occurred';
+
+    if (error.response && error.response.data) {
+      const errorData = error?.response?.data?.details || error.response.data;
+
+      if (Array.isArray(errorData)) {
+        errorMessage = errorData.join('\n');
+      } else if (isObject(errorData)) {
+        console.log(errorData)
+        const errorList = [] 
+        Object.entries(errorData).forEach(([key, value]) => {
+          errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
+        })
+        errorMessage = errorList.join('\n');
+      } else {
+        errorMessage = errorData;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = errorMessage;
+    }
+    
+    return { success: false, error: replaceDash(errorMessage) }
+  }
+};
+
+
+export const deleteRequest = async (url) => {
+  try {
+    const response = await api.delete(`/${url}/`);
+
+    if (response.status === 204) {
+     
+      return { success: true, error: null, data: response.data }
+
+    } else {
+      return { success: false, error: 'Unexpected error' }
+    }
+  } catch (error) {
+    let errorMessage = 'An error occurred';
+
+    if (error.response && error.response.data) {
+      const errorData = error?.response?.data?.details || error.response.data;
+
+      if (Array.isArray(errorData)) {
+        errorMessage = errorData.join('\n');
+      } else if (isObject(errorData)) {
+        console.log(errorData)
+        const errorList = [] 
+        Object.entries(errorData).forEach(([key, value]) => {
+          errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
+        })
+        errorMessage = errorList.join('\n');
+      } else {
+        errorMessage = errorData;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = errorMessage;
+    }
+    
+    return { success: false, error: replaceDash(errorMessage) }
+  }
+};
 
 export const getItems = async (name, filterUrl=null) => {
   let url = '';
@@ -64,7 +142,6 @@ export const getItems = async (name, filterUrl=null) => {
   } else {
       url = `/${name}/`
   }
-  console.log(url)
   try {
     const response = await api.get(url);
     if (response.status == 200) {

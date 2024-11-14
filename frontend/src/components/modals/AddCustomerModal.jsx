@@ -61,7 +61,7 @@ const AddCustomerModal = ({ openModal, setOpenModal }) => {
               toast.success('Recorded: Customer added successfully')
               getSelectOptions();
             } else {
-              toast.error(`Error: ${response.error}`)
+              toast.error(`${response.error}`)
             }
           }}
         >

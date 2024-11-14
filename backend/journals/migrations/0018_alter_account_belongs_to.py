@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='account',
             name='belongs_to',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='accounts', to='journals.subcategory'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='accounts', to='journals.subcategory'),
         ),
     ]

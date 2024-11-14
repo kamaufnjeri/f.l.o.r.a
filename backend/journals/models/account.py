@@ -37,7 +37,7 @@ class Account(BaseModel):
         ("credit", "Credit")
     )
     name = models.CharField(max_length=200)
-    belongs_to = models.ForeignKey(SubCategory, related_name='accounts', on_delete=models.CASCADE, null=True, blank=True)
+    belongs_to = models.ForeignKey(SubCategory, related_name='accounts', on_delete=models.CASCADE, unique=False)
     opening_balance = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     opening_balance_type = models.CharField(max_length=200, blank=True, null=True, choices=OPENING_BALANCE)
     organisation = models.ForeignKey('Organisation', related_name='accounts', on_delete=models.CASCADE)
