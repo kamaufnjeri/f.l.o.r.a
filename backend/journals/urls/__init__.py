@@ -19,6 +19,7 @@ from .select_options import urlpatterns as select_options_urls
 from .organisation import urlpatterns as organisations_urls
 from .generate_pdf import urlpatterns as generatepdfurls
 from .service import urlpatterns as service_urls
+from .service_income import urlpatterns as service_income_urls
 
 urlpatterns = [
     path('auth/', include(auth_urls)),
@@ -38,6 +39,8 @@ urlpatterns = [
     path('<organisation_id>/', include(generatepdfurls)),
     path('organisations/', include(organisations_urls)),
     path('<organisation_id>/services/', include(service_urls)),
+    path('<organisation_id>/service_income/', include(service_income_urls)),
+
     path('', include(custom_404)),
 
 ]

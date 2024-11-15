@@ -5,7 +5,8 @@ from .journal_entries import JournalEntrySerializer
 from .discount import DiscountSerializer
 from .bill_invoice import InvoiceSerializer
 from .account import AccountDetailsSerializer
-from journals.utils import ServiceIncomeEntriesManager, JournalEntriesManager
+from journals.utils import ServiceIncomeEntriesManager, JournalEntriesManager, ServiceUtils, get_date_description_type_url
+
 
 service_income_entries_manager = ServiceIncomeEntriesManager()
 journal_entries_manager = JournalEntriesManager()
@@ -24,6 +25,20 @@ class ServiceSerializer(serializers.ModelSerializer):
             'user', 'organisation'
         ]
 
+
+    def validate(self, data):
+        organisation_id = data.get('organisation')
+        if 'name' in data:
+            new_name = data['name']
+            
+            try:
+                service = Service.objects.get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Service with name {new_name} already exists in this organisation.")
+            except Service.DoesNotExist:
+                pass  
+        return data
+
+
         
     def create(self, validated_data):
         try:
@@ -34,6 +49,55 @@ class ServiceSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise Exception(str(e))
         
+
+class ServiceDetailSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    service_data = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = Service
+        fields = ["id", "name", "description", "organisation", "service_data"]
+
+    def validate(self, data):
+        organisation_id = data.pop('organisation')
+
+        if 'name' in data:
+            new_name = data['name']
+            service_id = self.instance.id  
+            
+            try:
+                service = Service.objects.exclude(id=service_id).get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Service with name {new_name} already exists in this organisation.")
+            except Service.DoesNotExist:
+                pass  
+        if self.partial:
+            allowed_fields = {'name', 'description'}
+            for field in data.keys():
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(f"{field} is not allowed in a partial update.")
+
+        return data
+    
+    def update(self, instance, validated_data):
+        name = validated_data.get('name', instance.name)
+        description = validated_data.get('description', instance.description)
+
+        instance.name = name
+        instance.description = description
+
+        
+        instance.save()
+
+        return instance
+    
+    def get_service_data(self, obj):
+        date_param = self.context.get('date', None)
+
+        service_data = ServiceUtils(obj, period=date_param).get_service_data()
+        
+        
+        return service_data
+
 
 class ServiceIncomeEntrySerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -47,6 +111,23 @@ class ServiceIncomeEntrySerializer(serializers.ModelSerializer):
 
     def get_service_name(self, obj):
         return obj.service.name
+    
+
+class DetailedServiceIncomeEntrySerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ServiceIncomeEntry
+        fields = ["id", "price", "quantity", "details"]
+
+    def get_details(self, obj):
+        details = get_date_description_type_url(obj)
+        details['serial_number'] = obj.service_income.serial_number
+        details['total'] = float(obj.price) * float(obj.quantity)
+
+        return details
+
     
 
 class ServiceIncomeSerializer(serializers.ModelSerializer):
@@ -85,6 +166,7 @@ class ServiceIncomeSerializer(serializers.ModelSerializer):
             
             if hasattr(obj, 'discount_allowed') and obj.discount_allowed is not None:
                 cash_paid -= float(obj.discount_allowed.discount_amount)
+
         
         return {
             "list": items_list,

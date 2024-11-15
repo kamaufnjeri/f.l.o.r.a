@@ -28,7 +28,26 @@ class SalesReturnEntriesSerializer(serializers.ModelSerializer):
     def get_quantity(self, obj):
         return f"{obj.return_quantity} {obj.stock.unit_alias}"
     
-  
+class DetailedSalesReturnEntriesSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+   
+    details = serializers.SerializerMethodField(read_only=True)
+    
+
+    class Meta:
+        model = SalesReturnEntries
+        fields = ['id', 'details']
+
+    
+    def get_details(self, obj):
+        from journals.utils import get_date_description_type_url
+        details = get_date_description_type_url(obj)
+        details['quantity'] = obj.return_quantity
+        details['rate'] = obj.return_price
+        details['total'] = float(obj.return_price) * float(obj.return_quantity)
+
+        return details
+
     
 class SalesReturnSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)

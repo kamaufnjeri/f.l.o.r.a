@@ -1,6 +1,6 @@
 from rest_framework import generics, serializers, status
 from journals.models import Service, ServiceIncome
-from journals.serializers import ServiceSerializer, ServiceIncomeSerializer, ServiceIncomeDetailSerializer
+from journals.serializers import ServiceSerializer, ServiceIncomeSerializer, ServiceIncomeDetailSerializer, ServiceDetailSerializer
 from rest_framework.response import Response
 from journals.utils import flatten_errors
 from rest_framework.filters import SearchFilter
@@ -119,6 +119,165 @@ class DownloadServiceAPIView(generics.ListCreateAPIView):
                 'error': 'Bad Request',
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class ServiceDetailAPIView(generics.RetrieveAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceDetailSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def get(self, request, *args, **kwargs):
+        service_id = kwargs.get('pk')
+
+        try:
+            service =self.get_object()
+            context = self.get_serializer_context()
+
+            date_param = request.query_params.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.serializer_class(service, context=context)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Service.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The service of ID {service_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def patch(self, request, *args, **kwargs):
+        service_id = kwargs.get('pk')
+        try:
+            partial = kwargs.pop('partial', True)
+            data = request.data.copy()
+            data['organisation'] = kwargs.get('organisation_id')
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Service.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The service of ID {service_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def delete(self, request, *args, **kwargs):
+        service_id = kwargs.get('pk')
+
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+
+            has_entries = False
+            
+            total_amount = serializer.data.get('service_data', {}).get('total', [])
+               
+            if total_amount > 0:
+                has_entries = True
+
+            if not has_entries:
+                #instance.delete() 
+                return Response({"detail": "Service item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                raise serializers.ValidationError("Cannot delete service with associated entries.")
+
+        except Service.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The service with ID {service_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class DownloadServiceDetailAPIView(generics.RetrieveAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceDetailSerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def post(self, request, *args, **kwargs):
+        service_id = kwargs.get('pk')
+
+        try:
+            service = self.get_object()
+            context = self.get_serializer_context()
+            title = request.data.get('title')
+
+
+            filter_data = request.query_params.dict()
+            date_param = filter_data.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.serializer_class(service, context=context)
+
+
+            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='single_service.html')
+            buffer = pdf_generator.create_pdf()
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+            return response
+        
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
             raise e
             return Response({

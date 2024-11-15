@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { deleteRequest, getItems } from '../lib/helpers';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import FormHeader from '../components/forms/FormHeader';
@@ -139,18 +139,18 @@ const SingleStock = () => {
 
                 </div>
                 {stockData?.stock_summary && stockData.stock_summary.entries.map((entry, index) => (
-                    <div className={`w-full flex flex-row ${entry.type === 'Closing Stock' ? 'font-extrabold underline' : 'font-bold'} border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
+                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''}  className={`w-full flex flex-row ${entry.details.type === 'Closing Stock' ? 'font-extrabold underline' : 'font-bold'} border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{entry.date}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.type}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.type}</span>
 
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{(entry.type === 'Sales' || entry.type === 'Purchase Return') ? '(-)' : ''}{entry.quantity}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{(entry.details.type === 'Sales' || entry.details.type === 'Purchase Return') ? '(-)' : ''}{entry.details.quantity}</span>
 
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{entry.rate}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.total}</span>
-                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.description}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.rate}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.total}</span>
+                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.details.description}</span>
 
-                    </div>
+                    </Link>
                 ))}
                 <div className='w-[50%] flex flex-col border-2 border-gray-800 mt-2'>
                     <div className='w-full flex flex-row'>

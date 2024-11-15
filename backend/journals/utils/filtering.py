@@ -92,3 +92,86 @@ def status_filtering(queryset, status_filter):
         return queryset
     except Exception as e:
         raise ValueError(str(e))
+
+
+
+from datetime import datetime
+
+def get_date_description_type_url(entry):
+    entry_type, date, description, url = '', '', '', ''
+
+    journal = getattr(entry, 'journal', None)
+    sales = getattr(entry, 'sales', None)
+    purchase = getattr(entry, 'purchase', None)
+    purchase_return = getattr(entry, 'purchase_return', None)
+    sales_return = getattr(entry, 'sales_return', None)
+    payments = getattr(entry, 'payments', None)
+    service_income = getattr(entry, 'service_income', None)
+
+    if journal is not None:
+        date = journal.date
+        description = journal.description
+        entry_type = 'Journal'
+        url = f"/journals/{journal.id}"
+
+    elif sales is not None:
+        date = sales.date
+        description = sales.description
+        entry_type = 'Sales'
+        url = f"/sales/{sales.id}"
+
+    elif purchase is not None:
+        date = purchase.date
+        description = purchase.description
+        entry_type = 'Purchase'
+        url = f"/purchases/{purchase.id}"
+
+    elif purchase_return is not None:
+        date = purchase_return.date
+        description = purchase_return.description
+        entry_type = 'Purchase Return'
+        url = f"/purchases/{purchase_return.purchase.id}"
+
+    elif sales_return is not None:
+        date = sales_return.date
+        description = sales_return.description
+        entry_type = 'Sales Return'
+        url = f"/sales/{sales_return.sales.id}"
+
+    elif payments is not None:
+        date = payments.date
+        description = payments.description
+        entry_type = 'Payment'
+        url = get_payment_url(payments)
+
+    elif service_income is not None:
+        date = service_income.date
+        description = service_income.description
+        entry_type = 'Service Income'
+        url = f"/service_income/{service_income.id}"
+
+    else:
+        date = datetime.today().date()
+       
+
+    details = {
+        'date': date,
+        'description': description,
+        'type': entry_type,
+        'url': url
+    }
+    return details
+
+def get_payment_url(payment):
+    from journals.serializers import InvoiceDetailSerializer, BillDetailSerializer
+
+    url = ''
+    if hasattr(payment, 'invoice') and payment.invoice is not None:
+       
+        url = InvoiceDetailSerializer(payment.invoice).data.get("details").get("url")
+    elif hasattr(payment, 'bill') and payment.bill is not None:
+        
+        url = BillDetailSerializer(payment.bill).data.get("details").get("url")
+
+    return url
+        

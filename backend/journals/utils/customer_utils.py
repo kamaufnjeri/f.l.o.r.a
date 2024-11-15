@@ -15,9 +15,11 @@ class CustomerUtils:
         
         
         return {
-            'date': start_date,
-            'description': 'Opening balance',
-            'invoice_type': 'Opening balance',
+            'details': {
+                'date': start_date,
+                'description': 'Opening balance',
+                'type': 'Opening balance'
+            },
             'amount_due': amount_due,
             'amount_paid': amount_paid,
             
@@ -58,38 +60,16 @@ class CustomerUtils:
                 (Q(service_income__date__gte=after_date) & Q(service_income__date__isnull=False))
             )
 
+        from journals.serializers import InvoiceDetailSerializer
+
+        invoice_serializer_data = InvoiceDetailSerializer(customer_invoices, many=True).data
         
-        amount_due, amount_paid = 0, 0
-        invoices = []
-        today = datetime.today().date()
-        for invoice in customer_invoices:
-            amount_due += float(invoice.amount_due)
-            amount_paid += float(invoice.amount_paid)
-            date, description, invoice_type = self.get_invoice_date_description_type(invoice)
+        amount_due = sum(float(invoice.get('amount_due', 0)) for invoice in invoice_serializer_data)
+        amount_paid = sum(float(invoice.get('amount_paid', 0)) for invoice in invoice_serializer_data)
 
-            due_diff = invoice.due_date - today
-            due_days = due_diff.days
-
-            if due_days < 0 and invoice.status != "paid":
-                due_days = f"Overdue by {(-1 * due_days)} days"
-            elif due_days > 0:
-                due_days = f"{due_days} days"
-            else:
-                due_days = "Not due"
-
-            invoices.append({
-                'date': date,
-                'description': description,
-                'invoice_type': invoice_type,
-                'amount_due': invoice.amount_due,
-                'amount_paid': invoice.amount_paid,
-                'invoice_no': invoice.serial_number, 
-                'due_date': invoice.due_date,
-                'due_days': due_days,
-                'status': invoice.status.title().replace('_', ' ')
-            })
-
-        return invoices, amount_due, amount_paid
+        
+    
+        return invoice_serializer_data, amount_due, amount_paid
     
     def get_customer_invoices_data(self):
         start_date = self.get_start_date()
@@ -145,7 +125,7 @@ class CustomerUtils:
         opening_balance = self.get_opening_balance()
         customer_invoices, amount_due, amount_paid = self.get_customer_invoices_data()
 
-        sorted_customer_invoices = sorted(customer_invoices, key=lambda x: x.get('date'))
+        sorted_customer_invoices = sorted(customer_invoices, key=lambda x: x.get('details').get('date'))
 
         if opening_balance:
             sorted_customer_invoices.insert(0, opening_balance)

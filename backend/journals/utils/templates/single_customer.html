@@ -90,35 +90,35 @@
                 
                 <tr>
                     <td>
-                        {% if invoice.get('invoice_no') %}
-                        {{ invoice.get('invoice_no') }}</td>
+                        {% if invoice.get('serial_number') %}
+                        {{ invoice.get('serial_number') }}</td>
                         {% else %}
                         <span>-</span>
                         {% endif %}
                     </td>
-                    <td>{{ invoice.get('date') }}</td>
+                    <td>{{ invoice.get('details').get('date') }}</td>
                     <td>
                         {% if invoice.get('due_date') %}
                         {{ invoice.get('due_date') }}</td>
                         {% else %}
                         <span>-</span>
                         {% endif %}
-                    <td>{{ invoice.get('invoice_type') }}</td>
+                    <td>{{ invoice.get('details').get('type') }}</td>
                     <td>
                         {% if invoice.get('status') %}
-                        {{ invoice.get('status') }}</td>
+                        {{ invoice.get('status').title().replace('_', ' ') }}</td>
                         {% else %}
                         <span>-</span>
                         {% endif %}
                     </td>
                     <td>
-                        {% if invoice.get('due_days') %}
-                        {{ invoice.get('due_days') }}</td>
+                        {% if invoice.get('details').get('due_days') %}
+                        {{ invoice.get('details').get('due_days') }}</td>
                         {% else %}
                         <span>-</span>
                         {% endif %}
                     </td>
-                    <td colspan="2">{{ invoice.get('description')}} </td>
+                    <td colspan="2">{{ invoice.get('details').get('description')}} </td>
                     <td style="text-align: right;">{{ invoice.get('amount_paid') }}</td>
                     <td style="text-align: right;"> {{ invoice.get('amount_due') }}</td>
 

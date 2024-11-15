@@ -180,11 +180,11 @@ export const sidebarIcons = [
         },
         {
             name: 'Record Services Income',
-            url: 'services/record_service_income'
+            url: 'service_income/record'
         },
         {
             name: 'Services Income Invoice',
-            url: 'services/invoice'
+            url: 'service_income/invoice'
         },
         {
             name: 'View Services Provided',
@@ -192,7 +192,7 @@ export const sidebarIcons = [
         },
         {
             name: 'View Services Income',
-            url: 'services/service_income'
+            url: 'service_income'
         }
     ]
   },

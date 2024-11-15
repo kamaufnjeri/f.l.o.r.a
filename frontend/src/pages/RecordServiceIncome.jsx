@@ -92,7 +92,7 @@ const RecordServiceIncome = () => {
           const serviceIncomePrice = getTotalServiceIncomePrice(values.service_income_entries) - values.discount_allowed.discount_amount;
           
           if (serviceIncomePrice === debitTotalAmount) {
-            const response = await postRequest(values, `${orgId}/services/service_income`, resetForm);
+            const response = await postRequest(values, `${orgId}/service_income`, resetForm);
 
             if (response.success) {
               toast.success('Recorded: Service Income recorded successfully')

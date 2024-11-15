@@ -15,9 +15,11 @@ class SupplierUtils:
         
         
         return {
-            'date': start_date,
-            'description': 'Opening balance',
-            'bill_type': 'Opening balance',
+            'details': {
+                'date': start_date,
+                'description': 'Opening balance',
+                'type': 'Opening balance'
+            },
             'amount_due': amount_due,
             'amount_paid': amount_paid,
             
@@ -56,37 +58,12 @@ class SupplierUtils:
             )
 
         
-        amount_due, amount_paid = 0, 0
-        bills = []
-        today = datetime.today().date()
-        for bill in supplier_bills:
-            amount_due += float(bill.amount_due)
-            amount_paid += float(bill.amount_paid)
-            date, description, bill_type = self.get_bill_date_description_type(bill)
+        from journals.serializers import BillDetailSerializer
+        bill_serializer_data = BillDetailSerializer(supplier_bills, many=True).data
+        amount_due = sum(float(bill.get('amount_due', 0)) for bill in bill_serializer_data)
+        amount_paid = sum(float(bill.get('amount_paid', 0)) for bill in bill_serializer_data)
 
-            due_diff = bill.due_date - today
-            due_days = due_diff.days
-
-            if due_days < 0 and bill.status != "paid":
-                due_days = f"Overdue by {(-1 * due_days)} days"
-            elif due_days > 0:
-                due_days = f"{due_days} days"
-            else:
-                due_days = "Not due"
-
-            bills.append({
-                'date': date,
-                'description': description,
-                'bill_type': bill_type,
-                'amount_due': bill.amount_due,
-                'amount_paid': bill.amount_paid,
-                'due_date': bill.due_date,
-                'due_days': due_days,
-                'bill_no': bill.serial_number,
-                'status': bill.status.title().replace('_', ' ')
-            })
-
-        return bills, amount_due, amount_paid
+        return bill_serializer_data, amount_due, amount_paid
     
     def get_supplier_bills_data(self):
         start_date = self.get_start_date()

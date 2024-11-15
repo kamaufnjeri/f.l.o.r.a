@@ -14,6 +14,20 @@ class SupplierSerializer(serializers.ModelSerializer):
         model = Supplier
         fields = ["id", "name", "email", "phone_number", "account", "amount_due" , 'organisation', 'user']
 
+    def validate(self, data):
+        organisation_id = data.get('organisation')
+        if 'name' in data:
+            new_name = data['name']
+            
+            try:
+                supplier = Supplier.objects.get(name=new_name, organisation_id=organisation_id)
+                raise serializers.ValidationError(f"Supplier with name {new_name} already exists in this organisation.")
+            except Supplier.DoesNotExist:
+                pass  
+        return data
+
+    
+
     def get_amount_due(self, obj):
         invoices = Bill.objects.filter(supplier=obj)
         amount_due = sum(invoice.amount_due for invoice in invoices if invoice.amount_due > 0)

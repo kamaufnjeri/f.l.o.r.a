@@ -17,7 +17,7 @@ const ServiceIncome = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
   const [searchItem, setSearchItem] = useState({
     name: '',
-    service_income: '',
+    serviceIncome: '',
     date: '',
     sortBy: '',
     search: ''
@@ -39,12 +39,13 @@ const ServiceIncome = () => {
     { name: "Regular Service Income", value: "is_not_invoices" },
   ])
 
-  const [service_incomes, setServiceIncome] = useState([]);
-  const [service_incomesData, setServiceIncomeData] = useState([]);
+  const [serviceIncomes, setServiceIncome] = useState([]);
+  const [serviceIncomesData, setServiceIncomeData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const getData = async () => {
-    const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, `?paginate=true`);
+    const newServiceIncomeData = await getItems(`${orgId}/service_income`, `?paginate=true`);
     setServiceIncomeData(newServiceIncomeData);
+    console.log(newServiceIncomeData)
   }
   useEffect(() => {
 
@@ -58,14 +59,14 @@ const ServiceIncome = () => {
       search: e.target.value,
       date: searchItem.date,
       sortBy: searchItem.sortBy,
-      typeValue: searchItem.service_income
+      typeValue: searchItem.serviceIncome
   })
 
-    const newServiceIncome = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
+    const newServiceIncome = await getItems(`${orgId}/service_income`, queyParamsUrl);
     setServiceIncome(newServiceIncome)
   }
   const handleServiceIncomeChange = async (e) => {
-    setSearchItem(prev => ({ ...prev, service_income: e.target.value, search: '' }));
+    setSearchItem(prev => ({ ...prev, serviceIncome: e.target.value, search: '' }));
     const queyParamsUrl = getQueryParams({
       type: 'service_income',
       paginate: true,
@@ -75,7 +76,7 @@ const ServiceIncome = () => {
       typeValue: e.target.value
     })
 
-    const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
+    const newServiceIncomeData = await getItems(`${orgId}/service_income`, queyParamsUrl);
     setServiceIncomeData(newServiceIncomeData);
     setPageNo(1);
 
@@ -95,9 +96,9 @@ const ServiceIncome = () => {
         search: '',
         date: e.target.value,
         sortBy: searchItem.sortBy,
-        typeValue: searchItem.service_income
+        typeValue: searchItem.serviceIncome
       })
-      const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
+      const newServiceIncomeData = await getItems(`${orgId}/service_income`, queyParamsUrl);
       setServiceIncomeData(newServiceIncomeData);
       setPageNo(1);
     }
@@ -112,9 +113,9 @@ const ServiceIncome = () => {
       search: '',
       date: searchItem.date,
       sortBy: e.target.value,
-      typeValue: searchItem.service_income
+      typeValue: searchItem.serviceIncome
     })
-    const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
+    const newServiceIncomeData = await getItems(`${orgId}/service_income`, queyParamsUrl);
     setServiceIncomeData(newServiceIncomeData);
     setPageNo(1);
 
@@ -127,9 +128,9 @@ const ServiceIncome = () => {
       search: searchItem.name,
       date: searchItem.date,
       sortBy: searchItem.sortBy,
-      typeValue: searchItem.service_income
+      typeValue: searchItem.serviceIncome
     })
-    const newServiceIncomeData = await getItems(`${orgId}/services/service_income`, queyParamsUrl);
+    const newServiceIncomeData = await getItems(`${orgId}/service_income`, queyParamsUrl);
     setServiceIncomeData(newServiceIncomeData);
     setPageNo(1);
     setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }))
@@ -142,9 +143,9 @@ const ServiceIncome = () => {
       search: searchItem.search,
       date: searchItem.date,
       sortBy: searchItem.sortBy,
-      typeValue: searchItem.service_income
+      typeValue: searchItem.serviceIncome
     });
-    const url = `/${orgId}/services/service_income/download/${querlParams}`;
+    const url = `/${orgId}/service_income/download/${querlParams}`;
     downloadListPDF(url, 'Service Income')
   }
 
@@ -166,7 +167,7 @@ const ServiceIncome = () => {
   const previousPage = async () => {
 
     try {
-      const response = await api.get(service_incomesData.previous);
+      const response = await api.get(serviceIncomesData.previous);
       if (response.status == 200) {
         setServiceIncomeData(response.data)
         setPageNo(pageNo - 1);
@@ -188,7 +189,7 @@ const ServiceIncome = () => {
         searchItem={searchItem}
         setData={setServiceIncomeData}
         setPageNo={setPageNo}
-        type='services/service_income'
+        type='service_income'
       />
       <FormHeader header='Service Income' />
       <div className='flex flex-row w-full items-center justify-between'>
@@ -208,9 +209,9 @@ const ServiceIncome = () => {
                 <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange} />
               </div>
             </div>
-            {service_incomes.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+            {serviceIncomes.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {service_incomes.map((service_income) => (<Link to={`${service_income.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{service_income.serial_number}</Link>))}
+              {serviceIncomes.map((serviceIncome) => (<Link to={`${serviceIncome.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{serviceIncome.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -239,28 +240,28 @@ const ServiceIncome = () => {
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>Due amount</span>
 
         </div>
-        {service_incomesData?.results?.data && service_incomesData.results.data.map((service_income, index) => (
-          <Link to={`${service_income.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={service_income.id}>
-            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{service_income.serial_number}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{service_income.date}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(service_income.items_data.type)}</span>
+        {serviceIncomesData?.results?.data && serviceIncomesData.results.data.map((serviceIncome, index) => (
+          <Link to={`${serviceIncome.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={serviceIncome.id}>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1'>{serviceIncome.serial_number}</span>
+            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{serviceIncome.date}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(serviceIncome.items_data.type)}</span>
 
             <span className='w-[35%] border-gray-800 border-r-2 p-1'>
               <ul className='flex flex-wrap gap-3'>
-                {service_income.items_data.list.map((item, index) => (
+                {serviceIncome.items_data.list.map((item, index) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>
-              <i className='text-sm'>({service_income.description})</i>
+              <i className='text-sm'>({serviceIncome.description})</i>
             </span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{service_income.items_data.total_amount}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{service_income.items_data.amount_due > 0 ? service_income.items_data.amount_due : '-'}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{serviceIncome.items_data.total_amount}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{serviceIncome.items_data.amount_due > 0 ? serviceIncome.items_data.amount_due : '-'}</span>
 
 
           </Link>
         ))}
       </div>
-      <PrevNext pageNo={pageNo} data={service_incomesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
+      <PrevNext pageNo={pageNo} data={serviceIncomesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
 
     </div>
   )

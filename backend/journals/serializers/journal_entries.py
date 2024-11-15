@@ -13,3 +13,17 @@ class JournalEntrySerializer(serializers.ModelSerializer):
 
     def get_account_name(self, obj):
         return obj.account.name
+    
+class DetailedJournalEntryEntrySerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = JournalEntries
+        fields = ["amount", "debit_credit", "details", "id"]
+
+    def get_details(self, obj):
+        from journals.utils import get_date_description_type_url
+        details = get_date_description_type_url(obj)
+
+        return details

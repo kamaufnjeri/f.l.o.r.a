@@ -47,6 +47,7 @@ import SingleStock from "./pages/SingleStock";
 import SingleAccount from "./pages/SingleAccount";
 import SingleCustomer from "./pages/SingleCustomer";
 import SingleSupplier from "./pages/SingleSupplier";
+import SingleService from "./pages/SingleService";
 
 
 const RegisterRoute = () => {
@@ -75,10 +76,11 @@ const App = () => {
             <Route path='stocks' element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
             <Route path='stocks/:id' element={<ProtectedRoute><SingleStock/></ProtectedRoute>}/>
             <Route path='services' element={<ProtectedRoute><Services/></ProtectedRoute>}/>
-            <Route path='services/record_service_income' element={<ProtectedRoute><RecordServiceIncome/></ProtectedRoute>}/>
-            <Route path='services/invoice' element={<ProtectedRoute><ServiceIncomeInvoice/></ProtectedRoute>}/>
-            <Route path='services/service_income' element={<ProtectedRoute><ServiceIncome/></ProtectedRoute>}/>
-            <Route path='services/service_income/:id' element={<ProtectedRoute><SingleServiceIncome/></ProtectedRoute>}/>
+            <Route path='services/:id' element={<ProtectedRoute><SingleService/></ProtectedRoute>}/>
+            <Route path='service_income/record' element={<ProtectedRoute><RecordServiceIncome/></ProtectedRoute>}/>
+            <Route path='service_income/invoice' element={<ProtectedRoute><ServiceIncomeInvoice/></ProtectedRoute>}/>
+            <Route path='service_income' element={<ProtectedRoute><ServiceIncome/></ProtectedRoute>}/>
+            <Route path='service_income/:id' element={<ProtectedRoute><SingleServiceIncome/></ProtectedRoute>}/>
             <Route path='bills' element={<ProtectedRoute><Bills /></ProtectedRoute>} />
             <Route path='bills/:id/payments' element={<ProtectedRoute><SingleBillPayments /></ProtectedRoute>} />
             <Route path='payments' element={<ProtectedRoute><Payments /></ProtectedRoute>} />

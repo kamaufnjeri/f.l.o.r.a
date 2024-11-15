@@ -162,7 +162,7 @@ const Invoices = () => {
                         </div>
             {invoices.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {invoices.map((invoice) => (<Link to={`/dashboard/${orgId}/${invoice?.invoice_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{invoice.serial_number}</Link>))}
+              {invoices.map((invoice) => (<Link to={`/dashboard/${orgId}${invoice?.details?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{invoice.serial_number}</Link>))}
             </div>}
           </div>
 
@@ -194,15 +194,15 @@ const Invoices = () => {
 
         </div>
         {invoicesData?.results?.data && invoicesData.results.data.map((invoice, index) => (
-          <Link to={`/dashboard/${orgId}/${invoice?.invoice_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={invoice.id}>
+          <Link to={`/dashboard/${orgId}${invoice?.details?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={invoice.id}>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{invoice.serial_number}</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.due_date}</span>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(invoice.invoice_data.type)}</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(invoice.details.type)}</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1'>{invoice.customer_name}</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(replaceDash(invoice.status))}</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{invoice.amount_due}</span>
           <span className='w-[15%] border-gray-800 border-r-2 p-1'>{invoice.amount_paid}</span>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1'>{invoice.invoice_data.due_days}</span>
+          <span className='w-[15%] border-gray-800 border-r-2 p-1'>{invoice.details.due_days}</span>
           </Link>
         ))}
       </div>

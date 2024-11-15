@@ -88,9 +88,9 @@
                 
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ entry.get('date') }}</td>
-                    <td>{{ entry.get('entry_type') }}</td>
-                    <td colspan="2">{{ entry.get('description')}} </td>
+                    <td>{{ entry.get('details').get('date') }}</td>
+                    <td>{{ entry.get('details').get('type') }}</td>
+                    <td colspan="2">{{ entry.get('details').get('description')}} </td>
 
                     {% if entry.get('debit_credit') == 'debit' %}
                     <td style="text-align: right;">{{ entry.get('amount') }}</td>

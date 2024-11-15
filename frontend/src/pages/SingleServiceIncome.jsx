@@ -31,7 +31,7 @@ const SingleServiceIncome = () => {
   };
   const getData = async () => {
     setIsLoading(true)
-    const serviceIncome = await getItems(`${orgId}/services/service_income/${id}`);
+    const serviceIncome = await getItems(`${orgId}/service_income/${id}`);
     setServiceIncome(serviceIncome)
     setIsLoading(false)
   }

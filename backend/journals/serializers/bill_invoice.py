@@ -2,6 +2,7 @@ from rest_framework import serializers
 from journals.models import Bill, Invoice
 from datetime import datetime
 
+
 class BillSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     supplier_name = serializers.SerializerMethodField(read_only=True)
@@ -18,27 +19,20 @@ class BillSerializer(serializers.ModelSerializer):
         return obj.supplier.name
     
 class BillDetailSerializer(BillSerializer):
-    bill_data = serializers.SerializerMethodField(read_only=True)
+    details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Bill
-        fields = BillSerializer.Meta.fields + ["bill_data"]
+        fields = BillSerializer.Meta.fields + ["details"]
     
-    def get_bill_data(self, obj):
-        data = {}
-        type = ''
-        url = ''
+    def get_details(self, obj):
+        from journals.utils import get_date_description_type_url
+
+        details = get_date_description_type_url(obj)
+        
         due_days = 0
         today = datetime.now().date()
-        
-        if hasattr(obj, 'journal') and obj.journal is not None:
-            type = 'journal'
-            url = f'journals/{obj.journal.id}'
-            
-        elif hasattr(obj, 'purchase') and obj.purchase is not None:
-            type = 'purchase'
-            url = f'purchases/{obj.purchase.id}'
-           
+      
         due_diff = obj.due_date - today
         due_days = due_diff.days
 
@@ -49,13 +43,13 @@ class BillDetailSerializer(BillSerializer):
         else:
             due_days = "Not due"
 
-        data = {
-            "type": type,
-            "url": url,
-            "due_days": due_days
-        }
+        details['due_days'] = due_days
 
-        return data
+
+
+        return details
+
+        
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -78,31 +72,21 @@ class InvoiceSerializer(serializers.ModelSerializer):
         return obj.customer.name
 
 class InvoiceDetailSerializer(InvoiceSerializer):
-    invoice_data = serializers.SerializerMethodField(read_only=True)
+    details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model =Invoice
-        fields = InvoiceSerializer.Meta.fields + ["invoice_data"]
+        fields = InvoiceSerializer.Meta.fields + ["details"]
    
     
-    def get_invoice_data(self, obj):
-        data = {}
-        type = ''
-        url = ''
+    def get_details(self, obj):
+        from journals.utils import get_date_description_type_url
+
+        details = get_date_description_type_url(obj)
+        
         due_days = 0
         today = datetime.now().date()
-        
-        if hasattr(obj, 'journal') and obj.journal is not None:
-            type = 'journal'
-            url = f'journals/{obj.journal.id}'
-            
-        elif hasattr(obj, 'sales') and obj.sales is not None:
-            type = 'sales'
-            url = f'sales/{obj.sales.id}'
-        elif hasattr(obj, 'service_income') and obj.service_income is not None:
-            type = 'service'
-            url = f'services/service_income/{obj.service_income.id}'
-           
+      
         due_diff = obj.due_date - today
         due_days = due_diff.days
 
@@ -113,16 +97,9 @@ class InvoiceDetailSerializer(InvoiceSerializer):
         else:
             due_days = "Not due"
 
+        details['due_days'] = due_days
 
-
-
-        data = {
-            "type": type,
-            "url": url,
-            "due_days": due_days
-        }
-
-        return data
+        return details
 
         
             

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { deleteRequest, getItems } from '../lib/helpers';
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { capitalizeFirstLetter, deleteRequest, getItems, replaceDash } from '../lib/helpers';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import FormHeader from '../components/forms/FormHeader';
 import DateFilter from '../components/filters/DateFilter';
@@ -143,18 +143,18 @@ const SingleSupplier = () => {
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>Amount Due ({currentOrg.currency})</span>
                 </div>
                 {supplierData?.supplier_data && supplierData?.supplier_data?.bills.map((bill, index) => (
-                    <div className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={index}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{bill.bill_no}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.date}</span>
+                    <Link to={bill?.details?.url ? `/dashboard/${orgId}${bill.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={index}>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{bill.serial_number}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill?.details?.date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.due_date}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.bill_type}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.status}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.due_days}</span>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{bill.description}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.details?.type}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(replaceDash(bill.status))}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.details?.due_days}</span>
+                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{bill.details?.description}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{bill.amount_paid}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{bill.amount_due}</span>
 
-                    </div>
+                    </Link>
                 ))}
                 {supplierData?.supplier_data?.totals && (
                     <div className={`w-full flex flex-row font-extrabold  underline text-right border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`}>

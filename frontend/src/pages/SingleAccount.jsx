@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { deleteRequest, getItems } from '../lib/helpers';
 import FromToDateModal from '../components/modals/FromToDateModal';
 import FormHeader from '../components/forms/FormHeader';
@@ -141,11 +141,11 @@ const SingleAccount = () => {
 
                 </div>
                 {accountData?.account_data && accountData.account_data.entries.map((entry, index) => (
-                    <div className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
+                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.date}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.entry_type}</span>
-                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.description}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.type}</span>
+                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.details.description}</span>
                         {entry.debit_credit === 'debit' ? <>
                             <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.amount}</span>
                             <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>-</span>
@@ -157,7 +157,7 @@ const SingleAccount = () => {
                         }
 
 
-                    </div>
+                    </Link>
                 ))}
                 {accountData?.account_data?.totals && (
                     <><div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>

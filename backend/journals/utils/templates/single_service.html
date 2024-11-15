@@ -62,84 +62,68 @@
             <tbody>
                 <tr>
                     <td><span><strong>Name: </strong>{{ data.get('name')}}</span></td>
-                    <td><span><strong>Email: </strong>{{ data.get('email')}}</span></td>
-                    <td><span><strong>Phone Number: </strong>{{ data.get('phone_number')}}</span></td>
+                    <td colspan="2"><span><strong>Details: </strong>{{ data.get('description')}}</span></td>
+                    
                 </tr>
             </tbody>
         </table>
     </aside>
 
     <section>
-        <table width="100%">
+        <table>
             <thead>
                 <tr>
-                    <th>No #</th>
+                    <th>Service Income #</th>
                     <th>Date</th>
-                    <th>Due Date</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Due Days</th>
-                    <th colspan="2">Details</th>
-                    <th>Amount Paid ({{ organisation.currency }})</th>
-                    <th>Amount Due ({{ organisation.currency }})</th>
+                    <th colspan="2">Details </th>
+                    <th>Quantity</th>
+                    <th>Rate ({{ organisation.currency }})</th>
+                    <th>Total Amount ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
-                {% if data.get('supplier_data').get('bills')%}
-                {% for bill in data.get('supplier_data').get('bills') %}
+                {% for entry in data.get('service_data').get('entries') %}
                 
                 <tr>
                     <td>
-                        {% if bill.get('serial_number') %}
-                        {{ bill.get('serial_number') }}</td>
+                        {% if entry.get('details').get('serial_number') %}
+                        {{ entry.get('details').get('serial_number') }}
                         {% else %}
                         <span>-</span>
                         {% endif %}
-                    </td>
-                    <td>{{ bill.get('details').get('date') }}</td>
-                    <td>
-                        {% if bill.get('due_date') %}
-                        {{ bill.get('due_date') }}</td>
-                        {% else %}
-                        <span>-</span>
-                        {% endif %}
-                    <td>{{ bill.get('details').get('type') }}</td>
-                    <td>
-                        {% if bill.get('status') %}
-                        {{ bill.get('status').title().replace('_', ' ') }}</td>
-                        {% else %}
-                        <span>-</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if bill.get('details').get('due_days') %}
-                        {{ bill.get('details').get('due_days') }}</td>
-                        {% else %}
-                        <span>-</span>
-                        {% endif %}
-                    </td>
-                    <td colspan="2">{{ bill.get('details').get('description')}} </td>
-                    <td style="text-align: right;">{{ bill.get('amount_paid') }}</td>
-                    <td style="text-align: right;"> {{ bill.get('amount_due') }}</td>
+                    <td>{{  entry.get('details').get('date') }}</td>
+                    <td colspan="2">{{ entry.get('details').get('description')}} </td>
 
-                   
+                    <td>
+                        {% if entry.get('quantity') %}
+                        {{ entry.get('quantity') }}
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if entry.get('price') %}
+                        {{ entry.get('price') }}
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    <td style="text-align: right;">
+                        {% if entry.get('details').get('total')  %}
+                        {{ entry.get('details').get('total')  }}
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
-                {% endif %}
-                {% set totals = data.get('supplier_data').get('totals') %}
-
-                {% if totals %}
                 <tr style="font-weight: bold; text-decoration: underline;">
-                    <td colspan="8" style="text-align: right;">Total</td>
-                    <td style="text-align: right;">{{ totals.get('amount_paid') }}</td>
-                    <td style="text-align: right;">{{ totals.get('amount_paid') }}</td>
+                    <td colspan="6" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('service_data').get('total') }}</td>
                 </tr>
-                
-                {% endif %}
             </tbody>
         </table>
     </section>
-   
+    
     <footer>
         <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>
     </footer>

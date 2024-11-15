@@ -10,7 +10,7 @@ class AccountUtils:
     def get_opening_balance(self):
         start_date = self.get_start_date()
 
-        journal_entries, debit_total, credit_total = self.get_account_entries(before_date=start_date)
+        _, debit_total, credit_total = self.get_account_entries(before_date=start_date)
 
         print('start date', start_date)
 
@@ -35,11 +35,14 @@ class AccountUtils:
             balance_type = 'credit'
 
         return {
-                'date': date,
-                'description': type,
+                'details': {
+                    'date': date,
+                    'description': type,
+                    'type': type
+                },
+                'amount': balance,
                 'debit_credit': balance_type,
-                'entry_type': type,
-                'amount': balance
+
             }
 
                 
@@ -65,23 +68,6 @@ class AccountUtils:
         account_data = self.get_sorted_journal_entries()
         return account_data
 
-    def get_entry_date_description_type(self, entry):
-        if entry.journal:
-            return entry.journal.date, entry.journal.description, 'Journal'
-        elif entry.sales:
-            return entry.sales.date, entry.sales.description, 'Sales'
-        elif entry.purchase:
-            return entry.purchase.date, entry.purchase.description, 'Purchase'
-        elif entry.purchase_return:
-            return entry.purchase_return.date, entry.purchase_return.description, 'Purchase Return'
-        elif entry.sales_return:
-            return entry.sales_return.date, entry.sales_return.description, 'Sales Return'
-        elif entry.payments:
-            return entry.payments.date, entry.payments.description, 'Payment'
-        elif entry.service_income:
-            return entry.service_income.date, entry.service_income.description, 'Service Income'
-        else:
-            return self.get_start_date(), 'Default', 'Default'
         
 
     def get_account_entries(self, before_date=None, after_date=None):
@@ -110,24 +96,15 @@ class AccountUtils:
                 (Q(service_income__date__gte=after_date) & Q(service_income__date__isnull=False))
             )
 
+        from journals.serializers import DetailedJournalEntryEntrySerializer
         
-        debit_total, credit_total = 0, 0
-        entries = []
-        for entry in journal_entries:
-            if entry.debit_credit == 'debit':
-                debit_total += float(entry.amount)
-            else:
-                credit_total += float(entry.amount)
-            date, description, entry_type = self.get_entry_date_description_type(entry)
-            entries.append({
-                'date': date,
-                'description': description,
-                'debit_credit': entry.debit_credit,
-                'entry_type': entry_type,
-                'amount': entry.amount
-            })
+        entries_serializer_data = DetailedJournalEntryEntrySerializer(journal_entries, many=True).data
 
-        return entries, debit_total, credit_total
+        debit_total = sum(float(entry.get('amount')) for entry in entries_serializer_data if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in entries_serializer_data if entry.get('debit_credit') == 'credit')
+        
+
+        return entries_serializer_data, debit_total, credit_total
     
     def get_journal_entries(self):
         start_date = self.get_start_date()
@@ -187,7 +164,7 @@ class AccountUtils:
         journal_entries, debit_total, credit_total = self.get_journal_entries()
         opening_entry, closing_entry = self.get_closing_balance()
 
-        sorted_journal_entries = sorted(journal_entries, key=lambda x: x.get('date'))
+        sorted_journal_entries = sorted(journal_entries, key=lambda x: x.get('details').get('date'))
 
         if opening_entry:
             sorted_journal_entries.insert(0, opening_entry)
@@ -209,9 +186,6 @@ class AccountUtils:
                 closing_balance['debit_credit'] = 'debit'
 
             sorted_journal_entries.append(closing_balance)
-
-
-
 
         return {
             'entries': sorted_journal_entries,
