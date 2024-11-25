@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('refreshToken', response?.data?.refresh);
             localStorage.setItem('accessToken', response?.data?.access)
             setUser(response.data?.user)
-            setCurrentOrg(response.data?.user?.current_organisation)
             setLoginData({
                email: "",
                password: "",
@@ -60,6 +59,7 @@ export const AuthProvider = ({ children }) => {
                 navigate('/organisation-create')
 
             } else {
+                setCurrentOrg(response.data?.user?.current_organisation)
                 navigate(`/dashboard/${response.data?.user?.current_organisation.id}`)
             }
            
@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.clear();
             toast.success("Logout successful!");
             setUser(null);
+            setCurrentOrg(null);
             navigate("/")
         }
         else {

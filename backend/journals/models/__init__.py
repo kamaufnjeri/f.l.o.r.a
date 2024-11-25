@@ -21,3 +21,4 @@ from .organisation import Organisation
 from .organisation_membership import OrganisationMembership
 from .user import FloraUser
 from .service import Service, ServiceIncome, ServiceIncomeEntry
+from .audit_trail import AuditTrail

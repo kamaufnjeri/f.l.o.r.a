@@ -11,4 +11,4 @@ class Payment(BaseModel):
     description = models.TextField()
     amount_paid = models.DecimalField(max_digits=15, decimal_places=2)
     organisation = models.ForeignKey('Organisation', related_name='payments', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='payments', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='payments', on_delete=models.SET_NULL, null=True)

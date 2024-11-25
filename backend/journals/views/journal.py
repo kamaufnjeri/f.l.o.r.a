@@ -26,26 +26,12 @@ class JournalFilter(DjangoFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         try:
-            journals = request.query_params.get('journals')
             date = request.query_params.get('date')
             sort_by = request.query_params.get('sort_by')
 
             if date:
                 queryset = date_filtering(queryset, date)
         
-            if journals:
-                if journals == "is_invoices":
-                    queryset = queryset.filter(invoice__isnull=False)
-                elif journals == "is_bills":
-                    queryset = queryset.filter(bill__isnull=False)
-                elif journals == "is_bills_or_invoices":
-                    queryset = queryset.filter(models.Q(invoice__isnull=False) | models.Q(bill__isnull=False))
-                elif journals == "is_not_bills_or_invoices":
-                    queryset = queryset.filter(models.Q(invoice__isnull=True) & models.Q(bill__isnull=True))
-                elif journals == "all":
-                    queryset = queryset
-                else:
-                    raise Exception("Valid options for journals are 'is_invoices', 'is_bills', 'is_bills_or_invoices', 'is_not_bills_or_invoices', or 'all'")
             
             if sort_by:
                 queryset = sort_filtering(queryset, sort_by)
@@ -98,10 +84,6 @@ class JournalAPIView(generics.ListCreateAPIView):
 
             else:
                 serializer = self.get_serializer(queryset, many=True)
-
-        
-
-
                 return Response(serializer.data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
@@ -111,6 +93,7 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -134,6 +117,7 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -194,5 +178,106 @@ class JournalDetailAPIView(generics.RetrieveAPIView):
     serializer_class = JournalDetailSerializer
     queryset = Journal.objects.all()
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    
+    def get(self, request, *args, **kwargs):
+        journal_id = kwargs.get('pk')
+
+        try:
+            journal = self.get_object()
+            context = self.get_serializer_context()
+
+            date_param = request.query_params.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.get_serializer(journal, context=context)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Journal.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The journal of ID {journal_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def patch(self, request, *args, **kwargs):
+        journal_id = kwargs.get('pk')
+        try:
+            partial = kwargs.pop('partial', True)
+            data = request.data.copy()
+            instance = self.get_object()
+            if request.user != instance.user:
+                raise serializers.ValidationError(f"Journal {journal_id} can only be edited by user who recorded it")
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Journal.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The journal of ID {journal_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def delete(self, request, *args, **kwargs):
+        journal_id = kwargs.get('pk')
+
+        try:
+            instance = self.get_object()
+
+            if request.user != instance.user:
+                raise serializers.ValidationError(f"Journal {journal_id} can only be deleted by user who recorded it")
+        
+            instance.delete() 
+            return Response({"detail": "Journal item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            
+        except Journal.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The journal with ID {journal_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

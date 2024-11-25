@@ -108,27 +108,12 @@ class AccountSerializer(serializers.ModelSerializer):
         if obj.belongs_to and obj.belongs_to.category:
             
             return obj.belongs_to.category.name
-        return None
+        return ''
 
 
     def get_account_balance(self, obj):
-        to_date = self.context.get('to_date', None)
-        
-        if to_date:
-            journal_entries = JournalEntries.objects.filter(
-                models.Q(account=obj) &
-                models.Q(
-                    models.Q(journal__date__lte=to_date) |
-                    models.Q(sales__date__lte=to_date) |
-                    models.Q(purchase__date__lte=to_date) |
-                    models.Q(purchase_return__date__lte=to_date) |
-                    models.Q(sales_return__date__lte=to_date) |
-                    models.Q(payments__date__lte=to_date) |
-                    models.Q(service_income__date__lte=to_date)
-                )
-            )
-        else:
-            journal_entries = JournalEntries.objects.filter(account=obj)
+        journal_entries = JournalEntries.objects.filter(account=obj)
+
         
         debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
         credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')

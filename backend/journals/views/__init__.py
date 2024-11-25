@@ -1,7 +1,7 @@
 from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView, DownloadAccountDetailAPIView
-from .bill import PurchaseBillAPIView, JournalBillAPIView, BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
+from .bill import PurchaseBillAPIView, BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
 from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAPIVew, DownloadCustomerDetailAPIView
-from .invoice import  SalesInvoiceAPIView, JournalInvoiceAPIView, InvoiceApiView, InvoicePaymentsApiView, ServiceIncomeInvoiceAPIView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
+from .invoice import  SalesInvoiceAPIView, InvoiceApiView, InvoicePaymentsApiView, ServiceIncomeInvoiceAPIView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
 from .journal import JournalAPIView, JournalDetailAPIView, DownloadJournalAPIView
 from .payment import PaymentAPIView, DownloadPaymentAPIView
 from .purchase import PurchaseAPIView, PurchaseDetailAPIView, PurchasePurchaseReturnsApiView, DownloadPurchaseAPIView, DownloadPurchasePurchaseReturnsApiView

@@ -8,7 +8,6 @@ from journals.constants import STATUS
 
 
 class Invoice(BaseModel):
-    journal = models.OneToOneField(Journal, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE)
     sales = models.OneToOneField(Sales, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE, default=None)
     service_income = models.OneToOneField(ServiceIncome, related_name='invoice', blank=True, null=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=200, choices=STATUS)
@@ -19,7 +18,7 @@ class Invoice(BaseModel):
     customer = models.ForeignKey(Customer, related_name='invoices', on_delete=models.CASCADE)
     serial_number = models.CharField(max_length=200)
     organisation = models.ForeignKey('Organisation', related_name='invoices', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='invoices', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='invoices', on_delete=models.SET_NULL, null=True)
 
 
     def __str__(self):

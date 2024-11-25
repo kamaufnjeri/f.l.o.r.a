@@ -1,37 +1,33 @@
-import React from 'react';
-import { DatePicker, Form } from 'antd';
+import React, { useEffect, memo, useState } from 'react';
 import moment from 'moment';
-import { capitalizeFirstLetter, replaceDash } from '../../lib/helpers';
+import { inputContainer } from '../../lib/styles';
+import { replaceDash } from '../../lib/helpers';
 
-// Default min and max dates
-const defaultMinDate = moment().subtract(1, 'year').startOf('year');
-const defaultMaxDate = moment().add(1, 'year').endOf('year');
 
-const DateField = ({ value, setFieldValue, name, maxDate = defaultMaxDate, minDate = defaultMinDate }) => {
-    const disabledDate = (current) => {
-        return current && (current < minDate || current > maxDate);
-    };
+const defaultMinDate = moment().subtract(1, 'year').startOf('year').format('YYYY-MM-DD');
+const defaultMaxDate = moment().format('YYYY-MM-DD');
 
-    const formatValue = (value) => {
-        return value ? moment(value, 'YYYY-MM-DD') : null;
+const DateField = memo(({ value, handleChange, name, maxDate = defaultMaxDate, minDate = defaultMinDate }) => {
+
+    const handleDateChange = (e) => {
+        const selectedDate = e.target.value;
+        handleChange(name, selectedDate);
     };
 
     return (
-        <Form.Item
-            className=''
-            help={!value ? `${capitalizeFirstLetter(replaceDash(name))} is required` : ''}
-            validateStatus={value ? '' : 'error'}
-        >
-            <DatePicker
-                name={name}
-                disabledDate={disabledDate}
-                placeholder={`Select ${replaceDash(name)}`}
-                format='YYYY-MM-DD'
-                value={formatValue(value)}
-                onChange={(date) => setFieldValue(name, date ? date.format('YYYY-MM-DD') : null)}
-            />
-        </Form.Item>
+        <input
+            className={inputContainer}
+            name={name}
+            type="date"
+            defaultValue={defaultMaxDate}
+            min={minDate} 
+            max={maxDate} 
+            value={value} 
+            onChange={handleDateChange} 
+            placeholder={`Select ${replaceDash(name)}`} 
+            required 
+        />
     );
-};
+});
 
 export default DateField;

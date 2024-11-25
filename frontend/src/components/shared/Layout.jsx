@@ -3,7 +3,6 @@ import Sidebar from './Sidebar'
 import Header from './Header'
 import { Outlet } from 'react-router-dom'
 import SmallScreenBar from './SmallScreenBar'
-import ExampleModal from '../modals/AddItemModal'
 import AddAccountModal from '../modals/AddAccountModal'
 import AddItemModal from '../modals/AddItemModal'
 

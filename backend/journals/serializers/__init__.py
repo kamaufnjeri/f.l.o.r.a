@@ -1,8 +1,9 @@
 from .account import AccountDetailsSerializer, AccountSerializer, CategorySerializer, SubCategorySerializer, FixedGroupSerializer
-from .bill import JournalBillSerializer, PurchaseBillSerializer
+from .bill import PurchaseBillSerializer
 from .customer import CustomerSerializer, CustomerDetailSerializer
-from .invoice import JournalInvoiceSerializer, SalesInvoiceSerializer, ServiceIncomeInvoiceSerializer
-from .journal import JournalSerializer, JournalDetailSerializer
+from .invoice import SalesInvoiceSerializer, ServiceIncomeInvoiceSerializer
+from .journal import JournalSerializer
+from .journal_update import JournalDetailSerializer
 from .journal_entries import DetailedJournalEntryEntrySerializer
 from .payment import PaymentSerializer
 from .purchase import PurchaseSerializer, PurchaseDetailSerializer

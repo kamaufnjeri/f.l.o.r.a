@@ -8,7 +8,7 @@ class Supplier(BaseModel):
     phone_number = models.IntegerField()
     account = models.OneToOneField(Account, related_name="supplier", null=True, on_delete=models.CASCADE)
     organisation = models.ForeignKey('Organisation', related_name='suppliers', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='suppliers', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='suppliers', on_delete=models.SET_NULL, null=True)
 
 
     def __str__(self):

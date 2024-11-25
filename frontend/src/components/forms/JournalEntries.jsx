@@ -1,97 +1,98 @@
-import React, { useState } from 'react'
-import { Row, Col, Button } from 'antd';
-import SelectField from '../forms/SelectField';
+import React, { memo, useState, useCallback, useMemo } from 'react';
+import { Button } from 'antd';
 import InputNumberField from '../forms/InputNumberField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
-import { capitalizeFirstLetter } from '../../lib/helpers';
+import { debitCredit } from '../../lib/constants';
+import SearchableSelectField from './SearchableSelectField';
 
 
-const JournalEntries = ({ values, setFieldValue, accounts, debitCreditDiff, minLength = 2 }) => {
-  const [entryTypes] = useState(['debit', 'credit']);
+const JournalEntries = memo(({ values, handleChange, accounts, minLength = 2, isSubmitted }) => {
+
+
+  const debitCreditDiffMemo = useMemo(() => {
+    return (values.journal_entries || []).reduce((acc, entry) => {
+      return entry.debit_credit === 'debit'
+        ? acc + parseFloat(entry.amount || 0)
+        : acc - parseFloat(entry.amount || 0);
+    }, 0);
+  }, [values.journal_entries]);
+
+  const handleAddEntry = useCallback(() => {
+    const updatedEntries = [...values.journal_entries, { account: '', debit_credit: '', amount: 0.0 }];
+    handleChange('journal_entries', updatedEntries);
+  }, [values.journal_entries, handleChange]);
+
+  const handleRemoveEntry = useCallback((index) => {
+    const updatedEntries = values.journal_entries.filter((_, i) => i !== index);
+    handleChange('journal_entries', updatedEntries);
+  }, [values.journal_entries, handleChange]);
+
+  
 
   return (
     <>
-      <Row className='flex flex-row items-start w-[100%] justify-between border-gray-300 border-b-2'>
+      <div className='flex flex-row items-start w-[100%] justify-between border-gray-300 border-b-2'>
         <span className='w-[4%]'>No.</span>
-        <Col className='w-[20%]'>Account</Col>
-        <Col className='w-[20%]'>Debit/Credit</Col>
-        <Col className='w-[20%]'>Amount</Col>
+        <span className='w-[25%]'>Account</span>
+        <span className='w-[20%]'>Debit/Credit</span>
+        <span className='w-[20%]'>Amount</span>
         <span className='w-[20%]'>Remove</span>
-      </Row>
-      {values.journal_entries.map((entry, index) => (
-        <div key={index} style={{ marginBottom: '16px' }}>
-          <Row className='flex flex-row items-start justify-between w-[100%] border-gray-300 border-b-2'>
-            <Col className='w-[4%]'>{index + 1}</Col>
-            <Col className='w-[20%]'>
-              <SelectField
-                value={entry.account}
-                name='account'
-                setFieldValue={setFieldValue}
-                keyName={`journal_entries[${index}].account`}
-                options={accounts.map((account) => ({ value: account.id, label: account.name }))}
-              />
+      </div>
+      {values?.journal_entries?.map((entry, index) => (
+        <div key={index}>
+          <div className='flex flex-row items-start justify-between w-[100%] border-gray-300 border-b-2 h-15 p-2'>
+            <span className='w-[4%]'>{index + 1}</span>
+            <span className='w-[25%]'>
+              <SearchableSelectField isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={accounts} value={entry.account} name={'account'}/>
 
-            </Col>
-            <Col className='w-[20%]'>
-              <SelectField
-                value={entry.debit_credit}
-                name='debit_credit'
-                setFieldValue={setFieldValue}
-                keyName={`journal_entries[${index}].debit_credit`}
-                options={entryTypes.map((entry) => ({ value: entry, label: capitalizeFirstLetter(entry) }))}
-              />
-
-            </Col>
-            <Col className='w-[20%]'>
+             
+            </span>
+            <span className='w-[20%]'>
+            <SearchableSelectField isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={debitCredit} value={entry.debit_credit} name={'debit_credit'}/>
+             
+            </span>
+            <span className='w-[20%]'>
               <InputNumberField
                 value={entry.amount}
-                name='amount'
-                setFieldValue={setFieldValue}
-                step={0.01}
-                keyName={`journal_entries[${index}].amount`}
+                name={'amount'}
+                handleChange={handleChange}
+                index={index}
               />
-
-            </Col>
-            <Col className='w-[20%]'>
-              {values.journal_entries.length > 2 && (
+            </span>
+            <span className='w-[20%]'>
+              {values.journal_entries.length > minLength && (
                 <Button
                   type="danger"
-                  onClick={() => {
-                    const updatedEntries = values.journal_entries.filter((_, i) => i !== index);
-                    setFieldValue('journal_entries', updatedEntries);
-                  }}
+                  onClick={() => handleRemoveEntry(index)}
                 >
                   <FaTimes className='text-red-500 text-xl' />
                 </Button>
               )}
-            </Col>
-          </Row>
+            </span>
+          </div>
         </div>
       ))}
-      <Row className='flex flex-row w-full gap-5'>
-        <Col className='w-[30%]'>
+      <div className='flex flex-row w-full gap-5'>
+        <span className='w-[30%]'>
           <Button
             type="dashed"
             className='w-[80%]'
-            onClick={() => {
-              const updatedEntries = [...values.journal_entries, { account: '', debit_credit: '', amount: 0.0 }];
-              setFieldValue('journal_entries', updatedEntries);
-            }}
+            onClick={handleAddEntry}
           >
             <FaPlus /> Add Entry
           </Button>
-        </Col>{
-
-        }
-        <Col className='w-[20%]'>Total Debit/Credit Difference</Col>
-        <Col className='w-[20%]'>
+        </span>
+        <span className='w-[20%]'>Difference</span>
+        <span className='w-[20%]'>
           <div className='flex justify-end'>
-            <span className={`${debitCreditDiff !== 0 ? 'text-red-500' : ''}`}>Kshs {debitCreditDiff.toFixed(2)}</span>
+            <span className={`${debitCreditDiffMemo !== 0 ? 'text-red-500' : ''}`}>
+              Kshs {debitCreditDiffMemo.toFixed(2)}
+            </span>
           </div>
-        </Col>
-      </Row>
+        </span>
+      </div>
     </>
-  )
-}
+  );
+});
 
-export default JournalEntries
+export default JournalEntries;

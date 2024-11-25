@@ -274,8 +274,8 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             has_entries = False
             
             for data in serializer.data.get('account_data', {}).get('entries', []):
-                amount = data.get('amount', 0)
-                entry_type = data.get('entry_type')
+                amount = float(data.get('amount', 0))
+                entry_type = data.get('details').get('type')
                 if entry_type not in ('Opening balance', 'Closing balance') and amount > 0:
                     has_entries = True
                     break
@@ -300,6 +300,7 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

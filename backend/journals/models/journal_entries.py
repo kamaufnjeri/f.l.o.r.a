@@ -16,14 +16,14 @@ class JournalEntries(BaseModel):
     )
     amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     debit_credit = models.CharField(max_length=200, choices=DEBIT_CREDIT)
-    account = models.ForeignKey(Account, related_name='journal_entries', on_delete=models.CASCADE)
-    journal = models.ForeignKey(Journal, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
-    purchase = models.ForeignKey(Purchase, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
-    sales = models.ForeignKey(Sales, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
-    purchase_return = models.ForeignKey(PurchaseReturn, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
-    sales_return = models.ForeignKey(SalesReturn, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
-    payments = models.ForeignKey(Payment, related_name="journal_entries", on_delete=models.CASCADE, blank=True, null=True)
-    service_income = models.ForeignKey(ServiceIncome, related_name='journal_entries', on_delete=models.CASCADE, blank=True, null=True)
+    account = models.ForeignKey(Account, related_name='journal_entries', on_delete=models.SET_NULL, null=True)
+    journal = models.ForeignKey(Journal, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    purchase = models.ForeignKey(Purchase, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    sales = models.ForeignKey(Sales, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    purchase_return = models.ForeignKey(PurchaseReturn, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    sales_return = models.ForeignKey(SalesReturn, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    payments = models.ForeignKey(Payment, related_name="journal_entries", on_delete=models.CASCADE, null=True)
+    service_income = models.ForeignKey(ServiceIncome, related_name='journal_entries', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.debit_credit

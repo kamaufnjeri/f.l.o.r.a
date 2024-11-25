@@ -184,8 +184,13 @@ export const replaceDash= (string) => {
 
 export const getQueryParams = (data) => {
   const {type, paginate=true, search, date, sortBy, typeValue} = data;
-  let queryParams = `?search=${search}&${type}=${typeValue}&date=${date}&sort_by=${sortBy}`
+  let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}`
 
+  if (type && typeValue) {
+    const typeUrl = `&${type}=${typeValue}`
+    queryParams.concat(typeUrl)
+
+  }
   if (paginate) {
     const paginate = '&paginate=true'
     queryParams = queryParams.concat(paginate);

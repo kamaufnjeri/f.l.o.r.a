@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Button, Form } from 'antd';
 import * as Yup from 'yup'
 import { Formik } from 'formik';
@@ -7,18 +7,55 @@ import { getItems, getQueryParams } from '../../lib/helpers';
 import { useParams } from 'react-router-dom';
 
 
-const validationSchema = Yup.object({
-    from: Yup.date().required('Date is required'),
-    to: Yup.date().required('Date is required'),
 
-})
-
-const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, setData, setPageNo=null, type }) => {
+const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, setData, setPageNo = null, type }) => {
     const handleCancel = () => {
         setOpenModal(false);
 
     };
     const { orgId } = useParams();
+    const [formData, setFormData] = useState({
+        from: '',
+        to: ''
+    });
+
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({...prev, [field]: value}))
+    };
+
+   
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const customRange = `${formData.from}to${formData.to}`
+        setSearchItem({ ...searchItem, date: customRange });
+        let queryParamsUrl = ''
+        if (type.includes('stocks')) {
+            queryParamsUrl = `?date=${customRange}`
+
+        } else {
+            queryParamsUrl = getQueryParams({
+                type: type,
+                paginate: true,
+                search: '',
+                date: customRange,
+                sortBy: searchItem.sortBy,
+                typeValue: searchItem[type]
+            })
+        }
+
+        const newData = await getItems(`${orgId}/${type}`, queryParamsUrl);
+        setData(newData);
+        if (setPageNo) {
+            setPageNo(1);
+
+        }
+        setFormData({
+            from: '',
+            to: ''
+        })
+        setOpenModal(false)
+        handleCancel();
+    }
 
 
     return (
@@ -35,68 +72,30 @@ const FromToDateModal = ({ openModal, setOpenModal, setSearchItem, searchItem, s
                     </Button>
                 }
             >
-                <Formik
-                    validationSchema={validationSchema}
-                    initialValues={{
-                        from: '',
-                        to: ''
-                    }}
-                    onSubmit={async (values, { resetForm }) => {
-                        const customRange = `${values.from}to${values.to}`
-                        setSearchItem({ ...searchItem, date: customRange });
-                        let queryParamsUrl = ''
-                        if (type.includes('stocks')) {
-                            queryParamsUrl = `?date=${customRange}`
-                            
-                        } else {
-                            queryParamsUrl = getQueryParams({
-                                type: type,
-                                paginate: true,
-                                search: '',
-                                date: customRange,
-                                sortBy: searchItem.sortBy,
-                                typeValue: searchItem[type]
-                            })
-                        }
-                       
-                        const newData = await getItems(`${orgId}/${type}`, queryParamsUrl);
-                        setData(newData);
-                        if (setPageNo) {
-                            setPageNo(1);
 
-                        }
-                        resetForm();
-                        setOpenModal(false)
-                        handleCancel();
-                    }}
+                <form
+                    onSubmit={handleSubmit}
+                    className='flex flex-col gap-2'
                 >
-                    {({ values, setFieldValue, handleSubmit, touched }) => {
-                        return (
-                            <Form
-                                onFinish={handleSubmit}
-                                className='flex flex-col gap-2'
-                            >
-                                <div className='flex flex-row gap-5 items-start'>
-                                    <div className='flex flex-row gap-5 items-start w-full'>
-                                        <label htmlFor="date" className='w-[15%]'>From</label>
-                                        <DateField className='w-[80%]' value={values.from} setFieldValue={setFieldValue} name='from' />
-                                    </div>
-                                    <div className='flex flex-row gap-5 items-start w-full'>
-                                        <label htmlFor="date" className='w-[15%]'>To</label>
-                                        <DateField className='w-[80%]' value={values.to} setFieldValue={setFieldValue} name='to' />
-                                    </div>
-                                </div>
+                    <div className='flex flex-row gap-5 items-start'>
+                        <div className='flex flex-row gap-5 items-start w-full'>
+                            <label htmlFor="date" className='w-[15%]'>From</label>
+                            <DateField handleChange={handleChange} className='w-[80%]' value={formData.from} name='from' />
+                        </div>
+                        <div className='flex flex-row gap-5 items-start w-full'>
+                            <label htmlFor="date" className='w-[15%]'>To</label>
+                            <DateField className='w-[80%]' handleChange={handleChange} name='to'  value={formData.to}/>
+                        </div>
+                    </div>
 
 
-                                <Button type="primary" className='w-[30%] self-center' htmlType="submit">
-                                    Submit
-                                </Button>
-                            </Form>
-                        )
-                    }}
+                    <Button type="primary" className='w-[30%] self-center' htmlType="submit">
+                        Submit
+                    </Button>
+                </form>
 
-                </Formik>
-            </Modal>
+
+            </Modal >
         </>
     );
 };

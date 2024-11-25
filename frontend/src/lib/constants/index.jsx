@@ -3,6 +3,11 @@ import { IoMdSettings, IoMdHelp  } from "react-icons/io";
 import { MdWork } from 'react-icons/md';
 
 
+
+export const debitCredit = [
+    { name: "Debit", id: 'debit' },
+    { name: "Credit", id: 'credit' },
+]
 export const dueDaysOptions = [
     {
         name: "All", 
@@ -155,14 +160,6 @@ export const sidebarIcons = [
         {
             name: 'Record journal',
             url: 'journals/record'
-        },
-        {
-            name: 'Journal invoice',
-            url: 'journals/invoice',
-        },
-        {
-            name: 'Journal bill',
-            url: 'journals/bill'
         },
         {
             name: 'View journals',

@@ -12,7 +12,6 @@ class AccountUtils:
 
         _, debit_total, credit_total = self.get_account_entries(before_date=start_date)
 
-        print('start date', start_date)
 
         if self.account.opening_balance and self.account.opening_balance > 0:
             if self.account.opening_balance_type == 'debit':

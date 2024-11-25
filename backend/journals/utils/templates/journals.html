@@ -53,10 +53,9 @@
     <section>
         <table>
             <thead>
-                <tr style="border-bottom: 3px;">
+                <tr>
                     <th>Journal #</th>
                     <th>Date</th>
-                    <th>Type</th>
                     <th colspan="2">Description</th>
                     <th>Debit ({{ organisation.currency }})</th>
                     <th>Credit ({{ organisation.currency }})</th>
@@ -76,9 +75,7 @@
                         {% if first_entry %}
                             <td>{{ journal.get('serial_number') }}</td>
                             <td >{{ journal.get('date') }}</td>
-                            <td >{{ journal.get('type') }}</td>
                         {% else %}
-                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                         {% endif %}
@@ -107,7 +104,6 @@
                     </tr>
                     {% endfor %}
                     <tr style="border-bottom: 3px;">
-                        <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td colspan="2"><i>({{ journal.get('description') }})</i></td>

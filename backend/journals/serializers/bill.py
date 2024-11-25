@@ -14,45 +14,6 @@ purchase_entries_manager = PurchaseEntriesManager()
 
 
 
-class JournalBillSerializer(JournalSerializer):
-    bill = BillSerializer(write_only=True)
-
-    class Meta:
-        model = Journal
-        fields = JournalSerializer.Meta.fields
-
-    def validate(self, data):
-        journal_entries = data.get('journal_entries')
-        journal_entries_manager.validate_journal_entries(journal_entries)
-        return data
-    
-    def create(self, validated_data):
-        print(validated_data)
-
-        with transaction.atomic():
-            journal_entries = validated_data.pop('journal_entries')
-            bill = validated_data.pop('bill')
-            supplier_id = bill.get('supplier')
-            try:
-                supplier = Supplier.objects.get(id=supplier_id.id)
-            except Supplier.DoesNotExist:
-                raise serializers.ValidationError(f"Supplier with ID {supplier_id} not found")
-            bill['supplier'] = supplier
-            amount_due = bill.get('amount_due')
-            journal = Journal.objects.create(**validated_data)
-
-            bill = Bill.objects.create(journal=journal, total_amount=amount_due, status="unpaid", organisation=validated_data.get('organisation'), user=validated_data.get('user'), **bill)
-
-            account = supplier.account
-
-            journal_entries.append({
-                "amount": amount_due,
-                "debit_credit": "credit",
-                "account": account.id
-            })
-            journal_entries_manager.create_journal_entries(journal_entries, "journal", journal, AccountDetailsSerializer)
-
-        return journal
 
 class PurchaseBillSerializer(PurchaseSerializer):
     journal_entries = JournalEntrySerializer(many=True, required=False)

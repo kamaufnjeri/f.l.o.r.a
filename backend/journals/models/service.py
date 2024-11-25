@@ -5,7 +5,7 @@ class Service(BaseModel):
     name = models.CharField(max_length=200)
     description = models.TextField()
     organisation = models.ForeignKey('Organisation', related_name='services', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='user', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='user', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -15,7 +15,7 @@ class ServiceIncome(BaseModel):
     description = models.TextField()
     serial_number = models.CharField(max_length=200)
     organisation = models.ForeignKey('Organisation', related_name='service_incomes', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='service_incomes', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='service_incomes', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.serial_number

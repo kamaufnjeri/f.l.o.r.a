@@ -18,42 +18,7 @@ service_income_entries_manager = ServiceIncomeEntriesManager()
 
 
 
-class JournalInvoiceSerializer(JournalSerializer):
-    invoice = InvoiceSerializer()
-    class Meta:
-        model = Journal
-        fields = JournalSerializer.Meta.fields
 
-    def validate(self, data):
-        journal_entries = data.get('journal_entries')
-        journal_entries_manager.validate_journal_entries(journal_entries)
-        return data
-    
-    def create(self, validated_data):
-        with transaction.atomic():
-            
-            journal_entries = validated_data.pop('journal_entries')
-            invoice = validated_data.pop('invoice')
-            customer_id = invoice.get('customer')
-            try:
-                customer = Customer.objects.get(id=customer_id.id)
-            except Customer.DoesNotExist:
-                raise serializers.ValidationError(f"Customer with ID {customer_id} not found")
-            invoice['customer'] = customer
-            amount_due = invoice.get('amount_due')
-            journal = Journal.objects.create(**validated_data)
-            invoice = Invoice.objects.create(journal=journal, total_amount=amount_due, status="unpaid", organisation=validated_data.get('organisation'), user=validated_data.get('user'), **invoice)
-
-            account = customer.account
-
-            journal_entries.append({
-                "amount": amount_due,
-                "debit_credit": "debit",
-                "account": account.id
-            })
-            journal_entries_manager.create_journal_entries(journal_entries, "journal", journal, AccountDetailsSerializer)
-
-        return journal
     
 class SalesInvoiceSerializer(SalesSerializer):
     journal_entries = JournalEntrySerializer(many=True, required=False)

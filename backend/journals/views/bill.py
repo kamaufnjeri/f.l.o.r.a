@@ -3,7 +3,7 @@ from django.db import models
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
 from journals.models import Journal, Bill, Purchase, Payment
-from journals.serializers import JournalBillSerializer, PurchaseBillSerializer, BillDetailSerializer, PaymentSerializer
+from journals.serializers import PurchaseBillSerializer, BillDetailSerializer, PaymentSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -151,34 +151,6 @@ class PurchaseBillAPIView(generics.CreateAPIView):
 
 
 
-class JournalBillAPIView(generics.CreateAPIView):
-    queryset = Journal.objects.filter(bill__isnull=False)
-    serializer_class = JournalBillSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
-
-
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer_data = request.data.copy()
-            serializer_data['organisation'] = kwargs.get('organisation_id')
-            serializer_data['user'] = request.user.id
-            serializer = self.serializer_class(data=serializer_data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            errors = flatten_errors(e.detail)
-            print(f"Validation Error: {e.detail}") 
-            return Response({
-                'error': 'Bad Request',
-                'details': errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Internal Error: {e}") 
-            return Response({
-                'error': 'Internal server error',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class BillPaymentsApiView(generics.ListAPIView):

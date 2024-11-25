@@ -7,7 +7,6 @@ from journals.constants import STATUS
 
 
 class Bill(BaseModel):
-    journal = models.OneToOneField(Journal, related_name='bill', blank=True, null=True, on_delete=models.CASCADE)
     purchase = models.OneToOneField(Purchase, related_name='bill', blank=True, null=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=200, choices=STATUS)
     due_date = models.DateField()
@@ -17,7 +16,7 @@ class Bill(BaseModel):
     supplier = models.ForeignKey(Supplier, related_name='bills', on_delete=models.CASCADE)
     serial_number = models.CharField(max_length=200)
     organisation = models.ForeignKey('Organisation', related_name='bills', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='bills', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='bills', on_delete=models.SET_NULL, null=True)
 
 
     def __str__(self):
