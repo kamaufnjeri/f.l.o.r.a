@@ -40,7 +40,7 @@ class SupplierSerializer(serializers.ModelSerializer):
                     belongs_to = SubCategory.objects.get(category__organisation=data.get('organisation'), value="accounts_payable")
                 except SubCategory.DoesNotExist:
                     raise serializers.ValidationError(f"Accounts Payable account not found")
-                account = Account.objects.create(name=f"{data.get('name')} a/c", organisation=data.get('organisation'), user=data.get('user'), belongs_to=belongs_to)
+                account = Account.objects.create(name=f"{data.get('name')}", organisation=data.get('organisation'), user=data.get('user'), belongs_to=belongs_to)
                 supplier = Supplier.objects.create(account=account, **data)
 
                 return supplier

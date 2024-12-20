@@ -5,6 +5,7 @@ import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../context/AuthContext';
 
 const SingleJournal = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const SingleJournal = () => {
   const [isVisible, setIsVisible] = useState(false);
   const { orgId } = useParams();
   const navigate = useNavigate();
+  const { currentOrg } = useAuth();
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -69,7 +71,7 @@ const SingleJournal = () => {
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
             
-            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadJournalPDF}>
+            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadJournalPDF}>
               Download
             </button>
             <Link to='edit' className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
@@ -92,8 +94,8 @@ const SingleJournal = () => {
           <span className='w-full border-gray-800 border-r-2 flex flex-col'>
             <div className='w-full flex flex-row flex-1'>
               <span className='w-[60%] p-1'>Description</span>
-              <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
-              <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
+              <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit ({ currentOrg.currency })</span>
+              <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit ({ currentOrg.currency })</span>
             </div>
 
           </span>
@@ -104,13 +106,13 @@ const SingleJournal = () => {
             {journal.journal_entries && journal.journal_entries.map((entry, index) =>
               <div className={`flex flex-row flex-1`} key={index}>
                 <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
+                <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
+                <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
               </div>)}
             <div className={`flex flex-row flex-1`}>
               <i className='text-sm w-[60%] p-1'>({journal.description})</i>
-              <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.debit_total}</span>
-              <span className='w-[20%] border-gray-800 border-l-2 underline p-1'>{journal?.journal_entries_total?.credit_total}</span>
+              <span className='w-[20%] border-gray-800 border-l-2 underline p-1 text-right'>{journal?.journal_entries_total?.debit_total}</span>
+              <span className='w-[20%] border-gray-800 border-l-2 underline p-1 text-right'>{journal?.journal_entries_total?.credit_total}</span>
             </div>
           </span>
         </div>

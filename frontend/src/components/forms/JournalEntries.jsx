@@ -18,7 +18,7 @@ const JournalEntries = memo(({ values, handleChange, accounts, minLength = 2, is
   }, [values.journal_entries]);
 
   const handleAddEntry = useCallback(() => {
-    const updatedEntries = [...values.journal_entries, { account: '', debit_credit: '', amount: 0.0 }];
+    const updatedEntries = [...values.journal_entries, { account: '', debit_credit: '', amount: 0.0, type: 'journal' }];
     handleChange('journal_entries', updatedEntries);
   }, [values.journal_entries, handleChange]);
 

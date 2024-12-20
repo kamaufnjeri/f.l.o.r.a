@@ -48,6 +48,20 @@ class SalesFilter(DjangoFilterBackend):
         except Exception as e:
             raise Exception(str(e))
 
+def get_totals(data):
+    total_amount = sum(float(sale.get('details').get('total_amount')) for sale in data)
+    total_quantity = sum(float(sale.get('details').get('total_quantity')) for sale in data)
+    amount_due = sum(float(sale.get('details').get('amount_due')) for sale in data)
+
+    return {
+        "sales": data,
+        "totals": {
+            "amount": total_amount,
+            "quantity": total_quantity,
+            "amount_due": amount_due
+        }
+    }
+
 class SalesAPIView(generics.ListCreateAPIView):
     queryset = Sales.objects.all().order_by('created_at')
     serializer_class = SalesSerializer
@@ -65,17 +79,19 @@ class SalesAPIView(generics.ListCreateAPIView):
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_totals(serialized_data)
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "message": "Sales retrieved successfully with pagination",
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -84,6 +100,7 @@ class SalesAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -101,13 +118,13 @@ class SalesAPIView(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
-            print(f"Validation Error: {e.detail}") 
+            print(f"Validation Error: {errors}") 
             return Response({
                 'error': 'Bad Request',
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Internal Error: {e}") 
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -128,9 +145,10 @@ class DownloadSalesAPIView(generics.ListCreateAPIView):
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_totals(serialized_data)
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='purchases.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='sales.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')
@@ -155,6 +173,110 @@ class DownloadSalesAPIView(generics.ListCreateAPIView):
 class SalesDetailAPIView(generics.RetrieveAPIView):
     serializer_class = SalesDetailSerializer
     queryset = Sales.objects.all()
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+
+    def get(self, request, *args, **kwargs):
+        sale_id = kwargs.get('pk')
+
+        try:
+            sale = self.get_object()
+            context = self.get_serializer_context()
+
+            date_param = request.query_params.get('date', None)
+            if date_param:
+                context['date'] = date_param
+
+            serializer = self.get_serializer(sale, context=context)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Sales.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The sale of ID {sale_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+      
+    def patch(self, request, *args, **kwargs):
+        sale_id = kwargs.get('pk')
+        try:
+            partial = kwargs.pop('partial', True)
+            data = request.data.copy()
+            instance = self.get_object()
+            if request.user != instance.user:
+                raise serializers.ValidationError(f"Sales {sale_id} can only be edited by user who recorded it")
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Sales.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The sale of ID {sale_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def delete(self, request, *args, **kwargs):
+        sale_id = kwargs.get('pk')
+
+        try:
+            instance = self.get_object()
+
+            if request.user != instance.user:
+                raise serializers.ValidationError(f"Sales {sale_id} can only be deleted by user who recorded it")
+            
+            instance.delete() 
+            return Response({"detail": "Sales item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            
+        except Sales.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The sale with ID {sale_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 class SalesSalesReturnsApiView(generics.ListAPIView):
     serializer_class = SalesReturnSerializer

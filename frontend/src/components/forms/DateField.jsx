@@ -19,10 +19,9 @@ const DateField = memo(({ value, handleChange, name, maxDate = defaultMaxDate, m
             className={inputContainer}
             name={name}
             type="date"
-            defaultValue={defaultMaxDate}
             min={minDate} 
             max={maxDate} 
-            value={value} 
+            value={value || ""} 
             onChange={handleDateChange} 
             placeholder={`Select ${replaceDash(name)}`} 
             required 

@@ -33,7 +33,6 @@ class GenerateSinglePDF:
             'author_full': self.author_full,
             'logo_path': self.logo_path,
             'sub_header_data': self.get_sub_header_data(),
-            'sub_footer_data': self.get_sub_footer_data(),
             'data': self.data,
             'date': self.generated_date,
             'time': self.generated_time,
@@ -77,15 +76,16 @@ class GenerateSinglePDF:
             key = ''
             if invoice_bill.get('customer_name'):
                 data['Customer'] = invoice_bill.get('customer_name')
-                key = 'Invoice #'
+                key = ''
                 
             else:
                 data['Supplier'] =  invoice_bill.get('supplier_name')
-                key = 'Bill #'
+                key = ''
 
-            data[key] = invoice_bill.get('serial_number')
             data['Due Date'] = invoice_bill.get('due_date')
             data['Status'] = self.capitalize(invoice_bill.get('status'))
+            data[key] = ''
+
 
         return data
     
@@ -93,42 +93,4 @@ class GenerateSinglePDF:
     def capitalize(self, name):
         return name.title().replace('_', ' ')
     
-    def get_sub_footer_data(self):
-        from collections import OrderedDict
-        import re
-        data = {}
-
-        invoice_bill = self.data.get('invoice') or self.data.get('bill') or None
-
-        if invoice_bill:
-            data['Amount Paid'] = invoice_bill.get('amount_paid')
-            data['Amount Due'] = f"{self.organisation.currency} {invoice_bill.get('amount_due')}"
-
-        items_data =  self.data.get('items_data')
-        
-        discount =  self.data.get('discount_allowed') or self.data.get('discount_received') or None
-        if discount:
-            data[f"Discount {discount.get('discount_percentage')}%"] = discount.get('discount_amount')
-
-        returns_total = self.data.get('returns_total', 0)  # Default to 0 if not found
-        returns_total = float(returns_total) if returns_total is not None else 0.0
-        
-        if returns_total and returns_total> 0:
-            data['Returns'] =  self.data.get('returns_total')
-
-        if items_data:
-            data['Sub Total'] = items_data.get('total_amount')
-            if items_data.get('cash'):
-                data['Amount Paid'] = items_data.get('cash')
-            data['Total'] = f"{self.organisation.currency} {items_data.get('total_amount')}"
-
-        ordered_data = OrderedDict()
-
-        keys_order = ['Sub Total'] + [key for key in data if re.match(r'^Discount', key)] + ['Returns', 'Amount Paid', 'Amount Due', 'Total']
-
-
-        for key in keys_order:
-            if key in data:
-                ordered_data[key] = data[key]
-
-        return ordered_data
+   

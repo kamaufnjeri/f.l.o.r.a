@@ -2,8 +2,8 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
 from django.db import models
-from journals.models import Journal, Sales, Invoice, Payment, ServiceIncome
-from journals.serializers import SalesInvoiceSerializer, InvoiceDetailSerializer, PaymentSerializer, ServiceIncomeInvoiceSerializer
+from journals.models import  Sales, Invoice, Payment, ServiceIncome
+from journals.serializers import InvoiceDetailSerializer, PaymentsDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -11,8 +11,7 @@ from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
-from .journal import get_totals
-
+from django.shortcuts import get_object_or_404
 
 class InvoicePagination(PageNumberPagination):
     page_size = 10
@@ -31,8 +30,13 @@ class InvoiceFilter(DjangoFilterBackend, SearchFilter):
 
         if search:
             queryset = queryset.filter(models.Q(
-                serial_number__icontains=search
-            ) | models.Q(customer__name__icontains=search))
+                models.Q(
+                    sales__serial_number__icontains=search) | models.Q(
+                    service_income__serial_number__icontains=search
+                )
+            ) | models.Q(customer__name__icontains=search)).exclude(
+                sales=None, service_income=None
+            )
 
         if status:
             queryset = status_filtering(queryset, status)
@@ -41,7 +45,18 @@ class InvoiceFilter(DjangoFilterBackend, SearchFilter):
             queryset = due_days_filtering(queryset, due_days)
             
         return queryset
-        
+
+def get_invoices_totals(data):
+    amount_due = sum(float(bill.get('amount_due')) for bill in data)
+    amount_paid = sum(float(bill.get('amount_paid')) for bill in data)
+
+    return {
+        "invoices": data,
+        "totals": {
+            "amount_paid": amount_paid,
+            "amount_due": amount_due
+        }
+    }    
 class InvoiceApiView(generics.ListAPIView):
     queryset = Invoice.objects.all().order_by('created_at')
     serializer_class = InvoiceDetailSerializer
@@ -52,24 +67,32 @@ class InvoiceApiView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+            queryset = self.filter_queryset(
+                self.get_queryset().filter(
+                    models.Q(sales__organisation=request.user.current_org) |
+                    models.Q(service_income__organisation=request.user.current_org)
+                ).exclude(sales=None, service_income=None)
+            )
+
             paginate = request.query_params.get('paginate')
 
             if paginate:
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_invoices_totals(serialized_data)
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_invoices_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -95,14 +118,20 @@ class DownloadInvoiceApiView(generics.ListAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+            queryset = self.filter_queryset(
+                self.get_queryset().filter(
+                    models.Q(sales__organisation=request.user.current_org) |
+                    models.Q(service_income__organisation=request.user.current_org)
+                ).exclude(sales=None, service_income=None)
+            )
 
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_invoices_totals(serialized_data)
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='invoices.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='invoices.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')
@@ -124,66 +153,31 @@ class DownloadInvoiceApiView(generics.ListAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class SalesInvoiceAPIView(generics.CreateAPIView):
-    queryset = Sales.objects.filter(invoice__isnull=False)
-    serializer_class = SalesInvoiceSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+def get_payments_totals(data, pk=None):
+    amount_paid = sum(float(payment.get('amount_paid')) for payment in data)
 
+    title = ''
 
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer_data = request.data.copy()
-            serializer_data['organisation'] = kwargs.get('organisation_id')
-            serializer_data['user'] = request.user.id
-            serializer = self.serializer_class(data=serializer_data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            errors = flatten_errors(e.detail)
-            print(f"Validation Error: {e.detail}") 
-            return Response({
-                'error': 'Bad Request',
-                'details': errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Internal Error: {e}") 
-            return Response({
-                'error': 'Internal server error',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    if pk:
+        invoice = get_object_or_404(Invoice, pk=pk)
+        if hasattr(invoice, "sales") and invoice.sales is not None:
 
+            title = f"Payments for sales # {invoice.sales.serial_number}"
 
-class ServiceIncomeInvoiceAPIView(generics.CreateAPIView):
-    queryset = ServiceIncome.objects.filter(invoice__isnull=False)
-    serializer_class = ServiceIncomeInvoiceSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+        elif hasattr(invoice, "service_income") and invoice.service_income is not None:
 
+            title = f"Payments for service income # {invoice.service_income.serial_number}"
 
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer_data = request.data.copy()
-
-            serializer_data['organisation'] = kwargs.get('organisation_id')
-            serializer_data['user'] = request.user.id
-            serializer = self.serializer_class(data=serializer_data)
-
-            serializer.is_valid(raise_exception=True)
-
-
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            errors = flatten_errors(e.detail)
-            print(f"Validation Error: {e.detail}") 
-            return Response({
-                'error': 'Bad Request',
-                'details': errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-      
+    return {
+        "title": title,
+        "payments": data,
+        "totals": {
+            "amount_paid": amount_paid,
+        }
+    }
 
 class InvoicePaymentsApiView(generics.ListAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = InvoicePagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
@@ -200,16 +194,8 @@ class InvoicePaymentsApiView(generics.ListAPIView):
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
-                    debit_total, credit_total = get_totals(serialized_data.data)
-
-                    data = {
-                    "payments": serialized_data.data,
-                        "totals": {
-                            "debit_total": debit_total,
-                            "credit_total": credit_total
-                        }
-                    }
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_payments_totals(serialized_data, pk)
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Payments retrieved successfully with pagination",
@@ -217,9 +203,11 @@ class InvoicePaymentsApiView(generics.ListAPIView):
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_payments_totals(serialized_data, pk)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -228,6 +216,7 @@ class InvoicePaymentsApiView(generics.ListAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -235,7 +224,7 @@ class InvoicePaymentsApiView(generics.ListAPIView):
 
 
 class DownloadInvoicePaymentsApiView(generics.ListAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = InvoicePagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
@@ -248,19 +237,11 @@ class DownloadInvoicePaymentsApiView(generics.ListAPIView):
            
             title = request.data.get('title')
           
-            serializer = self.get_serializer(data, many=True)
-            
-            debit_total, credit_total = get_totals(serializer.data)
-            data = {
-                        "payments": serializer.data,
-                        "totals": {
-                            "debit_total": debit_total,
-                            "credit_total": credit_total
-                        }
-                    }
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_payments_totals(serialized_data)
 
 
-            pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='payments.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='single_payments.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

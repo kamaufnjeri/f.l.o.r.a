@@ -12,9 +12,13 @@ import FromToDateModal from '../../components/modals/FromToDateModal';
 import TypesFilter from '../../components/filters/TypesFilter';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import { useAuth } from '../../context/AuthContext';
 
 const Payments = () => {
     const [openDateModal, setOpenDateModal] = useState(false);
+    const { currentOrg } = useAuth();
+    const [header, setHeader] = useState('Payments')
+
     const [searchItem, setSearchItem] = useState({
         name: '',
         type: "",
@@ -26,8 +30,8 @@ const Payments = () => {
 
     const [selectOptions, setSelectOptions] = useState([
         { name: "All", value: "all" },
-        { name: "Invoices", value: "invoices" },
-        { name: "Bills", value: "bills" },
+        { name: "Invoices", value: "is_invoices" },
+        { name: "Bills", value: "is_bills" },
     ])
 
     const [isVisible, setIsVisible] = useState(false);
@@ -46,6 +50,8 @@ const Payments = () => {
     const getData = async () => {
         const newPaymentsData = await getItems(`${orgId}/payments`, `?paginate=true`);
         setPaymentsData(newPaymentsData);
+        setHeader('Payments')
+
     }
     useEffect(() => {
 
@@ -126,6 +132,8 @@ const Payments = () => {
         const newPaymentsData = await getItems(`${orgId}/payments`, queyParamsUrl);
         setPaymentsData(newPaymentsData);
         setPageNo(1);
+        setHeader(`Payments matching '${searchItem.name}'`)
+
         setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }));
     }
     const nextPage = async () => {
@@ -182,11 +190,10 @@ const Payments = () => {
                 setPageNo={setPageNo}
                 type='payments'
             />
-            <FormHeader header='Payments List' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-1'>
-                    <div className='w-[90%] relative h-[90%] flex flex-row gap-1'>
-                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter bill/invoice number or description' value={searchItem.name} onChange={e => handleChange(e)} />
+                    <div className='w-[88%] relative h-[90%] flex flex-row gap-1'>
+                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter serial number or description' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
                                 <TypesFilter handleTypesChange={handleTypesChange} searchItem={searchItem} selectOptions={selectOptions} type='type' />
@@ -199,17 +206,18 @@ const Payments = () => {
                                 <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
                             </div>
                         </div>
-                        {payments.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+                        {payments?.payments?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {payments.map((payment) => (<Link to={`/dashboard/${orgId}/${payment?.payment_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{
-                                payment?.payment_data?.serial_no
+                            {payments.payments.map((payment) => (<Link to={`/dashboard/${orgId}${payment?.details?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{
+                                payment?.details?.serial_number
                             }</Link>))}
                         </div>}
                     </div>
 
                     <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
                 </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+
+                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
                 <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
                     <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -219,57 +227,49 @@ const Payments = () => {
                     </button>
                 </div>
             </div>
+            <FormHeader header={header} />
 
 
             <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>Payment #</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Bill/Invoice #</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Serial No #</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Amount Paid</span>
-                    <span className='w-[50%] border-gray-800 border-r-2 flex flex-col'>
-                        <div className='flex flex-row flex-1'>
-                            <span className='w-[60%] p-1'>Description</span>
-                            <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit</span>
-                            <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit</span>
-                        </div>
+                    <span className='w-[30%] border-gray-800 border-r-2 flex flex-col'>
+                    Description
 
                     </span>
+                    <span className='w-[20%] border-gray-800 border-r-2 p-1 '>Amount Paid ({ currentOrg.currency })</span>
+                   
 
 
                 </div>
                 {paymentsData?.results?.data && paymentsData.results.data.payments.map((payment, index) => (
-                    <Link to={`/dashboard/${orgId}/${payment?.payment_data?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
+                    <Link to={`/dashboard/${orgId}${payment?.details?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{payment?.payment_data?.serial_no}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{payment.date}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(payment?.payment_data?.type)}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{payment.amount_paid}</span>
-
-                        <span className='w-[50%] border-gray-800 border-r-2 flex flex-col'>
-                            {payment.journal_entries.map((entry, index) =>
-                                <div className={`flex flex-row flex-1`} key={index}>
-                                    <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                                    <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
-                                </div>)}
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{payment?.details?.serial_number}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{payment.date}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(payment?.details?.type)}</span>
+                        <span className='w-[30%] border-gray-800 border-r-2 flex flex-col'>
+                            
                             <div className={`flex flex-row flex-1`}>
                                 <i className='text-sm w-[60%] p-1'>({payment.description})</i>
-
                             </div>
                         </span>
 
+                        <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{payment.amount_paid}</span>
+
+                       
 
                     </Link>
                 ))}
                 {paymentsData?.results?.data?.totals && <span className='text-right text-xl font-bold w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer'>
 
 
-                    <span className='w-[81%] border-gray-800 border-r-2 p-1 underline '>Total</span>
+                    <span className='w-[80%] border-gray-800 border-r-2 p-1 underline '>Total</span>
 
-                    <span className='w-[9.5%] border-gray-800 border-r-2 p-1 underline'>{paymentsData?.results?.data?.totals.credit_total}</span>
-                    <span className='w-[9.5%] border-gray-800 border-r-2 p-1 underline'>{paymentsData?.results?.data?.totals.debit_total}</span>
+                    <span className='w-[20%] border-gray-800 border-r-2 p-1 underline'>{paymentsData?.results?.data?.totals.amount_paid}</span>
 
 
                 </span>}

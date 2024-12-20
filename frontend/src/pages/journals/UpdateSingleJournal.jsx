@@ -30,7 +30,7 @@ const UpdateSingleJournal = () => {
   useEffect(() => {
 
     getData();
-  }, []);
+  }, [orgId, id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,13 +38,16 @@ const UpdateSingleJournal = () => {
 
     const response = await patchRequest(formData, `${orgId}/journals/${id}`);
     if (response.success) {
-
       getSelectOptions();
 
+      setIsSubmitted(true);
       setFormData(response.data);
       toast.success('Edited: Journal edited successfully');
+      setTimeout(() => setIsSubmitted(false), 500);
+
     } else {
       toast.error(`${response.error}`);
+      getData();
     }
     setIsLoading(false);
 
@@ -65,7 +68,7 @@ const UpdateSingleJournal = () => {
   useEffect(() => {
     
     scrollBottom(scrollRef);
-  }, [formData]);
+  }, [formData.journal_entries]);
 
 
  
@@ -86,7 +89,7 @@ const UpdateSingleJournal = () => {
           </div>
           <div className="w-[80%]">
             <FormInitialField
-              values={formData}
+              formData={formData}
               handleChange={handleChange}
             />
           </div>

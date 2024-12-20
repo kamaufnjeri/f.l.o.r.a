@@ -35,7 +35,7 @@ const Stocks = () => {
     setStocksData(newStocksData);
     setHeader('Stocks')
 
-    searchItem({ name: '',  search: ''})
+    setSearchItem({ name: '',  search: ''})
 }
   useEffect(() => {
    
@@ -95,8 +95,8 @@ const Stocks = () => {
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
         <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Search stocks by name' value={searchItem.name} onChange={e => handleChange(e)} />
         <button className='w-[30%] border-2 bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
-        {stocks.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
-          {stocks.map((stock) => (<Link  to={`${stock.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{stock.name}</Link>))}
+        {stocks?.stocks?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+          {stocks.stocks.map((stock) => (<Link  to={`${stock.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1' key={stock.id}>{stock.name}</Link>))}
         </div>}
       </form>
       <div onClick={getData} className='self-end p-1 cursor-pointer w-[10%] hover:text-purple-800 hover:border-purple-800 font-bold rounded-md border-2 border-gray-800'>
@@ -122,14 +122,18 @@ const Stocks = () => {
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>Unit name</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Quantity</span>
         </div>
-        {stocksData?.results?.data && stocksData.results.data.map((stock, index) => (
+        {stocksData?.results?.data?.stocks && stocksData.results.data.stocks.map((stock, index) => (
           <Link to={stock.id} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={stock.id}>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}.</span>
           <span className='w-[40%] border-gray-800 border-r-2 p-1'>{stock.name}</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>{stock.unit_name}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>{stock.total_quantity} {stock.unit_alias}</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{stock.total_quantity} {stock.unit_alias}</span>
         </Link>
         ))}
+        {stocksData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+          <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{stocksData?.results?.data?.totals?.quantity}</span>
+        </span>}
       </div>
       <PrevNext pageNo={pageNo} data={stocksData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
     </div>

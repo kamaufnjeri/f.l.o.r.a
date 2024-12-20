@@ -19,7 +19,6 @@ api.interceptors.request.use(
         if (accessToken) {
             const decoded = jwtDecode(accessToken);
             const isTokenExpired = decoded.exp < Date.now() / 1000;
-            console.log('isExpired', isTokenExpired)
 
             if (isTokenExpired) {
                 if (refreshToken) {

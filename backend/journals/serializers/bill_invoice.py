@@ -8,12 +8,12 @@ class BillSerializer(serializers.ModelSerializer):
     supplier_name = serializers.SerializerMethodField(read_only=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     status = serializers.CharField(read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    organisation = serializers.PrimaryKeyRelatedField(read_only=True)
+    total_amount = serializers.CharField(read_only=True)
+   
 
     class Meta:
         model = Bill
-        fields = ["id", "due_date", "amount_due", "supplier", "serial_number", "supplier_name", "amount_paid", "status", "organisation", "user"]
+        fields = ["id", "due_date", "amount_due", "supplier", "supplier_name", "amount_paid", "status", "total_amount"]
     
     def get_supplier_name(self, obj):
         return obj.supplier.name
@@ -29,16 +29,17 @@ class BillDetailSerializer(BillSerializer):
         from journals.utils import get_date_description_type_url
 
         details = get_date_description_type_url(obj)
+        purchase_no = obj.purchase.serial_number
+        details['serial_number'] = purchase_no
         
         due_days = 0
         today = datetime.now().date()
       
         due_diff = obj.due_date - today
         due_days = due_diff.days
-
         if due_days < 0 and obj.status != "paid":
             due_days = f"Overdue by {(-1 * due_days)} days"
-        elif due_days > 0:
+        elif due_days >= 0 and obj.status != "paid":
             due_days = f"{due_days} days"
         else:
             due_days = "Not due"
@@ -57,15 +58,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
     customer_name= serializers.SerializerMethodField(read_only=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     status = serializers.CharField(read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    organisation = serializers.PrimaryKeyRelatedField(read_only=True)
+    total_amount = serializers.CharField(read_only=True)
 
+   
     class Meta:
         model = Invoice
         fields = [
             "id", "due_date", "amount_due", "customer", 
-            "serial_number", "customer_name", "amount_paid",
-            "status", "organisation", "user"
+            "customer_name", "amount_paid",
+            "status", "total_amount"
         ]
 
     def get_customer_name(self, obj):
@@ -83,7 +84,7 @@ class InvoiceDetailSerializer(InvoiceSerializer):
         from journals.utils import get_date_description_type_url
 
         details = get_date_description_type_url(obj)
-        
+                
         due_days = 0
         today = datetime.now().date()
       

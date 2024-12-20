@@ -36,7 +36,6 @@ export const postRequest = async (values, url, resetForm=null) => {
       if (Array.isArray(errorData)) {
         errorMessage = errorData.join('\n');
       } else if (isObject(errorData)) {
-        console.log(errorData)
         const errorList = [] 
         Object.entries(errorData).forEach(([key, value]) => {
           errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
@@ -75,7 +74,6 @@ export const patchRequest = async (values, url) => {
       if (Array.isArray(errorData)) {
         errorMessage = errorData.join('\n');
       } else if (isObject(errorData)) {
-        console.log(errorData)
         const errorList = [] 
         Object.entries(errorData).forEach(([key, value]) => {
           errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
@@ -115,7 +113,6 @@ export const deleteRequest = async (url) => {
       if (Array.isArray(errorData)) {
         errorMessage = errorData.join('\n');
       } else if (isObject(errorData)) {
-        console.log(errorData)
         const errorList = [] 
         Object.entries(errorData).forEach(([key, value]) => {
           errorList.push(`${capitalizeFirstLetter(replaceDash(key))}: ${value}`)
@@ -183,20 +180,21 @@ export const replaceDash= (string) => {
 
 
 export const getQueryParams = (data) => {
-  const {type, paginate=true, search, date, sortBy, typeValue} = data;
-  let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}`
+  const { type, paginate = true, search = '', date = '', sortBy = '', typeValue = '' } = data;
+  let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}`;
 
   if (type && typeValue) {
-    const typeUrl = `&${type}=${typeValue}`
-    queryParams.concat(typeUrl)
-
+    const typeUrl = `&${type}=${typeValue}`;
+    queryParams += typeUrl;
   }
+  
   if (paginate) {
-    const paginate = '&paginate=true'
-    queryParams = queryParams.concat(paginate);
+    const paginateParam = '&paginate=true';
+    queryParams += paginateParam;
   }
+
   return queryParams;
-}
+};
 
 export const invoiceBillQueryParam = (data) => {
   const { search, dueDays, status, paginate } = data;
@@ -224,7 +222,6 @@ export const returnsQueryParams = (data) => {
 export const paymentsQueryParams = (data) => {
   const {paginate=true, search, date, sortBy, type} = data;
   let queryParams = `?search=${search}&date=${date}&sort_by=${sortBy}&type=${type}`
-  console.log(queryParams)
 
   if (paginate) {
     const paginate = '&paginate=true'
@@ -237,3 +234,17 @@ export const paymentsQueryParams = (data) => {
 export const togglePasswordVisibility = (setShowPassword, showPassword) => {
   setShowPassword(!showPassword);
 }
+
+export const findEntriesByType = (entries, type) => {
+  if (entries) {
+    const matchingEntries = entries.map((entry, index) => {
+      
+      
+      return entry.type === type ? { entry, index } : null;
+    }).filter(item => item !== null);
+
+  return matchingEntries;
+  }
+  return []
+};
+

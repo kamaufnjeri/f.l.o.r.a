@@ -73,13 +73,13 @@ class GenerateListsPDF:
             for key, value in self.filters.items():
                 if key == 'search' and value:
                     new_filters['Search Term'] = value
-                elif key in ('purchases', 'sales', 'journals') and value:
+                elif key in ('purchases', 'sales', 'journals', "type") and value:
                     new_filters['Type'] = self.get_type(value)
                 elif key == 'sort_by' and value:
                     new_filters['Sort By'] = self.get_sort(value)
-                elif key == 'status':
+                elif key == 'status'and value:
                     new_filters['Status'] = self.get_status(value)
-                elif key == 'due_days':
+                elif key == 'due_days'and value:
                     new_filters['Due Days'] = self.get_due_days(value)
                
         return new_filters
@@ -145,9 +145,13 @@ class GenerateListsPDF:
 
     def get_type(self, value):
         new_value = ''
+
         if value == 'is_invoices':
+
             new_value = 'Invoices'
         elif value == 'is_bills':
+            print('type', value)
+
             new_value = 'Bills'
 
         elif value == 'is_bills_or_invoices':

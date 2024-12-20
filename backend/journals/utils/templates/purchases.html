@@ -68,33 +68,39 @@
                     <th>Purchase #</th>
                     <th>Date</th>
                     <th>Type</th>
-                    <th>Items</th>
+                    <th colspan="2">Items</th>
                     <th>Total Amount ({{ organisation.currency }})</th>
                     <th>Total Quantity</th>
                     <th>Due Amount ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
-                {% for purchase in data %}
+                {% for purchase in data.get('purchases') %}
                 <tr>
                     <td>{{ purchase.get('serial_number') }}</td>
                     <td>{{ purchase.get('date') }}</td>
-                    <td>{{ purchase.get('items_data').get('type') }}</td>
-                    <td>
+                    <td >{{ purchase.get('details').get('type').title() }}</td>
+                    <td colspan="2">
                         <ul>
-                            {% for item in purchase.get('items_data').get('list') %}
+                            {% for item in purchase.get('details').get('items') %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
                             <i>({{ purchase.get('description') }})</i>    
                             
                     </td>
-                    <td>{{ purchase.get('items_data').get('total_amount') }}</td>
-                    <td>{{ purchase.get('items_data').get('total_quantity') }}</td>
-                    <td>{{ purchase.get('items_data').get('amount_due') }}</td>
+                    <td style="text-align: right;">{{ purchase.get('details').get('total_amount') }}</td>
+                    <td style="text-align: right;">{{ purchase.get('details').get('total_quantity') }}</td>
+                    <td style="text-align: right;">{{ purchase.get('details').get('amount_due') }}</td>
 
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold; text-decoration: underline;">
+                    <td colspan="5" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
+                </tr>
             </tbody>
         </table>
     </section>

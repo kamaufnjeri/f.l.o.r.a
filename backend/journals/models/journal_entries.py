@@ -24,6 +24,7 @@ class JournalEntries(BaseModel):
     sales_return = models.ForeignKey(SalesReturn, related_name='journal_entries', on_delete=models.CASCADE, null=True)
     payments = models.ForeignKey(Payment, related_name="journal_entries", on_delete=models.CASCADE, null=True)
     service_income = models.ForeignKey(ServiceIncome, related_name='journal_entries', on_delete=models.CASCADE, null=True)
+    type = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return self.debit_credit

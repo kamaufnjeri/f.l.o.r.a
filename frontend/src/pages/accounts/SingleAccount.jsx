@@ -37,7 +37,6 @@ const SingleAccount = () => {
     const getData = async () => {
         const newAccountData = await getItems(`${orgId}/accounts/${id}`);
         setAccountData(newAccountData)
-        console.log(newAccountData.account_data)
     }
 
     useEffect(() => {

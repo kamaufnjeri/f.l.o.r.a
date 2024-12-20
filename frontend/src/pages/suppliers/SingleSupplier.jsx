@@ -61,7 +61,7 @@ const SingleSupplier = () => {
     }
 
     const deleteSupplier = async () => {
-        const response = await deleteRequest(`${orgId}/suppliers/${supplierData.id}`);
+        const response = await deleteRequest(`${orgId}/suppliers/${supplierData?.id}`);
         if (response.success) {
             toast.success('Supplier deleted successfully');
             getSelectOptions();
@@ -74,7 +74,7 @@ const SingleSupplier = () => {
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/suppliers/${id}/download/${querlParams}`;
-        downloadListPDF(url, `Supplier ${supplierData.name} Details`)
+        downloadListPDF(url, `Supplier ${supplierData?.name} Details`)
     }
     return (
         <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
@@ -120,13 +120,13 @@ const SingleSupplier = () => {
 
             </div>
 
-            <FormHeader header={`Supplier ${supplierData.name} Details`} />
+            <FormHeader header={`Supplier ${supplierData?.name} Details`} />
 
             <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
                 <div className='w-full flex flex-row justify-between mb-2'>
-                    <span><strong>Name: </strong>{supplierData.name}</span>
-                    <span><strong>Email: </strong>{supplierData.email}</span>
-                    <span><strong>Phone Number: </strong>{supplierData.phone_number}</span>
+                    <span><strong>Name: </strong>{supplierData?.name}</span>
+                    <span><strong>Email: </strong>{supplierData?.email}</span>
+                    <span><strong>Phone Number: </strong>{supplierData?.phone_number}</span>
 
                 </div>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>

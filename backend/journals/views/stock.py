@@ -17,6 +17,14 @@ class StockPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+def get_totals(data):
+    quantity = sum(int(stock.get('total_quantity')) for stock in data)
+    return {
+        "stocks": data,
+        "totals": {
+            "quantity": quantity
+        }
+    }
 
 class StockAPIView(generics.ListCreateAPIView):
     queryset = Stock.objects.all().order_by('created_at')
@@ -36,17 +44,19 @@ class StockAPIView(generics.ListCreateAPIView):
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_totals(serialized_data)
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Products retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -101,9 +111,10 @@ class DownloadStockAPIView(generics.ListCreateAPIView):
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_totals(serialized_data)
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='stocks.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='stocks.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

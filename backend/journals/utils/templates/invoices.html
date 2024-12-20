@@ -64,29 +64,38 @@
         <table>
             <thead>
                 <tr>
-                    <th>Bill #</th>
+                    <th>Purchase #</th>
                     <th>Due Date</th>
                     <th>Type</th>
                     <th>Customer</th>
                     <th>Status</th>
-                    <th>Amount Paid ({{ organisation.currency }})</th>
-                    <th>Amount Due ({{ organisation.currency }})</th>
                     <th>Due Days </th>
+                    <th>Amount Due ({{ organisation.currency }})</th>
+                    <th>Amount Paid ({{ organisation.currency }})</th>
+
                 </tr>
             </thead>
             <tbody>
-                {% for invoice in data %}
+                {% for invoice in data.get('invoices') %}
                 <tr>
-                    <td>{{ invoice.get('serial_number') }}</td>
+                    <td>{{ invoice.get('details').get('serial_number') }}</td>
                     <td>{{ invoice.get('due_date') }}</td>
-                    <td>{{ invoice.get('invoice_data').get('type').title() }}</td>
+                    <td>{{ invoice.get('details').get('type').title().replace('_', " ") }}</td>
                     <td>{{ invoice.get('customer_name') }}</td>
                     <td>{{ invoice.get('status').title().replace('_', ' ') }}</td>
-                    <td>{{ invoice.get('amount_paid') }}</td>
-                    <td>{{ invoice.get('amount_due') }}</td>
-                    <td>{{ invoice.get('invoice_data').get('due_days')}}</td>
+                    <td>{{ invoice.get('details').get('due_days')}}</td>
+                    <td  style="text-align: right;">{{ invoice.get('amount_due') }}</td>
+
+                    <td  style="text-align: right;">{{ invoice.get('amount_paid') }}</td>
+
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold; text-decoration: underline;">
+                    <td colspan="6" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
+
+                </tr>
             </tbody>
         </table>
     </section>

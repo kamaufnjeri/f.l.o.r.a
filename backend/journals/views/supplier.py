@@ -17,7 +17,14 @@ class SupplierPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-
+def get_totals(data):
+    amount_due = sum(float(customer.get('amount_due')) for customer in data)
+    return {
+        "suppliers": data,
+        "totals": {
+            "amount_due": amount_due
+        }
+    }
 class SupplierAPIVew(generics.ListCreateAPIView):
     queryset = Supplier.objects.all().order_by('created_at')
     serializer_class = SupplierSerializer
@@ -36,17 +43,19 @@ class SupplierAPIVew(generics.ListCreateAPIView):
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_totals(serialized_data)
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Suppliers retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -101,9 +110,10 @@ class DownloadSupplierAPIVew(generics.ListCreateAPIView):
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_totals(serialized_data)
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='users.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='users.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

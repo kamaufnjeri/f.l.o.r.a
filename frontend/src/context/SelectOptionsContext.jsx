@@ -9,17 +9,20 @@ export const useSelectOptions = () => useContext(SelectOptionsContext);
 
 export const SelectOptionsProvider = ({ children }) => {
     const [accounts, setAccounts] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [customers, setCustomers] = useState([]);
+    const [suppliersAccounts, setSuppliersAccounts] = useState([]);
+    const [incomeDiscountAccounts, setIncomeDiscountsAccounts] = useState([]);
+    const [expenseDiscountAccounts, setExpenseDiscountsAccounts] = useState([]);
+    const [salesAccounts, setSalesAccounts] = useState([]);
+    const [customersAccounts, setCustomersAccounts] = useState([]);
     const [stocks, setStocks] = useState([]);
     const [paymentAccounts, setPaymentsAccounts] = useState([]);
-    const [incomeAccounts, setIncomeAccounts] = useState([]);
-    const [expenseAccounts, setExpenseAccounts] = useState([]);
+    const [purchaseAccounts, setPurchaseAccounts] = useState([]);
     const [serialNumbers, setSerialNumbers] = useState([]);
     const [fixedGroups, setFixedGoups] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
     const [services, setServices] = useState([]);
+    const[serviceIncomeAccounts, setServiceIcomeAccounts] = useState([]);
     const { currentOrg } = useAuth();
     const [ isLoading, setIsLoading ] = useState(true);
 
@@ -28,18 +31,21 @@ export const SelectOptionsProvider = ({ children }) => {
             const queryUrl = `${currentOrg.id}/select_options`;
             try {
                 const response = await getItems(queryUrl);
-                setSuppliers(response.suppliers || []);
-                setCustomers(response.customers || []);
+                setSuppliersAccounts(response.suppliers_accounts || []);
+                setCustomersAccounts(response.customers_accounts || []);
                 setStocks(response.stocks || []);
                 setAccounts(response.accounts || []);
                 setPaymentsAccounts(response.payment_accounts || []);
-                setExpenseAccounts(response.expense_accounts || []);
-                setIncomeAccounts(response.income_accounts || []);
+                setPurchaseAccounts(response.purchase_accounts || []);
                 setSerialNumbers(response.serial_numbers || []);
                 setSubCategories(response.sub_categories || []);
                 setCategories(response.categories || []);
                 setFixedGoups(response.fixed_groups || []);
                 setServices(response.services || []);
+                setIncomeDiscountsAccounts(response.income_discount_accounts || []);
+                setExpenseDiscountsAccounts(response.expense_discount_accounts || []);
+                setSalesAccounts(response.sales_accounts || []);
+                setServiceIcomeAccounts(response.service_income_accounts || []);
             } catch (error) {
                 console.error("Failed to fetch select options:", error);
             }
@@ -51,18 +57,21 @@ export const SelectOptionsProvider = ({ children }) => {
     };
 
     const clearData = () => {
-        setSuppliers([]);
-        setCustomers([]);
+        setSuppliersAccounts([]);
+        setCustomersAccounts([]);
         setStocks([]);
         setAccounts([]);
         setPaymentsAccounts([]);
-        setExpenseAccounts([]);
-        setIncomeAccounts([]);
+        setPurchaseAccounts([]);
         setSerialNumbers([]);
         setFixedGoups([]);
         setCategories([]);
         setSubCategories([]);
         setServices([]);
+        setIncomeDiscountsAccounts([]);
+        setExpenseDiscountsAccounts([]);
+        setSalesAccounts([]);
+        setServiceIcomeAccounts([]);
     }
 
     useEffect(() => {
@@ -71,17 +80,20 @@ export const SelectOptionsProvider = ({ children }) => {
 
     const value = {
         paymentAccounts,
-        incomeAccounts,
-        expenseAccounts,
+        purchaseAccounts,
         accounts,
         stocks,
-        suppliers,
-        customers,
+        suppliersAccounts,
+        customersAccounts,
         serialNumbers,
         subCategories,
         fixedGroups,
         categories,
         services,
+        incomeDiscountAccounts,
+        expenseDiscountAccounts,
+        salesAccounts,
+        serviceIncomeAccounts,
         getSelectOptions,
         clearData,
     };

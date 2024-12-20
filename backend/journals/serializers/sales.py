@@ -1,122 +1,193 @@
 from rest_framework import serializers
-from journals.models import Sales, Discount, Account, FloraUser, Organisation
+from django.core.exceptions import ValidationError
+from journals.models import Sales, FloraUser, Organisation
 from .stock import StockDetailsSerializer
-from .account import AccountDetailsSerializer
 from .journal_entries import JournalEntrySerializer
 from .sales_entries import SalesEntriesSerializer
 from .bill_invoice import InvoiceSerializer
-from .discount import DiscountSerializer
 from journals.utils import JournalEntriesManager, SalesEntriesManager
 from django.db import transaction
+from datetime import datetime
 
 
 sales_entries_manager = SalesEntriesManager()
 journal_entries_manager = JournalEntriesManager()
 
+
 class SalesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    sales_entries = SalesEntriesSerializer(many=True, write_only=True)
-    journal_entries = JournalEntrySerializer(many=True, write_only=True)
-    discount_allowed = DiscountSerializer(required=False, allow_null=True, write_only=True)
-    invoice = InvoiceSerializer(required=False, write_only=True)
-    items_data = serializers.SerializerMethodField(read_only=True)
+    sales_entries = SalesEntriesSerializer(many=True)
+    journal_entries = JournalEntrySerializer(many=True)
+    details = serializers.SerializerMethodField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, default=None) 
 
     class Meta:
         model = Sales
         fields = [
             'id', 'date', 'description', 'sales_entries',
-            'journal_entries', 'discount_allowed', 'invoice',
-            "serial_number", 'items_data', 'user', 'organisation',
+            'journal_entries', 'due_date', 'details',
+            "serial_number", 'user', 'organisation',
         ]
 
-    
-
-    def get_items_data(self, obj):
-        """Return the type based on the bill attribute."""
-        type = 'regular'
+    def get_details(self, obj):
+        sales_type = 'regular'
         sales_entries = SalesEntriesSerializer(obj.sales_entries.all(), many=True)
-        items_list = [entry['stock_name'] for entry in sales_entries.data]
+        items = [entry['stock_name'] for entry in sales_entries.data]
         total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity']) )for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         amount_due = 0
-        cash_paid = 0
 
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             amount_due = obj.invoice.amount_due
-            type = 'invoice'
-        else:
-            type = type
-            cash_paid = total_amount
-            if hasattr(obj, 'discount_allowed') and obj.discount_allowed is not None:
-                cash_paid -= float(obj.discount_allowed.discount_amount)
-        
-            cash_paid -= float(obj.returns_total)
+            sales_type = 'invoice'
 
         return {
-            "list": items_list,
-            "type": type,
+            "items": items,
             "total_amount": total_amount,
             "total_quantity": total_quantity,
+            "type": sales_type,
             "amount_due": amount_due,
-            "cash": cash_paid
         }
+
+
+    def validate_due_date(self, value):
+        """
+        Validate the due_date field.
+        """
+        if value:
+            date = self.initial_data.get('date')
+            if isinstance(date, str):
+                date = datetime.strptime(date, '%Y-%m-%d').date()
+                value = datetime.strptime(value, '%Y-%m-%d').date()
+            if value < date:
+                raise serializers.ValidationError("'Due date' must be after the sales date.")
+        
+        return value
 
     def validate(self, data):
         sales_entries = data.get('sales_entries')
         journal_entries = data.get('journal_entries')
         sales_entries_manager.validate_sales_entries(sales_entries)
         journal_entries_manager.validate_journal_entries(journal_entries)
+        journal_entries_manager.validate_double_entry(journal_entries)
+
+        
         return data
-    
+
     def create(self, validated_data):
         with transaction.atomic():
             sales_entries = validated_data.pop('sales_entries')
             journal_entries = validated_data.pop('journal_entries')
-            discount_allowed = validated_data.pop('discount_allowed')
+            due_date = validated_data.pop('due_date', None)
+
             sales = Sales.objects.create(**validated_data)
-            total_sales_price = sales_entries_manager.create_sales_entries(sales_entries, sales, StockDetailsSerializer)
-            if discount_allowed.get('discount_amount') > 0.00 and discount_allowed.get('discount_percentage') > 0.00:
-                discount = Discount.objects.create(sales=sales, discount_type='sales', **discount_allowed)
-                try:
-                    discount_account = Account.objects.get(name='Discount Allowed', organisation_id=validated_data.get('organisation'))
-                except Account.DoesNotExist:
-                    raise serializers.ValidationError("Discount Allowed account not found")
-                discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'debit')
-                journal_entries.append(discount_account_data)
-            journal_entries = journal_entries_manager.sales_journal_entries_dict(journal_entries, total_sales_price, validated_data.get('organisation'))
-            journal_entries_manager.validate_double_entry(journal_entries)
-            journal_entries_manager.create_journal_entries(journal_entries, "sales", sales, AccountDetailsSerializer)
+
+            total_sales_price = sales_entries_manager.create_sales_entries(
+                sales_entries=sales_entries, sales=sales
+            )
+
+
+            journal_entries_manager.create_journal_entries(
+                journal_entries_data=journal_entries,
+                type="sales",
+                table=sales,
+                total_amount=total_sales_price,
+                due_date=due_date,
+            )
 
         return sales
-    
+
+
 class SalesDetailSerializer(SalesSerializer):
-    sales_entries = SalesEntriesSerializer(many=True, read_only=True)
-    journal_entries = JournalEntrySerializer(many=True, read_only=True)
-    discount_allowed = DiscountSerializer(allow_null=True, required=False, read_only=True)
     invoice = InvoiceSerializer(read_only=True)
-    returns_total = serializers.DecimalField(max_digits=15, read_only=True, decimal_places=2)
 
-
+    
     class Meta:
         model = Sales
-        fields = SalesSerializer.Meta.fields + ["returns_total"]
+        fields = SalesSerializer.Meta.fields + ["invoice"]
+    
+    def get_details(self, obj):
+        sales_type = 'regular'
+        total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity'])) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
+        total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
+        amount_paid = 0
+        amount_due = 0
+
+        footer_data = {}
+
+        if hasattr(obj, 'return_totals') and obj.returns_total is not None:
+            footer_data['Returns'] = obj.returns_totals
+
+        for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
+            if entry.get('debit_credit') == 'debit':
+                if entry.get('type') == 'payment':
+                    amount_paid += float(entry.get('amount'))
+                elif entry.get('type') == 'discount':
+                    footer_data['Discount'] = entry.get('amount') 
+
+        if hasattr(obj, 'invoice') and obj.invoice is not None:
+            amount_due += float(obj.invoice.amount_due)
+            amount_paid += float(obj.invoice.amount_paid)
+            sales_type = 'invoice'
+
+        if amount_paid > 0:
+            footer_data['Amount Paid'] = amount_paid
+
+        if amount_due > 0:
+            footer_data["Amount Due"] = amount_due
+        footer_data['Total'] = total_amount
+
+        return {
+            "type": sales_type,
+            "footer_data": footer_data,
+            "total_amount": total_amount,
+            "total_quantity": total_quantity,
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        
+
         journal_entries = data.get('journal_entries', [])
-        
-        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
-        
-        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
-        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
+        sorted_journal_entries = sorted(
+            journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit'
+        )
+
+        debit_total = sum(
+            float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit'
+        )
+        credit_total = sum(
+            float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit'
+        )
+
         data['journal_entries'] = sorted_journal_entries
         data['journal_entries_total'] = {
             "debit_total": debit_total,
-            "credit_total": credit_total
+            "credit_total": credit_total,
         }
 
         return data
-    
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            sales_entries_data = validated_data.pop('sales_entries')
+            due_date = validated_data.pop('due_date')
+            journal_entries_data = validated_data.pop('journal_entries')
+            sales = instance
+     
+            cogs, sales_entries_id = sales_entries_manager.update_sales_entries(sales_entries_data, sales)
+            sales.date = validated_data.get('date', sales.date)
+            sales.description = validated_data.get('description', sales.description)
+            entries_id = journal_entries_manager.update_journal_entries(
+                journal_entries_data=journal_entries_data,
+                type="sales",
+                table=sales,
+                total_amount=cogs,
+                due_date=due_date
+            )
+            sales.journal_entries.exclude(id__in=entries_id).delete()
+            sales.sales_entries.exclude(id__in=sales_entries_id).delete()
+            sales.save()
+        return sales
+        

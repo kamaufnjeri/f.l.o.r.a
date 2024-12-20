@@ -45,7 +45,7 @@ INITIAL_DATA = [
                 ]
             },
             {
-                "name": "Selling Expense",
+                "name": "Expense from Discounts",
                 "accounts": [
                     {"name": "Discount Allowed"}
                 ]
@@ -75,7 +75,7 @@ INITIAL_DATA = [
             },
             {
                 "name": "Service Income",
-               " accounts": [
+               "accounts": [
                    {"name": "Service Income"}
                ]
             }

@@ -98,7 +98,7 @@ def status_filtering(queryset, status_filter):
 from datetime import datetime
 
 def get_date_description_type_url(entry):
-    entry_type, date, description, url = '', '', '', ''
+    entry_type, date, description, url, serial_number = '', '', '', '', ""
 
     journal = getattr(entry, 'journal', None)
     sales = getattr(entry, 'sales', None)
@@ -112,18 +112,21 @@ def get_date_description_type_url(entry):
         date = journal.date
         description = journal.description
         entry_type = 'Journal'
+        serial_number = journal.serial_number
         url = f"/journals/{journal.id}"
 
     elif sales is not None:
         date = sales.date
         description = sales.description
         entry_type = 'Sales'
+        serial_number = sales.serial_number
         url = f"/sales/{sales.id}"
 
     elif purchase is not None:
         date = purchase.date
         description = purchase.description
         entry_type = 'Purchase'
+        serial_number = purchase.serial_number
         url = f"/purchases/{purchase.id}"
 
     elif purchase_return is not None:
@@ -148,6 +151,7 @@ def get_date_description_type_url(entry):
         date = service_income.date
         description = service_income.description
         entry_type = 'Service Income'
+        serial_number = service_income.serial_number
         url = f"/service_income/{service_income.id}"
 
     else:
@@ -158,7 +162,8 @@ def get_date_description_type_url(entry):
         'date': date,
         'description': description,
         'type': entry_type,
-        'url': url
+        'url': url,
+        "serial_number": serial_number
     }
     return details
 

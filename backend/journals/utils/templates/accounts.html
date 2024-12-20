@@ -69,11 +69,11 @@
                     <th>Group</th>
                     <th>Category</th>
                     <th>Sub Category</th>
-                    <th>Balance ({{ organisation.currency }})</th>
+                    <th >Balance ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
-                {% for account in data %}
+                {% for account in data.get('accounts') %}
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ account.get('name') }}</td>
@@ -83,6 +83,10 @@
                     <td style="text-align: right;">{{ account.get('account_balance') }}</td>
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold;text-decoration: underline;">
+                    <td colspan="5" style="text-align: right;" >Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('balance') }}</td>
+                </tr>
             </tbody>
         </table>
     </section>

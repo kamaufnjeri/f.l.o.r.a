@@ -54,9 +54,9 @@
             <thead>
                 <tr>
                     <th>No #</th>
-                    <th>Service</th>
+                    <th>Item</th>
+                    <th>Sales Price ({{ organisation.currency }})</th>
                     <th>Quantity</th>
-                    <th>Price ({{ organisation.currency }})</th>
                     <th>Total ({{ organisation.currency}})</th>
                 </tr>
             </thead>
@@ -65,19 +65,26 @@
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ entry.get('service_name') }}</td>
-                    <td style="text-align: right;">{{ entry.get('quantity') }}</td>
                     <td style="text-align: right;">{{ entry.get('price') }}</td>
-                    <td style="text-align: right;">{{ entry.get('price') | float * entry.get('quantity') | float}}</td>
+                    <td style="text-align: right;">{{ entry.get('quantity') }}</td>
+                    <td style="text-align: right;">{{ entry.get('service_income_total')  }}</td>
                 </tr>
                 {% endfor %}
-                
-                {% if sub_footer_data %}
-                    {% for key, value in sub_footer_data.items() %}
+                <tr style="text-decoration: underline;">
+                    <td colspan="2" style="text-decoration: none;"><i>({{ data.get('description') }})</i></td>
+
+                    <td style="text-align: right;">Sub Total</td>
+                    <td style="text-align: right;">{{ data.get('details').get('total_quantity')}}</td>
+                    <td style="text-align: right;">{{ data.get('details').get('total_amount')}}</td>
+                </tr>
+
+                {% if data.get('details').get('footer_data') %}
+                    {% for key, value in data.get('details').get('footer_data').items() %}
                     <tr>
                         <td style="text-align: right;" colspan="4">
                             {% if key == "Amount Due" %}
-                                <strong style="font-size: 18px; text-decoration: underline; color: red;">{{ key }}</strong>
-                            {% elif key == "Total" %}
+                                <strong style="text-decoration: underline; color: red;">{{ key }}</strong>
+                            {% elif "Total" in key %}
                                 <span style="text-decoration: underline;;">{{ key }}</span>
                             {% else %}
                                 {{ key }}
@@ -85,8 +92,8 @@
                         </td>
                         <td style="text-align: right;">
                             {% if key == "Amount Due" %}
-                                <strong style="font-size: 18px; color: red; text-decoration: underline;">{{ value }}</strong>
-                            {% elif key == "Total" %}
+                                <strong style="color: red; text-decoration: underline;">{{ value }}</strong>
+                            {% elif "Total" in key %}
                                 <strong style="text-decoration: underline;">{{ value }}</strong>
                             {% else %}
                                 {{ value }}

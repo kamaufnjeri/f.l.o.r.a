@@ -2,8 +2,8 @@ from rest_framework import generics, status, serializers
 from django.db import models
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
-from journals.models import Journal, Bill, Purchase, Payment
-from journals.serializers import PurchaseBillSerializer, BillDetailSerializer, PaymentSerializer
+from journals.models import Bill, Payment
+from journals.serializers import BillDetailSerializer, PaymentsDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -11,8 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from journals.permissions import IsUserInOrganisation
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
-from .journal import get_totals
-    
+from django.shortcuts import get_object_or_404
+
+
 class BillPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -21,6 +22,7 @@ class BillPagination(PageNumberPagination):
 class BillFilter(DjangoFilterBackend, SearchFilter):
     class Meta:
         model = Bill
+
     def filter_queryset(self, request, queryset, view):
         search = request.query_params.get("search")
         due_days = request.query_params.get("due_days")
@@ -28,7 +30,7 @@ class BillFilter(DjangoFilterBackend, SearchFilter):
 
         if search:
             queryset = queryset.filter(models.Q(
-                serial_number__icontains=search
+                purchase__serial_number__icontains=search
             ) | models.Q(supplier__name__icontains=search))
 
         if status:
@@ -37,7 +39,19 @@ class BillFilter(DjangoFilterBackend, SearchFilter):
         if due_days:
             queryset = due_days_filtering(queryset, due_days)
         return queryset
-        
+
+def get_bills_totals(data):
+    amount_due = sum(float(bill.get('amount_due')) for bill in data)
+    amount_paid = sum(float(bill.get('amount_paid')) for bill in data)
+
+    return { 
+        "bills": data,
+        "totals": {
+            "amount_paid": amount_paid,
+            "amount_due": amount_due
+        }
+    }
+
 class BillApiView(generics.ListAPIView):
     queryset = Bill.objects.all().order_by('created_at')
     serializer_class = BillDetailSerializer
@@ -48,24 +62,26 @@ class BillApiView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+            queryset = self.filter_queryset(self.get_queryset().filter(purchase__organisation=request.user.current_org))
             paginate = request.query_params.get('paginate')
 
             if paginate:
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_bills_totals(serialized_data)
                     return paginator.get_paginated_response({
                     "status": "success",
-                    "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "message": "Bills retrieved successfully with pagination",
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_bills_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -74,6 +90,7 @@ class BillApiView(generics.ListAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -89,14 +106,15 @@ class DownloadBillApiView(generics.ListAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            queryset = self.filter_queryset(self.get_queryset().filter(organisation=request.user.current_org))
+            queryset = self.filter_queryset(self.get_queryset().filter(purchase__organisation=request.user.current_org))
 
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_bills_totals(serialized_data)
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='bills.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='bills.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')
@@ -118,43 +136,25 @@ class DownloadBillApiView(generics.ListAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def get_payments_totals(data, pk=None):
+    amount_paid = sum(float(payment.get('amount_paid')) for payment in data)
 
+    title = ''
 
-class PurchaseBillAPIView(generics.CreateAPIView):
-    queryset = Purchase.objects.filter(bill__isnull=False)
-    serializer_class = PurchaseBillSerializer
-    permission_classes = [IsUserInOrganisation, IsAuthenticated]
+    if pk:
+        bill = get_object_or_404(Bill, pk=pk)
+        title = f"Payments for purchase # {bill.purchase.serial_number}"
 
-
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer_data = request.data.copy()
-            serializer_data['organisation'] = kwargs.get('organisation_id')
-            serializer_data['user'] = request.user.id
-            serializer = self.serializer_class(data=serializer_data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            errors = flatten_errors(e.detail)
-            print(f"Validation Error: {e.detail}") 
-            return Response({
-                'error': 'Bad Request',
-                'details': errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Internal Error: {e}") 
-            return Response({
-                'error': 'Internal server error',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
+    return {
+        "title": title,
+        "payments": data,
+        "totals": {
+            "amount_paid": amount_paid,
+        }
+    }
 
 class BillPaymentsApiView(generics.ListAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = BillPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
@@ -173,16 +173,8 @@ class BillPaymentsApiView(generics.ListAPIView):
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
-                    debit_total, credit_total = get_totals(serialized_data.data)
-
-                    data = {
-                    "payments": serialized_data.data,
-                        "totals": {
-                            "debit_total": debit_total,
-                            "credit_total": credit_total
-                        }
-                    }
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_payments_totals(serialized_data, pk)
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Payments retrieved successfully with pagination",
@@ -190,9 +182,10 @@ class BillPaymentsApiView(generics.ListAPIView):
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_payments_totals(serialized_data, pk)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -201,6 +194,7 @@ class BillPaymentsApiView(generics.ListAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -208,7 +202,7 @@ class BillPaymentsApiView(generics.ListAPIView):
 
 
 class DownloadBillPaymentsApiView(generics.ListAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = BillPagination
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
@@ -221,18 +215,10 @@ class DownloadBillPaymentsApiView(generics.ListAPIView):
            
             title = request.data.get('title')
           
-            serializer = self.get_serializer(data, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
+            data = get_payments_totals(serialized_data.data)
 
-            debit_total, credit_total = get_totals(serializer.data)
-            data = {
-                        "payments": serializer.data,
-                        "totals": {
-                            "debit_total": debit_total,
-                            "credit_total": credit_total
-                        }
-                    }
-
-            pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='payments.html')
+            pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='single_payments.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

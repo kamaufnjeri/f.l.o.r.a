@@ -1,25 +1,22 @@
 from rest_framework import serializers
 from .purchase_entries import PurchaseEntriesSerializer
 from .journal_entries import JournalEntrySerializer
-from .account import AccountDetailsSerializer
 from .bill_invoice import BillSerializer
-from .discount import DiscountSerializer
-from journals.models import Purchase, Account, Discount, FloraUser, Organisation
+from journals.models import Purchase, FloraUser, Organisation
 from django.db import transaction
 from journals.utils import PurchaseEntriesManager, JournalEntriesManager
+from datetime import datetime
 
 purchase_entries_manager = PurchaseEntriesManager()
 journal_entries_manager = JournalEntriesManager()
 
 
-
 class PurchaseSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    purchase_entries = PurchaseEntriesSerializer(many=True, write_only=True)
-    journal_entries = JournalEntrySerializer(many=True, write_only=True)
-    discount_received = DiscountSerializer(allow_null=True, required=False, write_only=True)
-    bill = BillSerializer(required=False, write_only=True)
-    items_data = serializers.SerializerMethodField(read_only=True)
+    purchase_entries = PurchaseEntriesSerializer(many=True)
+    journal_entries = JournalEntrySerializer(many=True)
+    details = serializers.SerializerMethodField(read_only=True)
+    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, default=None) 
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
@@ -27,94 +24,129 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         fields = [
             'id', 'date', 'description', 'purchase_entries', 
-            'journal_entries', 'discount_received', 'bill', 
-            'serial_number', 'items_data', 'user', 'organisation'
+            'journal_entries', 'details', 'due_date',
+            'serial_number', 'user', 'organisation'
         ]
 
-    def get_items_data(self, obj):
-        """Return the type based on the bill attribute."""
-        type = 'regular'
+    def get_details(self, obj):
+        purchase_type = 'regular'
         purchase_entries = PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True)
-        items_list = [entry['stock_name'] for entry in purchase_entries.data]
+        items = [entry['stock_name'] for entry in purchase_entries.data]
         total_amount = sum((float(entry['purchase_price']) * float(entry['purchased_quantity']) )for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
         total_quantity = sum(int(entry['purchased_quantity'] ) for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
         amount_due = 0
-        cash_paid = 0
 
         if hasattr(obj, 'bill') and obj.bill is not None:
             amount_due = obj.bill.amount_due
-            type = 'bill'
-        else:
-            type = type
-            cash_paid = total_amount
-            if hasattr(obj, 'discount_received') and obj.discount_received is not None:
-                cash_paid -= float(obj.discount_received.discount_amount)
-        
-            cash_paid -= float(obj.returns_total)
+            purchase_type = 'bill'
 
         return {
-            "list": items_list,
-            "type": type,
+            "items": items,
             "total_amount": total_amount,
             "total_quantity": total_quantity,
+            "type": purchase_type,
             "amount_due": amount_due,
-            'cash': cash_paid
         }
-    
-    
-    
+
+        
+
+    def validate_due_date(self, value):
+        """
+        Validate the due_date field.
+        """
+        if value:
+            date = self.initial_data.get('date')
+
+            if isinstance(date, str):
+                date = datetime.strptime(date, '%Y-%m-%d').date()
+                value = datetime.strptime(value, '%Y-%m-%d').date()
+            if value < date:
+                raise serializers.ValidationError("'Due date' must be after the purchase date.")
+        
+        return value
+
     def validate(self, data):
         purchase_entries = data.get('purchase_entries')
         journal_entries = data.get('journal_entries')
 
         purchase_entries_manager.validate_purchase_entries(purchase_entries)
         journal_entries_manager.validate_journal_entries(journal_entries)
+        journal_entries_manager.validate_double_entry(journal_entries)
 
         return data
     
     def create(self, validated_data):
         with transaction.atomic():
             purchase_entries_data = validated_data.pop('purchase_entries')
+            due_date = validated_data.pop('due_date')
             journal_entries = validated_data.pop('journal_entries')
-            discount_received = validated_data.pop('discount_received', None)
             purchase = Purchase.objects.create(**validated_data)
             cogs = purchase_entries_manager.create_purchase_entries(purchase_entries_data, purchase)
-            try:
-                purchase_account = Account.objects.get(name="Purchase", organisation=validated_data.get('organisation'))
-            except Account.DoesNotExist:
-                raise serializers.ValidationError('Purchase Account not found')
-            if discount_received and (discount_received.get('discount_amount') > 0.00 and discount_received.get('discount_percentage') > 0.00):
-                discount = Discount.objects.create(purchase=purchase, discount_type='purchase', **discount_received)
-                try:
-                    discount_account = Account.objects.get(name='Discount Received', organisation_id=validated_data.get('organisation'))
-                except Account.DoesNotExist:
-                    raise serializers.ValidationError('Discount Received account not found')
-                discount_account_data = journal_entries_manager.create_journal_entry(discount_account, discount.discount_amount, 'credit')
-                journal_entries.append(discount_account_data)
-            purchase_account_data = journal_entries_manager.create_journal_entry(purchase_account, cogs, "debit")
-            journal_entries.append(purchase_account_data)
-            journal_entries_manager.validate_double_entry(journal_entries)
-            journal_entries_manager.create_journal_entries(journal_entries, "purchase", purchase, AccountDetailsSerializer)
-
+            journal_entries_manager.create_journal_entries(
+                journal_entries_data=journal_entries, 
+                type="purchase", 
+                table=purchase, 
+                total_amount=cogs, 
+                due_date=due_date
+            )
         return purchase
     
+
 class PurchaseDetailSerializer(PurchaseSerializer):
-    purchase_entries = PurchaseEntriesSerializer(many=True, read_only=True)
-    journal_entries = JournalEntrySerializer(many=True, read_only=True)
-    discount_received = DiscountSerializer(allow_null=True, required=False, read_only=True)
     bill = BillSerializer(read_only=True)
-    returns_total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
     class Meta:
         model = Purchase
-        fields = PurchaseSerializer.Meta.fields + ["returns_total"]
+        fields = PurchaseSerializer.Meta.fields + ["bill"]
+
+    
+
+    def get_details(self, obj):
+        purchase_type = 'regular'
+        total_amount = sum((float(entry['purchase_price']) * float(entry['purchased_quantity'])) for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
+        total_quantity = sum(int(entry['purchased_quantity'] ) for entry in PurchaseEntriesSerializer(obj.purchase_entries.all(), many=True).data)
+        amount_paid = 0
+        amount_due = 0
+
+        footer_data = {}
+
+        if hasattr(obj, 'return_totals') and obj.returns_total is not None:
+            footer_data['Returns'] = obj.returns_totals
+
+        for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
+            if entry.get('debit_credit') == 'credit':
+                if entry.get('type') == 'payment':
+                    amount_paid += float(entry.get('amount'))
+                elif entry.get('type') == 'discount':
+                    footer_data['Discount'] = entry.get('amount') 
+
+        if hasattr(obj, 'bill') and obj.bill is not None:
+            amount_due += float(obj.bill.amount_due)
+            amount_paid += float(obj.bill.amount_paid)
+            purchase_type = 'bill'
+
+        if amount_paid > 0:
+            footer_data['Amount Paid'] = amount_paid
+        if amount_due > 0:
+            footer_data["Amount Due"] = amount_due
+        footer_data['Total'] = total_amount
+
+        return {
+            "type": purchase_type,
+            "footer_data": footer_data,
+            "total_amount": total_amount,
+            "total_quantity": total_quantity,
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         
         journal_entries = data.get('journal_entries', [])
         
-        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
+        sorted_journal_entries = sorted(
+            journal_entries, 
+            key=lambda entry: entry.get('debit_credit') == 'credit'
+        )
         
         debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
         credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
@@ -124,5 +156,28 @@ class PurchaseDetailSerializer(PurchaseSerializer):
             "credit_total": credit_total
         }
         
-
         return data
+
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            purchase_entries_data = validated_data.pop('purchase_entries')
+            due_date = validated_data.pop('due_date')
+            journal_entries_data = validated_data.pop('journal_entries')
+            purchase = instance
+     
+            cogs, purchase_entries_id = purchase_entries_manager.update_purchase_entries(purchase_entries_data, purchase)
+            purchase.date = validated_data.get('date', purchase.date)
+            purchase.description = validated_data.get('description', purchase.description)
+            entries_id = journal_entries_manager.update_journal_entries(
+                journal_entries_data=journal_entries_data,
+                type="purchase",
+                table=purchase,
+                total_amount=cogs,
+                due_date=due_date
+            )
+            purchase.journal_entries.exclude(id__in=entries_id).delete()
+            purchase.purchase_entries.exclude(id__in=purchase_entries_id).delete()
+            purchase.save()
+        return purchase
+        

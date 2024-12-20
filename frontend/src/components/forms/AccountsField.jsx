@@ -1,80 +1,74 @@
 // JournalEntries.jsx
 import React from 'react';
-import { Row, Col, Button } from 'antd';
-import SelectField from '../forms/SelectField';
-import InputNumberField from '../forms/InputNumberField';
+import { Button } from 'antd';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import SearchableSelectField from './SearchableSelectField';
+import InputNumberField from './InputNumberField';
+import { findEntriesByType } from '../../lib/helpers';
 
-const AccountsField = ({ header, values, setFieldValue, accounts, type }) => {
+const AccountsField = ({ header, values, formData, handleChange, accounts, type, isSubmitted = false }) => {
+    const newValues = findEntriesByType(values, 'payment');
+
     return (
         <div className='flex flex-col gap-2 w-full'>
-            <Row className='flex flex-row w-full text-xl font-bold'><Col className='w-full'><span>
-                {header}
-            </span>
-            </Col></Row>
-            <Row className='flex flex-row w-full gap-2'>
-                <Col className='w-[40%]'><span>Account</span></Col>
-                {values.journal_entries > 1 && (
+            <div className='flex flex-row w-full text-xl font-bold'>
+                <span>{header}</span>
+            </div>
+            <div className='flex flex-row w-full gap-2'>
+                <span className='w-[40%]'><span>Account</span></span>
+                {newValues && (
                     <>
-                        <Col className='w-[40%]'><span>Amount</span></Col>
-                        <Col className='w-[10%]'>Remove</Col>
+                        <span className='w-[40%]'><span>Amount</span></span>
+                        <span className='w-[10%]'>Remove</span>
                     </>
                 )}
-            </Row>
-            {values.journal_entries.map((entry, index) => (
-                <Row key={index} className='flex flex-row w-full gap-2'>
-                    <Col className='w-[40%]'>
-                        <SelectField
-                            value={entry.account}
-                            name={`account`}
-                            setFieldValue={setFieldValue}
-                            options={accounts.map(account => ({ value: account.id, label: account.name }))}
-                            keyName={`journal_entries[${index}].account`}
-                        />
-
-                    </Col>
-                    {values.journal_entries.length > 1 && (
-                        <><Col className='w-[40%]'>
+            </div>
+            {newValues.map(({entry, index}) => (
+                <div key={index} className='flex flex-row w-full gap-2'>
+                    <span className='w-[40%]'>
+                        <SearchableSelectField isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={accounts} value={entry.account} name={'account'} />
+                    </span>
+                    {newValues && (
+                        <><span className='w-[40%]'>
                             <InputNumberField
                                 value={entry.amount}
-                                setFieldValue={setFieldValue}
-                                step={0.01}
-                                name='amount'
-                                keyName={`journal_entries[${index}].amount`}
+                                name={'amount'}
+                                handleChange={handleChange}
+                                index={index}
                             />
 
-                        </Col>
-                            <Col className='w-[10%]'>
+                        </span>
+                            <span className='w-[10%]'>
                                 <Button
                                     type="danger"
                                     onClick={() => {
-                                        const updatedEntries = values.journal_entries.filter((_, i) => i !== index);
-                                        setFieldValue('journal_entries', updatedEntries);
+                                        const updatedEntries = formData?.journal_entries.filter((_, i) => i !== index);
+                                        handleChange('journal_entries', updatedEntries);
                                     }}
                                 >
                                     <FaTimes className='text-red-500 text-xl' />
                                 </Button>
-                            </Col>
+                            </span>
                         </>)}
 
-                </Row>
+                </div>
 
             ))}
             <div className='flex flex-col gap-2 w-full'>
 
-                <Row className='flex flex-row w-full gap-2'>
-                    <Col className='w-[30%]'>
+                <div className='flex flex-row w-full gap-2'>
+                    <span className='w-[30%]'>
                         <Button
                             type="dashed"
                             className='w-[80%]'
                             onClick={() => {
-                                const updatedEntries = [...values.journal_entries, { account: '', debit_credit: type, amount: 0.0 }];
-                                setFieldValue('journal_entries', updatedEntries);
+                                const updatedEntries = [...formData?.journal_entries, { account: '', debit_credit: type, amount: 0.0, type: 'payment' }];
+                                handleChange('journal_entries', updatedEntries);
                             }}
                         >
                             <FaPlus /> Add Entry
-                        </Button></Col>
-                </Row>
+                        </Button></span>
+                </div>
             </div>
         </div>
     )

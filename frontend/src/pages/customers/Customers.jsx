@@ -8,6 +8,7 @@ import api from '../../lib/api';
 import { Link, useParams } from 'react-router-dom';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import { useAuth } from "../../context/AuthContext";
 
 const Customers = () => {
   const [searchItem, setSearchItem] = useState({
@@ -19,6 +20,8 @@ const Customers = () => {
   const [customersData, setCustomersData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
+  const { currentOrg } = useAuth();
+  const [header, setHeader] = useState('Customers')
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -32,6 +35,7 @@ const Customers = () => {
     const newCustomersData = await getItems(`${orgId}/customers`, `?paginate=true`);
     setCustomersData(newCustomersData);
     setSearchItem({ name: '', search: ''})
+    setHeader('Customers')
 
 }
   useEffect(() => {
@@ -48,6 +52,7 @@ const Customers = () => {
     const newCustomersData = await getItems(`${orgId}/customers`, `?search=${searchItem.name}&paginate=true`);
     setCustomersData(newCustomersData);
     setPageNo(1);
+    setHeader(`Customers matching '${searchItem.name}'`)
     setSearchItem(prev => ({ name: '', search: prev.name }))
   }
 
@@ -88,20 +93,19 @@ const Customers = () => {
 
   return (
     <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
-      <FormHeader header='Customers List' />
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
         <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Search customers by name' value={searchItem.name} onChange={e => handleChange(e)} />
         <button className='w-[30%] border-2 bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
-        {customers.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
-          {customers.map((customer) => (<Link to={`${customer.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{customer.name}</Link>))}
+        {customers?.customers?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+          {customers.customers.map((customer) => (<Link to={`${customer.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1' key={customer.id}>{customer.name}</Link>))}
         </div>}
       </form>
       <div onClick={getData} className='self-end p-1 cursor-pointer w-[10%] hover:text-purple-800 hover:border-purple-800 font-bold rounded-md border-2 border-gray-800'>
         Reset
+
       </div>
-      </div>
-      <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+      <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
           <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -113,7 +117,10 @@ const Customers = () => {
 
 
           </div>
+      </div>
       
+      <FormHeader header={header} />
+
 
       <div className='overflow-auto custom-scrollbar flex flex-col flex-1 h-full w-full m-2'>
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
@@ -121,9 +128,9 @@ const Customers = () => {
           <span className='w-[20%] border-gray-800 border-r-2 p-1 '>Name</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>Email</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Phone No.</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Amount Due</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Amount Due ({ currentOrg.currency })</span>
         </div>
-        {customersData?.results?.data && customersData.results.data.map((customer, index) => (
+        {customersData?.results?.data?.customers && customersData.results.data.customers.map((customer, index) => (
           <Link to={`${customer.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={customer.id}>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}.</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>{customer.name}</span>
@@ -133,6 +140,10 @@ const Customers = () => {
 
         </Link>
         ))}
+        {customersData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+          <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{customersData?.results?.data?.totals?.amount_due}</span>
+        </span>}
       </div>
       <PrevNext pageNo={pageNo} data={customersData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
 

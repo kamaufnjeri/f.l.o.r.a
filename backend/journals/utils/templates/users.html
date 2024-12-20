@@ -66,21 +66,26 @@
                 <tr>
                     <th>No #</th>
                     <th>Name</th>
-                    <th>Email</th>
+                    <th colspan="2">Email</th>
                     <th>Phone Number</th>
                     <th>Amount Due ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
-                {% for user in data %}
+                {% set users = data.get('suppliers') or data.get('customers') or [] %}
+                {% for user in users %}
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ user.get('name') }}</td>
-                    <td>{{ user.get('email') }}</td>
+                    <td colspan="2">{{ user.get('email') }}</td>
                     <td>{{ user.get('phone_number') }}</td>
                     <td style="text-align: right;">{{ user.get('amount_due') }}</td>
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold;text-decoration: underline;">
+                    <td colspan="5" style="text-align: right;" >Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
+                </tr>
             </tbody>
         </table>
     </section>

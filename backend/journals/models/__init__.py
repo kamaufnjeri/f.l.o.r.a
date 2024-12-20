@@ -1,7 +1,6 @@
 from .account import Account, FixedGroup, SubCategory, Category
 from .bill import Bill
 from .customer import Customer
-from .discount import Discount
 from .invoice import Invoice
 from .journal import Journal
 from .journal_entries import JournalEntries

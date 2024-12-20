@@ -13,54 +13,38 @@ class PaymentSerializer(serializers.ModelSerializer):
     bill = serializers.CharField(write_only=True, required=False, allow_null=True)
     invoice = serializers.CharField(write_only=True, required=False, allow_null=True)
     amount_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    journal_entries = JournalEntrySerializer(many=True)
-    payment_data = serializers.SerializerMethodField(read_only=True)
+    journal_entries = JournalEntrySerializer(many=True, write_only=True)
+    details = serializers.SerializerMethodField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = Payment
-        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries', 'payment_data', "user", "organisation"]
+        fields = ['id', 'date', 'description', "amount_paid", 'bill', 'invoice', 'journal_entries', 'details', "user", "organisation"]
 
-    def get_payment_data(self, obj):
+    def get_details(self, obj):
         type = ''
         url = ''
-        serial_no = ''
+        serial_number = ''
+
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             type = 'invoice'
-            serial_no = obj.invoice.serial_number
-            url = InvoiceDetailSerializer(obj.invoice).data.get("invoice_data").get("url")
+            serial_number = InvoiceDetailSerializer(obj.invoice).data.get("details").get("serial_number")
+            url = InvoiceDetailSerializer(obj.invoice).data.get("details").get("url")
         elif hasattr(obj, 'bill') and obj.bill is not None:
             type = 'bill'
-            serial_no = obj.bill.serial_number
-            url = BillDetailSerializer(obj.bill).data.get("bill_data").get("url")
+            serial_number = BillDetailSerializer(obj.bill).data.get("details").get("serial_number")
+            url = BillDetailSerializer(obj.bill).data.get("details").get("url")
         
         data = {
             "type": type,
-            "serial_no": serial_no,
+            "serial_number": serial_number,
             "url": url
         }
     
         return data
     
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        
-        journal_entries = data.get('journal_entries', [])
-        
-        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
-        
-        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
-        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
-        data['journal_entries'] = sorted_journal_entries
-        data['journal_entries_total'] = {
-            "debit_total": debit_total,
-            "credit_total": credit_total
-        }
-        
-
-        return data
-
+   
     def create(self, validated_data):
         with transaction.atomic():
 
@@ -69,7 +53,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             bill_id = validated_data.get("bill")
             invoice_id = validated_data.get("invoice")
 
-            amount_paid = sum(entry.get("amount") for entry in journal_entries_data)
+            amount_paid = sum(entry.get("amount") for entry in journal_entries_data if entry.get('type') == 'payment')
 
             if invoice_id and bill_id:
                 raise serializers.ValidationError("Only one invoice or bill can be paid at a time")
@@ -96,7 +80,8 @@ class PaymentSerializer(serializers.ModelSerializer):
                 account_data = {
                     "amount": amount_paid,
                     "debit_credit": "debit",
-                    "account": account.id
+                    "account": account.id,
+                    "type": "bill"
                 }
 
             if invoice_id:
@@ -117,7 +102,8 @@ class PaymentSerializer(serializers.ModelSerializer):
                 account_data = {
                     "amount": amount_paid,
                     "debit_credit": "credit",
-                    "account": account.id
+                    "account": account.id,
+                    "type": "invoice"
                 }
             
             payment = Payment.objects.create(**validated_data, amount_paid=amount_paid)
@@ -127,3 +113,76 @@ class PaymentSerializer(serializers.ModelSerializer):
             journal_entries_manager.create_journal_entries(journal_entries_data, "payments", payment, AccountDetailsSerializer)
         return payment
 
+
+class PaymentsDetailSerializer(PaymentSerializer):
+    journal_entries = JournalEntrySerializer(many=True)
+
+    class Meta:
+        model = Payment
+        fields = PaymentSerializer.Meta.fields
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        journal_entries = data.get('journal_entries', [])
+        
+        sorted_journal_entries = sorted(journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit')
+        
+        debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
+        data['journal_entries'] = sorted_journal_entries
+        data['journal_entries_total'] = {
+            "debit_total": debit_total,
+            "credit_total": credit_total
+        }
+        
+
+        return data
+    
+    def validate(self, data):
+        journal_entries = data.get('journal_entries')
+        journal_entries_manager.validate_journal_entries(journal_entries)
+        journal_entries_manager.validate_double_entry(journal_entries)
+        return data
+    
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            journal_entries_data = validated_data.pop('journal_entries')
+            payment = instance
+            old_amount_paid = payment.amount_paid
+
+            bill_invoice = getattr(payment, 'bill', None) or getattr(payment, 'invoice', None)
+            new_amount_paid = sum(entry.get("amount") for entry in journal_entries_data if entry.get('type') == 'payment')
+
+            if bill_invoice:
+                new_total_amount_paid = float(bill_invoice.amount_paid) - float(old_amount_paid) + float(new_amount_paid)
+
+                if new_total_amount_paid > bill_invoice.total_amount:
+                    raise serializers.ValidationError("Amount to be paid can't be more than the amount due.")
+                if new_total_amount_paid < 0:
+                    raise serializers.ValidationError("Total amount paid cannot be less than zero.")
+
+                bill_invoice.amount_paid = new_total_amount_paid
+                bill_invoice.amount_due = float(bill_invoice.total_amount) - new_total_amount_paid
+
+                if new_total_amount_paid <= 0:
+                    bill_invoice.status = "unpaid"
+                elif 0 < new_total_amount_paid < bill_invoice.total_amount:
+                    bill_invoice.status = "partially_paid"
+                elif new_total_amount_paid >= bill_invoice.total_amount:
+                    bill_invoice.status = "paid"
+
+                bill_invoice.save()
+
+            payment.date = validated_data.get('date', payment.date)
+            payment.amount_paid = new_amount_paid
+            payment.description = validated_data.get('description', payment.description)
+
+            entries_id = journal_entries_manager.update_journal_entries(journal_entries_data, "payments", payment)
+            if entries_id:
+                payment.journal_entries.exclude(id__in=entries_id).delete()
+
+            payment.save()
+
+        return payment

@@ -1,9 +1,9 @@
 from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView, DownloadAccountDetailAPIView
-from .bill import PurchaseBillAPIView, BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
+from .bill import BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
 from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAPIVew, DownloadCustomerDetailAPIView
-from .invoice import  SalesInvoiceAPIView, InvoiceApiView, InvoicePaymentsApiView, ServiceIncomeInvoiceAPIView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
+from .invoice import InvoiceApiView, InvoicePaymentsApiView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
 from .journal import JournalAPIView, JournalDetailAPIView, DownloadJournalAPIView
-from .payment import PaymentAPIView, DownloadPaymentAPIView
+from .payment import PaymentAPIView, DownloadPaymentAPIView, PaymentDetailAPIView
 from .purchase import PurchaseAPIView, PurchaseDetailAPIView, PurchasePurchaseReturnsApiView, DownloadPurchaseAPIView, DownloadPurchasePurchaseReturnsApiView
 from .purchase_return import PurchaseReturnAPIView, DownloadPurchaseReturnAPIView
 from .sales import SalesAPIView, SalesDetailAPIView, SalesSalesReturnsApiView, DownloadSalesAPIView, DownloadSalesSalesReturnsApiView
@@ -15,4 +15,5 @@ from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPass
 from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView, ChangeCurrentOrgApiView
 from .select_options import SelectOptionsAPIView
 from .generate_pdf import GeneratePDFAPIView
-from .service import ServiceAPIView, ServiceIncomeAPIView, ServiceIncomeDetailAPIView, DownloadServiceAPIView, DownloadServiceIncomeAPIView, DownloadServiceDetailAPIView, ServiceDetailAPIView
+from .service import ServiceAPIView,  DownloadServiceAPIView, DownloadServiceDetailAPIView, ServiceDetailAPIView
+from .service_income import ServiceIncomeAPIView, ServiceIncomeDetailAPIView, DownloadServiceIncomeAPIView

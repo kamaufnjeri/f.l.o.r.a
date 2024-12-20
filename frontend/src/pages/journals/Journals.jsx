@@ -26,6 +26,7 @@ const Journals = () => {
     const [journalsData, setJournalsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const [isVisible, setIsVisible] = useState(false);
+    const [header, setHeader] = useState('Journals')
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -38,6 +39,7 @@ const Journals = () => {
     const getData = async () => {
         const newJournalsData = await getItems(`${orgId}/journals`, `?paginate=true`);
         setJournalsData(newJournalsData);
+        setHeader('Journals')
     }
     useEffect(() => {
 
@@ -54,19 +56,7 @@ const Journals = () => {
         const newJournals = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournals(newJournals)
     }
-    const handleJournalsChange = async (e) => {
-        setSearchItem(prev => ({ ...prev, journals: e.target.value, search: '' }));
-        const queyParamsUrl = getQueryParams({
-            paginate: true,
-            search: '',
-            date: searchItem.date,
-            sortBy: searchItem.sortBy,
-        })
-        const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
-        setJournalsData(newJournalsData);
-        setPageNo(1);
-
-    }
+   
     const showModal = (setOpenModal) => {
         setOpenModal(true);
     };
@@ -113,6 +103,7 @@ const Journals = () => {
         const newJournalsData = await getItems(`${orgId}/journals`, queyParamsUrl);
         setJournalsData(newJournalsData);
         setPageNo(1);
+        setHeader(`Journals matching '${searchItem.name}'`)
         setSearchItem(prev => ({ ...prev, search: prev.name, name: '' }))
     }
 
@@ -155,7 +146,7 @@ const Journals = () => {
             sortBy: searchItem.sortBy,
         });
         const url = `/${orgId}/journals/download/${querlParams}`;
-        downloadListPDF(url, 'Journal Entries')
+        downloadListPDF(url, 'Journals')
     }
     return (
         <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
@@ -168,10 +159,9 @@ const Journals = () => {
                 setPageNo={setPageNo}
                 type='journals'
             />
-            <FormHeader header='Journal Entries' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-1'>
-                    <div className='w-[90%] relative h-[90%] flex flex-row gap-1'>
+                    <div className='w-[80%] relative h-[90%] flex flex-row gap-1'>
                         <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter journal number or description' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
 
@@ -192,7 +182,7 @@ const Journals = () => {
 
                     <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
                 </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
                 <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
                     <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -202,7 +192,7 @@ const Journals = () => {
                     </button>
                 </div>
             </div>
-
+            <FormHeader header={header}/>
 
             <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>

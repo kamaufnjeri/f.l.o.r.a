@@ -39,7 +39,8 @@ ACCOUNT_STRUCTURE = {
             "selling_expense",
             "cost_of_goods_sold",
             "marketing_and_advertising",
-            "contra-expense"
+            "contra-expense",
+            "expense_from_discounts"
         ],
         "other_expense": [
             "interent_expense"
@@ -100,6 +101,7 @@ SUB_CATEGORIES = (
         ("salaries_and_wages", "Salaries and Wages"),
         ("marketing_and_advertising", "Marketing and Advertising"),
         ("cost_of_goods_sold", "Cost of Goods Sold"),
+        ("expense_from_discounts", "Expense from Discounts"),
         ("contra-revenue", "Contra-Revenue"),
         ("contra-expense", "Contra-Expense"),
         ("selling_expense", "Selling Expense"),

@@ -12,9 +12,12 @@ import SortFilter from '../../components/filters/SortFilter';
 import DateFilter from '../../components/filters/DateFilter';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import { useAuth } from '../../context/AuthContext';
 
 const Purchases = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
+  const { currentOrg } = useAuth();
+  const [header, setHeader] = useState('Purchases')
 
   const [searchItem, setSearchItem] = useState({
     name: '',
@@ -46,6 +49,7 @@ const Purchases = () => {
   const getData = async () => {
     const newPurchasesData = await getItems(`${orgId}/purchases`, `?paginate=true`);
     setPurchasesData(newPurchasesData);
+    setHeader('Purchases')
   }
   useEffect(() => {
 
@@ -53,7 +57,7 @@ const Purchases = () => {
   }, [])
   const handleChange = async (e) => {
     setSearchItem(prev => ({ ...prev, name: e.target.value, search: '' }));
-    const queyParamsUrl = getQueryParams({
+    const queryParamsUrl = getQueryParams({
       type: 'purchases',
       paginate: false,
       search: e.target.value,
@@ -62,12 +66,12 @@ const Purchases = () => {
       typeValue: searchItem.purchases
     })
 
-    const newPurchases = await getItems(`${orgId}/purchases`, queyParamsUrl);
+    const newPurchases = await getItems(`${orgId}/purchases`, queryParamsUrl);
     setPurchases(newPurchases)
   }
   const handlePurchasesChange = async (e) => {
     setSearchItem(prev => ({ ...prev, purchases: e.target.value, search: '' }));
-    const queyParamsUrl = getQueryParams({
+    const queryParamsUrl = getQueryParams({
       type: 'purchases',
       paginate: true,
       search: '',
@@ -76,7 +80,7 @@ const Purchases = () => {
       typeValue: e.target.value
     })
 
-    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queryParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
 
@@ -90,7 +94,7 @@ const Purchases = () => {
     } else {
 
       setSearchItem(prev => ({ ...prev, date: e.target.value, search: '' }));
-      const queyParamsUrl = getQueryParams({
+      const queryParamsUrl = getQueryParams({
         type: 'purchases',
         paginate: true,
         search: '',
@@ -98,7 +102,7 @@ const Purchases = () => {
         sortBy: searchItem.sortBy,
         typeValue: searchItem.purchases
       })
-      const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
+      const newPurchasesData = await getItems(`${orgId}/purchases`, queryParamsUrl);
       setPurchasesData(newPurchasesData);
       setPageNo(1);
     }
@@ -107,7 +111,7 @@ const Purchases = () => {
   }
   const handleSortsChange = async (e) => {
     setSearchItem(prev => ({ ...prev, sortBy: e.target.value, search: '' }));
-    const queyParamsUrl = getQueryParams({
+    const queryParamsUrl = getQueryParams({
       type: 'purchases',
       paginate: true,
       search: '',
@@ -115,14 +119,14 @@ const Purchases = () => {
       sortBy: e.target.value,
       typeValue: searchItem.purchases
     })
-    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queryParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
 
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const queyParamsUrl = getQueryParams({
+    const queryParamsUrl = getQueryParams({
       type: 'purchases',
       paginate: true,
       search: searchItem.name,
@@ -130,9 +134,10 @@ const Purchases = () => {
       sortBy: searchItem.sortBy,
       typeValue: searchItem.purchases
     })
-    const newPurchasesData = await getItems(`${orgId}/purchases`, queyParamsUrl);
+    const newPurchasesData = await getItems(`${orgId}/purchases`, queryParamsUrl);
     setPurchasesData(newPurchasesData);
     setPageNo(1);
+    setHeader(`Purchases matching '${searchItem.name}'`)
     setSearchItem(prev => ({ ...prev, name: '', search: prev.name }))
   }
 
@@ -189,17 +194,16 @@ const Purchases = () => {
         setPageNo={setPageNo}
         type='purchases'
       />
-      <FormHeader header='Purchases' />
       <div className='flex flex-row w-full items-center justify-between'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
-          <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
+          <div className='w-[88%] relative h-[90%] flex flex-row gap-2'>
             <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter purchase number or description' value={searchItem.name} onChange={e => handleChange(e)} />
             <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
-              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[27%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='purchases' handleTypesChange={handlePurchasesChange} />
 
               </div>
-              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[43%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
               </div>
@@ -207,15 +211,15 @@ const Purchases = () => {
                 <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange} />
               </div>
             </div>
-            {purchases.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+            {purchases?.purchases?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {purchases.map((purchase) => (<Link to={`${purchase.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</Link>))}
+              {purchases?.purchases?.map((purchase) => (<Link to={`${purchase.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase.serial_number}</Link>))}
             </div>}
           </div>
 
           <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
-        <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
           <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -226,6 +230,7 @@ const Purchases = () => {
           </div>
 
       </div>
+      <FormHeader header={header}/>
 
 
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
@@ -234,31 +239,38 @@ const Purchases = () => {
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
           <span className='w-[35%] border-gray-800 border-r-2 p-1'>Items</span>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Amount</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Amount ({currentOrg?.currency})</span>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>Total Quantity</span>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Due Amount</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1'>Due Amount ({currentOrg?.currency})</span>
 
 
         </div>
-        {purchasesData?.results?.data && purchasesData.results.data.map((purchase, index) => (
+        {purchasesData?.results?.data?.purchases && purchasesData.results.data.purchases.map((purchase, index) => (
           <Link to={`${purchase.id}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase.serial_number}</span>
             <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.date}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(purchase.items_data.type)}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(purchase.details.type)}</span>
             <span className='w-[35%] border-gray-800 border-r-2 p-1 flex flex-col'>
               <ul className='flex flex-wrap gap-3'>
-                {purchase.items_data.list.map((item, index) => (
+                {purchase.details.items.map((item, index) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>
               <i className='text-sm'>({purchase.description})</i>
             </span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.items_data.total_amount}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.items_data.total_quantity}</span>
-            <span className='w-[10%] border-gray-800 border-r-2 p-1'>{purchase.items_data.amount_due > 0 ? purchase.items_data.amount_due : '-'}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchase.details.total_amount}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchase.details.total_quantity}</span>
+            <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchase.details.amount_due > 0 ? purchase.details.amount_due : '-'}</span>
 
           </Link>
         ))}
+         {purchasesData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+          <span className='w-[70%] border-gray-800 border-r-2 p-1'>Total</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchasesData?.results?.data?.totals?.amount}</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchasesData?.results?.data?.totals?.quantity}</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchasesData?.results?.data?.totals?.amount_due}</span>
+
+        </span>}
       </div>
       { purchasesData && <PrevNext pageNo={pageNo} data={purchasesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>}
 

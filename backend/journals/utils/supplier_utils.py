@@ -47,13 +47,11 @@ class SupplierUtils:
 
         if before_date:
             supplier_bills = supplier_bills.filter(
-                (Q(journal__date__lt=before_date) & Q(journal__date__isnull=False)) |
                 (Q(purchase__date__lt=before_date) & Q(purchase__date__isnull=False))
             )
 
         if after_date:
             supplier_bills = supplier_bills.filter(
-                (Q(journal__date__gte=after_date) & Q(journal__date__isnull=False)) |
                 (Q(purchase__date__gte=after_date) & Q(purchase__date__isnull=False)) 
             )
 

@@ -72,14 +72,18 @@
                 </tr>
             </thead>
             <tbody>
-                {% for stock in data %}
+                {% for stock in data.get('stocks') %}
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ stock.get('name') }}</td>
                     <td>{{ stock.get('unit_name') }}</td>
-                    <td>{{ stock.get('total_quantity') }} {{ stock.get('unit_alias') }}</td>
+                    <td style="text-align: right;">{{ stock.get('total_quantity') }} {{ stock.get('unit_alias') }}</td>
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold;text-decoration: underline;">
+                    <td colspan="3" style="text-align: right;" >Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
+                </tr>
             </tbody>
         </table>
     </section>

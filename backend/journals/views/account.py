@@ -78,6 +78,17 @@ class AccountPagination(PageNumberPagination):
     max_page_size = 100
 
 
+def get_totals(data):
+    total_balance = sum(float(account.get('account_balance')) for account in data)
+    data = {
+        "accounts": data,
+        "totals": {
+            "balance": total_balance
+        }
+    }
+    return data
+
+
 class AccountAPIView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
     queryset = Account.objects.all().order_by('created_at')
@@ -86,8 +97,6 @@ class AccountAPIView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
     filterset_fields = ['name']
-
-
 
     def get(self, request, *args, **kwargs):
         try:
@@ -99,18 +108,23 @@ class AccountAPIView(generics.ListCreateAPIView):
             if paginate:
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
+
                 if paginated_queryset is not None:
-                    serialized_data = self.get_serializer(paginated_queryset, many=True)
+                    serialized_data = self.get_serializer(paginated_queryset, many=True).data
+                    data = get_totals(serialized_data)
+                   
+
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Accounts retrieved successfully with pagination",
-                    "data": serialized_data.data
+                    "data": data
                 }) 
 
             else:
-                serializer = self.get_serializer(queryset, many=True)
+                serialized_data = self.get_serializer(queryset, many=True).data
+                data = get_totals(serialized_data)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -120,6 +134,7 @@ class AccountAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -167,9 +182,11 @@ class DownloadAccountsAPIView(generics.ListCreateAPIView):
             filter_data = request.query_params.dict()
             title = request.data.get('title')
           
-            serializer = self.get_serializer(queryset, many=True)
+            serialized_data = self.get_serializer(queryset, many=True).data
 
-            pdf_generator = GenerateListsPDF(title, request.user, serializer.data, filter_data, filename='accounts.html')
+            data = get_totals(serialized_data)
+
+            pdf_generator = GenerateListsPDF(title, request.user, data, filter_data, filename='accounts.html')
             buffer = pdf_generator.create_pdf()
 
             response = HttpResponse(buffer, content_type='application/pdf')

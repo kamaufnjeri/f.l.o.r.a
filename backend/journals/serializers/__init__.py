@@ -1,11 +1,9 @@
 from .account import AccountDetailsSerializer, AccountSerializer, CategorySerializer, SubCategorySerializer, FixedGroupSerializer
-from .bill import PurchaseBillSerializer
 from .customer import CustomerSerializer, CustomerDetailSerializer
-from .invoice import SalesInvoiceSerializer, ServiceIncomeInvoiceSerializer
 from .journal import JournalSerializer
 from .journal_update import JournalDetailSerializer
 from .journal_entries import DetailedJournalEntryEntrySerializer
-from .payment import PaymentSerializer
+from .payment import PaymentSerializer, PaymentsDetailSerializer
 from .purchase import PurchaseSerializer, PurchaseDetailSerializer
 from .purchase_return import PurchaseReturnSerializer, DetailedPurchaseReturnEntriesSerializer
 from .sales import SalesSerializer, SalesDetailSerializer
@@ -17,4 +15,5 @@ from .supplier import SupplierSerializer, SupplierDetailSerializer
 from .auth import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer, FloraUserSerializer
 from .bill_invoice import InvoiceSerializer, BillSerializer, InvoiceDetailSerializer, BillDetailSerializer
 from .organisation import OrganisationSerializer
-from .service import ServiceSerializer, ServiceIncomeSerializer, ServiceIncomeDetailSerializer, DetailedServiceIncomeEntrySerializer, ServiceDetailSerializer
+from .service import ServiceSerializer, ServiceDetailSerializer
+from .service_income import ServiceIncomeSerializer, ServiceIncomeDetailSerializer, DetailedServiceIncomeEntrySerializer

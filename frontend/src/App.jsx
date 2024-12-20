@@ -47,7 +47,6 @@ import SingleInvoicePayments from "./pages/payments/SingleInvoicePayments";
 // Purchases Pages
 import Purchases from "./pages/purchases/Purchases";
 import RecordPurchase from "./pages/purchases/RecordPurchase";
-import PurchaseBill from "./pages/purchases/PurchaseBill";
 import SinglePurchase from "./pages/purchases/SinglePurchase";
 import PurchaseReturns from "./pages/purchases/PurchaseReturns";
 import SinglePurchaseReturns from "./pages/purchases/SinglePurchaseReturns";
@@ -56,9 +55,10 @@ import SinglePurchaseReturns from "./pages/purchases/SinglePurchaseReturns";
 import Sales from "./pages/sales/Sales";
 import SingleSale from "./pages/sales/SingleSale";
 import RecordSales from "./pages/sales/RecordSales";
-import SalesInvoice from "./pages/sales/SalesInvoice";
 import SalesReturns from "./pages/sales/SalesReturns";
 import SingleSalesReturns from "./pages/sales/SingleSalesReturns";
+import UpdateSales from "./pages/sales/UpdateSales";
+
 
 // Stocks Pages
 import Stocks from "./pages/stocks/Stocks";
@@ -71,13 +71,14 @@ import SingleService from "./pages/services/SingleService";
 // Service Income Pages
 import RecordServiceIncome from "./pages/serviceIncome/RecordServiceIncome";
 import ServiceIncome from "./pages/serviceIncome/ServiceIncome";
-import ServiceIncomeInvoice from "./pages/serviceIncome/ServiceIncomeInvoice";
 import SingleServiceIncome from "./pages/serviceIncome/SingleServiceIncome";
+import UpdateServiceIncome from "./pages/serviceIncome/UpdateServiceIncome";
 
 // Suppliers Pages
 import Suppliers from "./pages/suppliers/Suppliers";
 import SingleSupplier from "./pages/suppliers/SingleSupplier";
 import UpdateSingleJournal from "./pages/journals/UpdateSingleJournal";
+import UpdatePurchase from "./pages/purchases/UpdatePurchase";
 
 const RegisterRoute = () => {
   localStorage.clear();
@@ -113,10 +114,7 @@ const App = () => {
               <Route path="stocks/:id" element={<ProtectedRoute><SingleStock /></ProtectedRoute>} />
               <Route path="services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
               <Route path="services/:id" element={<ProtectedRoute><SingleService /></ProtectedRoute>} />
-              <Route path="service_income/record" element={<ProtectedRoute><RecordServiceIncome /></ProtectedRoute>} />
-              <Route path="service_income/invoice" element={<ProtectedRoute><ServiceIncomeInvoice /></ProtectedRoute>} />
-              <Route path="service_income" element={<ProtectedRoute><ServiceIncome /></ProtectedRoute>} />
-              <Route path="service_income/:id" element={<ProtectedRoute><SingleServiceIncome /></ProtectedRoute>} />
+              
               <Route path="bills" element={<ProtectedRoute><Bills /></ProtectedRoute>} />
               <Route path="bills/:id/payments" element={<ProtectedRoute><SingleBillPayments /></ProtectedRoute>} />
               <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
@@ -130,16 +128,20 @@ const App = () => {
               <Route path="customers/:id" element={<ProtectedRoute><SingleCustomer /></ProtectedRoute>} />
               <Route path="purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
               <Route path="purchases/:id" element={<ProtectedRoute><SinglePurchase /></ProtectedRoute>} />
+              <Route path="purchases/:id/edit" element={<ProtectedRoute><UpdatePurchase /></ProtectedRoute>} />
               <Route path="purchases/:id/purchase_returns" element={<ProtectedRoute><SinglePurchaseReturns /></ProtectedRoute>} />
               <Route path="purchase_returns" element={<ProtectedRoute><PurchaseReturns /></ProtectedRoute>} />
               <Route path="purchases/record" element={<ProtectedRoute><RecordPurchase /></ProtectedRoute>} />
-              <Route path="purchases/bill" element={<ProtectedRoute><PurchaseBill /></ProtectedRoute>} />
               <Route path="sales" element={<ProtectedRoute><Sales /></ProtectedRoute>} />
               <Route path="sales/:id" element={<ProtectedRoute><SingleSale /></ProtectedRoute>} />
+              <Route path="sales/:id/edit" element={<ProtectedRoute><UpdateSales /></ProtectedRoute>} />
               <Route path="sales/:id/sales_returns" element={<ProtectedRoute><SingleSalesReturns /></ProtectedRoute>} />
               <Route path="sales/record" element={<ProtectedRoute><RecordSales /></ProtectedRoute>} />
-              <Route path="sales/invoice" element={<ProtectedRoute><SalesInvoice /></ProtectedRoute>} />
               <Route path="sales_returns" element={<ProtectedRoute><SalesReturns /></ProtectedRoute>} />
+              <Route path="service_income/record" element={<ProtectedRoute><RecordServiceIncome /></ProtectedRoute>} />
+              <Route path="service_income" element={<ProtectedRoute><ServiceIncome /></ProtectedRoute>} />
+              <Route path="service_income/:id" element={<ProtectedRoute><SingleServiceIncome /></ProtectedRoute>} />
+              <Route path="service_income/:id/edit" element={<ProtectedRoute><UpdateServiceIncome /></ProtectedRoute>} />
               <Route path="journals" element={<ProtectedRoute><Journals /></ProtectedRoute>} />
               <Route path="journals/:id" element={<ProtectedRoute><SingleJournal /></ProtectedRoute>} />
               <Route path="journals/:id/edit" element={<ProtectedRoute><UpdateSingleJournal /></ProtectedRoute>} />

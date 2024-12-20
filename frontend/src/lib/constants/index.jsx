@@ -118,10 +118,6 @@ export const sidebarIcons = [
             url: 'purchases/record'
         },
         {
-            name: 'Purchase bill',
-            url: 'purchases/bill'
-        },
-        {
             name: 'View purchases',
             url: 'purchases'
         },
@@ -138,10 +134,6 @@ export const sidebarIcons = [
         {
             name: 'Record sale',
             url: 'sales/record'
-        },
-        {
-            name: 'Sales invoice',
-            url: 'sales/invoice'
         },
         {
             name: 'View sales',
@@ -178,10 +170,6 @@ export const sidebarIcons = [
         {
             name: 'Record Services Income',
             url: 'service_income/record'
-        },
-        {
-            name: 'Services Income Invoice',
-            url: 'service_income/invoice'
         },
         {
             name: 'View Services Provided',

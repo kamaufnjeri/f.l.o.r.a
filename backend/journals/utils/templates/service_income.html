@@ -65,33 +65,42 @@
         <table>
             <thead>
                 <tr>
-                    <th>Purchase #</th>
+                    <th>Sales #</th>
                     <th>Date</th>
                     <th>Type</th>
-                    <th>Items</th>
+                    <th colspan="2">Items</th>
                     <th>Total Amount ({{ organisation.currency }})</th>
+                    <th>Total Quantity</th>
                     <th>Due Amount ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
-                {% for service_income in data %}
+                {% for service_income in data.get('service_income') %}
                 <tr>
                     <td>{{ service_income.get('serial_number') }}</td>
                     <td>{{ service_income.get('date') }}</td>
-                    <td>{{ service_income.get('items_data').get('type') }}</td>
-                    <td>
+                    <td >{{ service_income.get('details').get('type').title() }}</td>
+                    <td colspan="2">
                         <ul>
-                            {% for item in service_income.get('items_data').get('list') %}
+                            {% for item in service_income.get('details').get('items') %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
                             <i>({{ service_income.get('description') }})</i>    
                             
                     </td>
-                    <td>{{ service_income.get('items_data').get('total_amount') }}</td>
-                    <td>{{ service_income.get('items_data').get('amount_due') }}</td>
+                    <td style="text-align: right;">{{ service_income.get('details').get('total_amount') }}</td>
+                    <td style="text-align: right;">{{ service_income.get('details').get('total_quantity') }}</td>
+                    <td style="text-align: right;">{{ service_income.get('details').get('amount_due') }}</td>
+
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold; text-decoration: underline;">
+                    <td colspan="5" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
+                </tr>
             </tbody>
         </table>
     </section>

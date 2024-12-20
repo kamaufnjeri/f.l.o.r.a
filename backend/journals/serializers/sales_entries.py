@@ -3,23 +3,24 @@ from journals.models import SalesEntries
 
 
 class SalesEntriesSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(read_only=True)
-    stock = serializers.CharField(write_only=True)
+    id = serializers.CharField(required=False)
     sales = serializers.CharField(write_only=True, required=False)
-    cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     remaining_quantity = serializers.IntegerField(read_only=True)
     stock_name = serializers.SerializerMethodField(read_only=True)
     quantity = serializers.SerializerMethodField(read_only=True)
+    total_sales_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SalesEntries
-        fields = '__all__'
+        fields = "__all__"
 
     def get_stock_name(self, obj):
         return obj.stock.name
     
     def get_quantity(self, obj):
         return f"{obj.sold_quantity} {obj.stock.unit_alias}"
+    def get_total_sales_price(self, obj):
+        return float(obj.sold_quantity) * float(obj.sales_price)
     
 
 class DetailedSalesEntriesSerializer(serializers.ModelSerializer):

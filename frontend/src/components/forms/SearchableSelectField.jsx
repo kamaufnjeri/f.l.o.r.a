@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { inputContainer } from '../../lib/styles';
 import { FaChevronDown } from 'react-icons/fa';
 import { replaceDash } from '../../lib/helpers';
+import { useParams } from 'react-router-dom';
 
-const SearchableSelectField = ({ options = [], value, handleChange, name, isSubmitted, index=null }) => {
+const SearchableSelectField = ({ options = [], value, handleChange, name, isSubmitted, index=null, item=false }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchValue, setSearchValue] = useState('');
+    const {orgId, id} = useParams();
     const [placeholder, setPlaceholder] = useState(`Select ${replaceDash(name)}`);
     const [isOpen, setIsOpen] = useState(false);
     const searchRef = useRef(null);
@@ -20,10 +22,10 @@ const SearchableSelectField = ({ options = [], value, handleChange, name, isSubm
     };
 
     const handleSelectChange = (option) => {
-        if (index !== null) {
-            handleChange(`${name}`, option.id, index);
-        }
-        setSearchValue(option.name)
+        handleChange(`${name}`, option.id, index, item);
+    
+        
+        setSearchValue(option.name);
         setSearchTerm('');
         setIsOpen(false);
     };
@@ -51,14 +53,14 @@ const SearchableSelectField = ({ options = [], value, handleChange, name, isSubm
             setSearchTerm('');
             setSearchValue('');
         }
-      }, [isSubmitted])
+      }, [isSubmitted, id, orgId])
 
       useEffect(() => {
         if (value) {
-            const newValue = options.find(item => item.id === value)
+            const newValue = options.find(item => item.id === value);
             setSearchValue(newValue.name);
         }
-      }, [value]);
+      }, [value, isSubmitted, id, orgId]);
 
     
 

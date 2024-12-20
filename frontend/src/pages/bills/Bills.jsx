@@ -10,6 +10,7 @@ import TypesFilter from '../../components/filters/TypesFilter';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 const Bills = () => {
     const [searchItem, setSearchItem] = useState({
@@ -19,6 +20,8 @@ const Bills = () => {
         search: ''
     })
     const [isVisible, setIsVisible] = useState(false);
+    const { currentOrg } = useAuth();
+    const [header, setHeader] = useState('Bills')
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -33,8 +36,9 @@ const Bills = () => {
     const [billsData, setBillsData] = useState([]);
     const [pageNo, setPageNo] = useState(1);
     const getData = async () => {
-        const newbillsData = await getItems(`${orgId}/bills`, `?paginate=true`);
-        setBillsData(newbillsData);
+        const newBillsData = await getItems(`${orgId}/bills`, `?paginate=true`);
+        setBillsData(newBillsData);
+        setHeader('Bills');
     }
     useEffect(() => {
 
@@ -49,8 +53,8 @@ const Bills = () => {
             paginate: false
         })
 
-        const newbills = await getItems(`${orgId}/bills`, queyParamsUrl);
-        setBills(newbills)
+        const newBills = await getItems(`${orgId}/bills`, queyParamsUrl);
+        setBills(newBills)
     }
 
     const handleDueDaysChange = async (e) => {
@@ -62,8 +66,8 @@ const Bills = () => {
             paginate: true
         })
 
-        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
-        setBillsData(newbillsData);
+        const newBillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
+        setBillsData(newBillsData);
         setPageNo(1);
 
     }
@@ -77,8 +81,8 @@ const Bills = () => {
             status: e.target.value,
             paginate: true
         })
-        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
-        setBillsData(newbillsData);
+        const newBillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
+        setBillsData(newBillsData);
         setPageNo(1);
     }
 
@@ -93,9 +97,10 @@ const Bills = () => {
             status: searchItem.status,
             paginate: true
         })
-        const newbillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
-        setBillsData(newbillsData);
+        const newBillsData = await getItems(`${orgId}/bills`, queyParamsUrl);
+        setBillsData(newBillsData);
         setPageNo(1);
+        setHeader(`Bills matching '${searchItem.name}'`)
         setSearchItem(prev => ({ ...prev, name: '', search: prev.name }))
     }
 
@@ -143,11 +148,10 @@ const Bills = () => {
     return (
         <div className='flex-1 flex flex-col items-center relative justify-center maincontainer-height mr-2'>
 
-            <FormHeader header='Bills' />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
-                    <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
-                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter bill number or supplier' value={searchItem.name} onChange={e => handleChange(e)} />
+                    <div className='w-[80%] relative h-[90%] flex flex-row gap-2'>
+                        <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter purchase number or supplier' value={searchItem.name} onChange={e => handleChange(e)} />
                         <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
                             <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
                                 <TypesFilter searchItem={searchItem} handleTypesChange={handleDueDaysChange} selectOptions={dueDaysOptions} type='dueDays' title='due days' />
@@ -158,15 +162,15 @@ const Bills = () => {
                             </div>
 
                         </div>
-                        {bills.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+                        {bills?.bills?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-                            {bills.map((bill) => (<Link to={`/dashboard/${orgId}${bill?.bill_data?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{bill.serial_number}</Link>))}
+                            {bills?.bills?.map((bill) => (<Link to={`/dashboard/${orgId}${bill?.details?.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{bill.details.serial_number}</Link>))}
                         </div>}
                     </div>
 
                     <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
                 </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
                 <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
                     <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -177,32 +181,42 @@ const Bills = () => {
                 </div>
 
             </div>
+            <FormHeader header={header}/>
 
 
             <div className='overflow-auto custom-scrollbar flex flex-col h-[500px] flex-1 w-full m-2'>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Bill #</span>
+                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Purchase #</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Due Date</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>Type</span>
                     <span className='w-[15%] border-gray-800 border-r-2 p-1'>Supplier</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>Status</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Amount Due</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Amount Paid</span>
                     <span className='w-[15%] border-gray-800 border-r-2 p-1'>Due Days</span>
 
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Amount Due ({currentOrg?.currency})</span>
+                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Amount Paid ({currentOrg?.currency})</span>
+
                 </div>
-                {billsData?.results?.data && billsData.results.data.map((bill, index) => (
+                {billsData?.results?.data?.bills && billsData.results.data?.bills.map((bill, index) => (
                     <Link to={`/dashboard/${orgId}${bill?.details?.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={bill.id}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{bill.serial_number}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{bill.details.serial_number}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{bill.due_date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(bill.details.type)}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{bill.supplier_name}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{capitalizeFirstLetter(replaceDash(bill.status))}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{bill.amount_due}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{bill.amount_paid}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>{bill.details.due_days}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{bill.amount_due}</span>
+
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right '>{bill.amount_paid}</span>
                     </Link>
                 ))}
+                {billsData?.results?.data?.totals &&
+                    <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+                        <span className='w-[70%] border-gray-800 border-r-2 p-1'>Total</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{billsData?.results?.data?.totals.amount_due}</span>
+                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{billsData?.results?.data?.totals.amount_paid}</span>
+
+                    </span>}
             </div>
             <PrevNext pageNo={pageNo} data={billsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 

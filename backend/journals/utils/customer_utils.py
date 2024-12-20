@@ -48,14 +48,12 @@ class CustomerUtils:
 
         if before_date:
             customer_invoices = customer_invoices.filter(
-                (Q(journal__date__lt=before_date) & Q(journal__date__isnull=False)) |
                 (Q(sales__date__lt=before_date) & Q(sales__date__isnull=False)) |
                 (Q(service_income__date__lt=before_date) & Q(service_income__date__isnull=False))
             )
 
         if after_date:
             customer_invoices = customer_invoices.filter(
-                (Q(journal__date__gte=after_date) & Q(journal__date__isnull=False)) |
                 (Q(sales__date__gte=after_date) & Q(sales__date__isnull=False)) |
                 (Q(service_income__date__gte=after_date) & Q(service_income__date__isnull=False))
             )

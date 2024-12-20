@@ -15,12 +15,12 @@ const RecordJournal = () => {
   const { orgId } = useParams();
   const { accounts, serialNumbers, getSelectOptions } = useSelectOptions();
   const [formData, setFormData] = useState({
-    date: '',
+    date: null,
     description: '',
     serial_number: '',
     journal_entries: [
-      { account: null, debit_credit: null, amount: 0 },
-      { account: null, debit_credit: null, amount: 0 },
+      { account: null, debit_credit: null, amount: 0, type: 'journal' },
+      { account: null, debit_credit: null, amount: 0, type: 'journal' },
     ]
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -38,12 +38,12 @@ const RecordJournal = () => {
       getSelectOptions();
 
       setFormData({
-        date: '',
+        date: null,
         description: '',
         serial_number: serialNumbers.journal,
         journal_entries: [
-          { account: null, debit_credit: null, amount: 0 },
-          { account: null, debit_credit: null, amount: 0 },
+          { account: null, debit_credit: null, amount: 0, type: 'journal' },
+          { account: null, debit_credit: null, amount: 0, type: 'journal' },
         ]
       });
       toast.success('Recorded: Journal recorded successfully');
@@ -70,12 +70,12 @@ const RecordJournal = () => {
   useEffect(() => {
     
     scrollBottom(scrollRef);
-  }, [formData]);
+  }, [formData.journal_entries]);
 
 
   useEffect(() => {
     setFormData((prev) => ({...prev, serial_number: serialNumbers.journal}));
-  }, [serialNumbers, setFormData]);
+  }, [serialNumbers, orgId]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center">
@@ -93,7 +93,7 @@ const RecordJournal = () => {
           </div>
           <div className="w-[80%]">
             <FormInitialField
-              values={formData}
+              formData={formData}
               handleChange={handleChange}
             />
           </div>
