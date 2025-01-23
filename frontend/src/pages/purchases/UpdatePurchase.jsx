@@ -53,7 +53,8 @@ const UpdatePurchase = () => {
 
       }
     useEffect(() => {
-    
+        getSelectOptions();
+
         getData();
     }, [orgId, id]);
 

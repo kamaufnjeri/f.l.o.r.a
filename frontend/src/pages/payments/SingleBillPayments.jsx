@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from 'antd';
 import UpdatePaymentModal from '../../components/modals/UpdatePaymentModal';
 import DeleteModal from '../../components/modals/DeleteModal';
-
+  
 const SingleBillPayments = () => {
     const { id } = useParams()
     const [paymentsData, setPaymentsData] = useState([]);
@@ -136,7 +136,7 @@ const SingleBillPayments = () => {
                         <span className='w-[15%] border-gray-800 border-r-2 p-1'>Payment #</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                        <span className='w-[50%] border-gray-800 border-r-2 flex flex-col'>
+                        <span className='w-[40%] border-gray-800 border-r-2 flex flex-col'>
                             <div className='flex flex-row flex-1'>
                                 <span className='w-[60%] p-1'>Account</span>
                                 <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit ({currentOrg.currency})</span>

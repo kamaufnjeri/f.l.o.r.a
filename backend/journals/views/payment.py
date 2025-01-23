@@ -259,7 +259,6 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
 
         try:
             instance = self.get_object()
-            serialized_data = self.get_serializer(instance).data
 
             if request.user != instance.user:
                 raise serializers.ValidationError(f"Payment {payment_id} can only be deleted by user who recorded it")

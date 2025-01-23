@@ -28,7 +28,6 @@ const RecordPurchase = () => {
         purchase_entries: [{ stock: null, purchased_quantity: 0, purchase_price: 0.0 }],
         journal_entries: [
             { account: null, debit_credit: 'debit', amount: 0.0, type: 'purchase' },
-            { account: null, debit_credit: 'credit', amount: 0.0, type: 'payment' },
         ],
     });
 
@@ -54,7 +53,6 @@ const RecordPurchase = () => {
                 purchase_entries: [{ stock: null, purchased_quantity: 0, purchase_price: 0.0 }],
                 journal_entries: [
                     { account: null, debit_credit: 'debit', amount: 0.0, type: 'purchase' },
-                    { account: null, debit_credit: 'credit', amount: 0.0, type: 'payment' },
                 ],
             });
             setShowDiscount(false);
@@ -120,6 +118,7 @@ const RecordPurchase = () => {
 
 
     useEffect(() => {
+        getSelectOptions();
         if (serialNumbers?.purchase) {
             setFormData((prev) => ({ ...prev, serial_number: serialNumbers.purchase }));
         }

@@ -11,10 +11,13 @@ import DateFilter from '../../components/filters/DateFilter';
 import SortFilter from '../../components/filters/SortFilter';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import { useAuth } from '../../context/AuthContext';
 
 
 const PurchaseReturns = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
+  const { currentOrg } = useAuth();
+  const [header, setHeader] = useState('Purchase Returns')
 
   const [searchItem, setSearchItem] = useState({
     name: '',
@@ -39,6 +42,8 @@ const PurchaseReturns = () => {
   const getData = async () => {
     const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, `?paginate=true`);
     setPurchaseReturnsData(newPurchaseReturnsData);
+    setHeader('Purchase Returns')
+
   }
   useEffect(() => {
 
@@ -53,7 +58,6 @@ const PurchaseReturns = () => {
       sortBy: searchItem.sortBy,
     })
 
-    console.log(queyParamsUrl)
     const newPurchaseReturns = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
     setPurchaseReturns(newPurchaseReturns)
   }
@@ -103,6 +107,8 @@ const PurchaseReturns = () => {
     const newPurchaseReturnsData = await getItems(`${orgId}/purchase_returns`, queyParamsUrl);
     setPurchaseReturnsData(newPurchaseReturnsData);
     setPageNo(1);
+    setHeader(`Purchase Returns matching '${searchItem.name}'`)
+
     setSearchItem(prev => ({ ...prev, name: '', search: prev.name }))
   }
 
@@ -158,30 +164,29 @@ const PurchaseReturns = () => {
         setPageNo={setPageNo}
         type='purchase_returns'
       />
-      <FormHeader header='Purchase Returns' />
       <div className='flex flex-row w-full items-center justify-between'>
-        <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
+        <form onSubmit={handleSubmit} className='flex h-10 flex-row w-[90%] text-black items-center gap-2'>
           <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
             <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter purchase number or description' value={searchItem.name} onChange={e => handleChange(e)} />
             <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
 
-              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[55%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
 
               </div>
-              <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[45%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
               </div>
             </div>
-            {purchaseReturns.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+            {purchaseReturns?.purchase_returns?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {purchaseReturns.map((purchase_return) => (<Link to={`/dashboard/${orgId}/purchases/${purchase_return.purchase}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase_return.purchase_no}</Link>))}
+              {purchaseReturns.purchase_returns.map((purchase_return) => (<Link to={`/dashboard/${orgId}/${purchase_return.details.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase_return.details.serial_number}</Link>))}
             </div>}
           </div>
 
           <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
-        <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
           <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -193,6 +198,8 @@ const PurchaseReturns = () => {
 
 
       </div>
+      <FormHeader header={header} />
+
 
 
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
@@ -206,23 +213,24 @@ const PurchaseReturns = () => {
               <span className='border-gray-800 border-r-2 p-1 w-[46%]'>Items</span>
              
               <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-               Return Price
+               Rate ({ currentOrg.currency })
               </span>
               <span className='p-1 w-[18%] border-gray-800 border-r-2'>
                 Quantity
               </span>
+              
               <span className='p-1 w-[18%] border-gray-800'>
-                Total
+                Total ({ currentOrg.currency })
               </span>
             </div>
 
           </span>
 
         </div>
-        {purchaseReturnsData?.results?.data && purchaseReturnsData.results.data.map((purchase_return, index) => (
-          <Link to={`/dashboard/${orgId}/purchases/${purchase_return.purchase}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase_return.id}>
+        {purchaseReturnsData?.results?.data?.purchase_returns && purchaseReturnsData.results.data.purchase_returns.map((purchase_return, index) => (
+          <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase_return.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase_return.purchase_no}</span>
+            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase_return.details.serial_number}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{purchase_return.date}</span>
             <span className='w-[55%] flex flex-col border-gray-800 border-r-2'>
               <ul className='flex flex-col w-full'>
@@ -230,13 +238,13 @@ const PurchaseReturns = () => {
                   <li key={index} className='w-full flex'>
                     <span className='border-gray-800 border-r-2 border-b-2 p-1 w-[46%]'>{entry.stock_name}</span>
                     
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2 text-right'>
                       {entry.return_price}
                     </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2 text-right'>
                       {entry.quantity}
                     </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2 text-right'>
                       {
                         entry.return_quantity * entry.return_price
                       }
@@ -247,12 +255,12 @@ const PurchaseReturns = () => {
               <div className='w-full flex flex-row border-gray-800'>
 
                   <span className='border-gray-800 border-r-2 p-1 w-[46%]'><i className='text-sm'>({purchase_return.description})</i></span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2'>Total</span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2'>
-                    { purchase_return?.items_data?.total_quantity}
+                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>Total</span>
+                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>
+                    { purchase_return?.details?.total_quantity}
                   </span>
-                  <span className='p-1 w-[18%] border-gray-800 underline'>
-                    { purchase_return?.items_data?.total_amount}
+                  <span className='p-1 w-[18%] border-gray-800 underline text-right'>
+                    { purchase_return?.details?.total_amount}
                   </span>
 
               </div>
@@ -260,6 +268,12 @@ const PurchaseReturns = () => {
 
           </Link>
         ))}
+        {purchaseReturnsData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+          <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchaseReturnsData?.results?.data?.totals?.quantity}</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchaseReturnsData?.results?.data?.totals?.amount}</span>
+
+        </span>}
       </div>
       <PrevNext pageNo={pageNo} data={purchaseReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 

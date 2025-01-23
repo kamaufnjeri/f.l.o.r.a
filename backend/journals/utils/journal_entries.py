@@ -40,8 +40,7 @@ class JournalEntriesManager:
 
     def add_journal_entry(self, entry_data, type, table, total_amount, due_date=None):
         account = self.get_account(entry_data)
-                
-        
+
         entry_data['account'] = account
         entry = None
 
@@ -107,8 +106,8 @@ class JournalEntriesManager:
             raise serializers.ValidationError(f"Journal entries required in the format: {str(format)}")
         
     def validate_double_entry(self, journal_entries):
-        debit_total = sum(entry.get('amount') for entry in journal_entries  if entry.get('debit_credit') == 'debit')
-        credit_total = sum(entry.get('amount') for entry in journal_entries  if entry.get('debit_credit') == 'credit')
+        debit_total = sum(float(entry.get('amount')) for entry in journal_entries  if entry.get('debit_credit') == 'debit')
+        credit_total = sum(float(entry.get('amount')) for entry in journal_entries  if entry.get('debit_credit') == 'credit')
 
         if debit_total != credit_total:
             raise serializers.ValidationError("For every journal entered the debit and credit amounts need to be equal")
@@ -123,11 +122,12 @@ class JournalEntriesManager:
 
         return journal_entries
     
-    def create_journal_entry(self, account, amount, type):
+    def create_journal_entry(self, account, amount, debit_credit, type=None):
         return {
             "account": account.id,
             "amount": amount,
-            "debit_credit": type
+            "debit_credit": debit_credit,
+            "type": type
         }
     
     def update_journal_entry(self, entry_data, type, table, total_amount, due_date):
@@ -142,9 +142,22 @@ class JournalEntriesManager:
                     total_amount = entry_data.get('amount')
                     amount_due = total_amount - bill.amount_paid
                     if amount_due > 0:
+                        if bill.amount_paid > total_amount:
+                            raise serializers.ValidationError(
+                                f"Amount paid {bill.amount_paid} cannot be more than bill total amount {total_amount}"
+                            )
+
                         bill.total_amount = total_amount
                         bill.amount_due = amount_due
                         bill.due_date = due_date
+
+                        if bill.amount_paid == total_amount:
+                            bill.status = "paid"
+                        elif bill.amount_paid == 0:
+                            bill.status = "unpaid"
+                        else:
+                            bill.status = "partially_paid"
+
                         bill.save()
                     else:
                         raise serializers.ValidationError('Amount due can not  be negative')
@@ -167,9 +180,22 @@ class JournalEntriesManager:
                     total_amount = entry_data.get('amount')
                     amount_due = total_amount - invoice.amount_paid
                     if amount_due > 0:
+                        if invoice.amount_paid > total_amount:
+                            raise serializers.ValidationError(
+                                f"Amount paid {invoice.amount_paid} cannot be more than bill total amount {total_amount}"
+                            )
+
                         invoice.total_amount = total_amount
                         invoice.amount_due = amount_due
                         invoice.due_date = due_date
+
+                        if invoice.amount_paid == total_amount:
+                            invoice.status = "paid"
+                        elif invoice.amount_paid == 0:
+                            invoice.status = "unpaid"
+                        else:
+                            invoice.status = "partially_paid"
+
                         invoice.save()
                     else:
                         raise serializers.ValidationError('Amount due can not  be negative')
@@ -192,9 +218,22 @@ class JournalEntriesManager:
                     total_amount = entry_data.get('amount')
                     amount_due = total_amount - invoice.amount_paid
                     if amount_due > 0:
+                        if invoice.amount_paid > total_amount:
+                            raise serializers.ValidationError(
+                                f"Amount paid {invoice.amount_paid} cannot be more than bill total amount {total_amount}"
+                            )
+
                         invoice.total_amount = total_amount
                         invoice.amount_due = amount_due
                         invoice.due_date = due_date
+
+                        if invoice.amount_paid == total_amount:
+                            invoice.status = "paid"
+                        elif invoice.amount_paid == 0:
+                            invoice.status = "unpaid"
+                        else:
+                            invoice.status = "partially_paid"
+
                         invoice.save()
                     else:
                         raise serializers.ValidationError('Amount due can not  be negative')

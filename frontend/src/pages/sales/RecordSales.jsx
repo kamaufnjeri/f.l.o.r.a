@@ -28,7 +28,6 @@ const RecordSales = () => {
         sales_entries: [{ stock: null, sold_quantity: 0, sales_price: 0.0 }],
         journal_entries: [
             { account: null, debit_credit: 'credit', amount: 0.0, type: 'sales' },
-            { account: null, debit_credit: 'debit', amount: 0.0, type: 'payment' },
         ],
     });
 
@@ -54,7 +53,6 @@ const RecordSales = () => {
                 sales_entries: [{ stock: null, sold_quantity: 0, sales_price: 0.0 }],
                 journal_entries: [
                     { account: null, debit_credit: 'credit', amount: 0.0, type: 'sales' },
-                    { account: null, debit_credit: 'debit', amount: 0.0, type: 'payment' },
                 ],
             });
             setShowDiscount(false);
@@ -120,6 +118,8 @@ const RecordSales = () => {
 
 
     useEffect(() => {
+        getSelectOptions();
+
         if (serialNumbers?.sales) {
             setFormData((prev) => ({ ...prev, serial_number: serialNumbers.sales }));
         }

@@ -57,6 +57,13 @@ class PaymentSerializer(serializers.ModelSerializer):
 
             if invoice_id and bill_id:
                 raise serializers.ValidationError("Only one invoice or bill can be paid at a time")
+            
+            print(invoice_id, bill_id)
+
+            if bill_id is None and invoice_id is None:
+                raise serializers.ValidationError("Invoice or bill id is needed")
+
+
 
             payment = None
             
@@ -109,6 +116,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             payment = Payment.objects.create(**validated_data, amount_paid=amount_paid)
 
             journal_entries_data.append(account_data)
+
             journal_entries_manager.validate_double_entry(journal_entries_data)
             journal_entries_manager.create_journal_entries(journal_entries_data, "payments", payment, AccountDetailsSerializer)
         return payment

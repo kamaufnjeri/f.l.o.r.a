@@ -53,6 +53,7 @@ const UpdateSales = () => {
 
     }
     useEffect(() => {
+        getSelectOptions();
 
         getData();
     }, [orgId, id]);

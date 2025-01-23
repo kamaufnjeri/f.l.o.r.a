@@ -2,12 +2,12 @@ from .account import AccountDetailsSerializer, AccountSerializer, CategorySerial
 from .customer import CustomerSerializer, CustomerDetailSerializer
 from .journal import JournalSerializer
 from .journal_update import JournalDetailSerializer
-from .journal_entries import DetailedJournalEntryEntrySerializer
+from .journal_entries import DetailedJournalEntryEntrySerializer, JournalEntrySerializer
 from .payment import PaymentSerializer, PaymentsDetailSerializer
 from .purchase import PurchaseSerializer, PurchaseDetailSerializer
-from .purchase_return import PurchaseReturnSerializer, DetailedPurchaseReturnEntriesSerializer
+from .purchase_return import PurchaseReturnSerializer, DetailedPurchaseReturnEntriesSerializer, DetailedPurchaseReturnSerializer
 from .sales import SalesSerializer, SalesDetailSerializer
-from .sales_return import SalesReturnSerializer, DetailedSalesReturnEntriesSerializer
+from .sales_return import SalesReturnSerializer, DetailedSalesReturnEntriesSerializer, DetailedSalesReturnSerializer
 from .purchase_entries import DetailedPurchaseEntriesSerializer
 from .sales_entries import DetailedSalesEntriesSerializer
 from .stock import StockDetailsSerializer, StockSerializer

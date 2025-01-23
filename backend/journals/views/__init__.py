@@ -4,10 +4,12 @@ from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAP
 from .invoice import InvoiceApiView, InvoicePaymentsApiView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView
 from .journal import JournalAPIView, JournalDetailAPIView, DownloadJournalAPIView
 from .payment import PaymentAPIView, DownloadPaymentAPIView, PaymentDetailAPIView
-from .purchase import PurchaseAPIView, PurchaseDetailAPIView, PurchasePurchaseReturnsApiView, DownloadPurchaseAPIView, DownloadPurchasePurchaseReturnsApiView
-from .purchase_return import PurchaseReturnAPIView, DownloadPurchaseReturnAPIView
-from .sales import SalesAPIView, SalesDetailAPIView, SalesSalesReturnsApiView, DownloadSalesAPIView, DownloadSalesSalesReturnsApiView
-from .sales_return import SalesReturnAPIView, DownloadSalesReturnAPIView
+from .purchase import PurchaseAPIView, PurchaseDetailAPIView, DownloadPurchaseAPIView
+from .purchase_return import PurchaseReturnAPIView, DownloadPurchaseReturnAPIView, PurchasePurchaseReturnsApiView
+from .purchase_return import DownloadPurchasePurchaseReturnsApiView, PurchaseReturnDetailApiView
+from .sales import SalesAPIView, SalesDetailAPIView, DownloadSalesAPIView
+from .sales_return import SalesReturnAPIView, DownloadSalesReturnAPIView, SalesSalesReturnsApiView
+from .sales_return import DownloadSalesSalesReturnsApiView, SalesReturnDetailApiView
 from .stock import StockAPIView, StockDetailAPIView, DownloadStockAPIView, DownloadStockDetailAPIView
 from .supplier import SupplierAPIVew, SupplierDetailsAPIView, DownloadSupplierAPIVew, DownloadSupplierDetailAPIView
 from .custom_404 import Custom404APIView

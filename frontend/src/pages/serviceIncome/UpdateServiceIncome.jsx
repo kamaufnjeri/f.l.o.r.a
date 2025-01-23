@@ -54,7 +54,7 @@ const UpdateServiceIncome = () => {
     };
 
     useEffect(() => {
-
+        getSelectOptions();
         getData();
     }, [orgId, id]);
 

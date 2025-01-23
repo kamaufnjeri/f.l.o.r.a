@@ -28,7 +28,6 @@ const RecordServiceIncome = () => {
         service_income_entries: [{ service: null, quantity: 1, price: 0.0 }],
         journal_entries: [
             { account: null, debit_credit: 'credit', amount: 0.0, type: 'service_income' },
-            { account: null, debit_credit: 'debit', amount: 0.0, type: 'payment' },
         ],
     });
 
@@ -54,7 +53,6 @@ const RecordServiceIncome = () => {
                 service_income_entries: [{ service: null, quantity: 1, price: 0.0 }],
                 journal_entries: [
                     { account: null, debit_credit: 'credit', amount: 0.0, type: 'service_income' },
-                    { account: null, debit_credit: 'debit', amount: 0.0, type: 'payment' },
                 ],
             });
             setShowDiscount(false);
@@ -120,6 +118,8 @@ const RecordServiceIncome = () => {
 
 
     useEffect(() => {
+        getSelectOptions();
+
         if (serialNumbers?.service_income) {
             setFormData((prev) => ({ ...prev, serial_number: serialNumbers.service_income }));
         }

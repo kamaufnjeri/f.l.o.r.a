@@ -12,4 +12,4 @@ class SalesEntries(BaseModel):
     sales_price = models.DecimalField(max_digits=15, decimal_places=2)
 
     def __str__(self):
-        return self.stock.name
+        return str(self.id)

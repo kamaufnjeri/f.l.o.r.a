@@ -112,28 +112,39 @@ class SalesDetailSerializer(SalesSerializer):
         sales_type = 'regular'
         total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity'])) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
-        amount_paid = 0
+        amount_paid = total_amount
         amount_due = 0
 
         footer_data = {}
 
-        if hasattr(obj, 'return_totals') and obj.returns_total is not None:
-            footer_data['Returns'] = obj.returns_totals
+        has_returns = False
+        
+
+        if hasattr(obj, 'sales_returns'):
+            sales_returns = obj.sales_returns.all()
+            
+            if sales_returns:
+                returns_total = sum(float(return_item.return_total) for return_item in sales_returns)  
+
+                if returns_total > 0:
+                    footer_data['Returns'] = returns_total
+                    amount_paid -= returns_total
+                    has_returns = True
 
         for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
             if entry.get('debit_credit') == 'debit':
-                if entry.get('type') == 'payment':
-                    amount_paid += float(entry.get('amount'))
-                elif entry.get('type') == 'discount':
+                if entry.get('type') == 'discount':
                     footer_data['Discount'] = entry.get('amount') 
+                    amount_paid -= float(entry.get('amount'))
 
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             amount_due += float(obj.invoice.amount_due)
-            amount_paid += float(obj.invoice.amount_paid)
+            amount_paid -= float(obj.invoice.amount_due)
+            
             sales_type = 'invoice'
 
         if amount_paid > 0:
-            footer_data['Amount Paid'] = amount_paid
+            footer_data['Amount Paid'] = round(amount_paid, 2)
 
         if amount_due > 0:
             footer_data["Amount Due"] = amount_due
@@ -141,6 +152,7 @@ class SalesDetailSerializer(SalesSerializer):
 
         return {
             "type": sales_type,
+            "has_returns": has_returns,
             "footer_data": footer_data,
             "total_amount": total_amount,
             "total_quantity": total_quantity,

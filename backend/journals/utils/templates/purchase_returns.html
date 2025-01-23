@@ -63,7 +63,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for return in data %}
+                {% for return in data.get('purchase_returns') %}
                 {% set col = loop.index %}
 
                     {% for entry in return.get('return_entries') %}
@@ -75,7 +75,7 @@
                         <tr>
                             {% if first_entry %}
                                 <td>{{ col }}</td>
-                                <td>{{ return.get('purchase_no') }}</td>
+                                <td>{{ return.get('details').get('serial_number') }}</td>
                                 <td>{{ return.get('date') }}</td>
                             {% else %}
                                 <td>&nbsp;</td>
@@ -98,10 +98,16 @@
                         <td>&nbsp;</td>
                         <td colspan="2"><i>({{ return.get('description') }})</i></td>
                         <td style="text-align: right; text-decoration: underline;">Total</td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('items_data').get('total_quantity') }}</td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('items_data').get('total_amount') }}</td>
+                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_quantity') }}</td>
+                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_amount') }}</td>
                     </tr>
                 {% endfor %}
+                <tr style="font-weight: bold; text-decoration: underline;">
+                    <td colspan="6" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount') }}</td>
+
+                </tr>
             </tbody>
         </table>
     </section>

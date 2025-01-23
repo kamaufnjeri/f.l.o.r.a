@@ -7,9 +7,11 @@ from .purchase import Purchase
 class PurchaseReturn(BaseModel):
     date = models.DateField()
     description = models.TextField()
-    purchase = models.ForeignKey(Purchase, related_name='purchase_return', on_delete=models.CASCADE)
-    organisation = models.ForeignKey('Organisation', related_name='purchase_retuns', on_delete=models.CASCADE)
-    user = models.ForeignKey('FloraUser', related_name='purchase_retuns', on_delete=models.SET_NULL, null=True)
+    purchase = models.ForeignKey(Purchase, related_name='purchase_returns', on_delete=models.CASCADE)
+    organisation = models.ForeignKey('Organisation', related_name='purchase_returns', on_delete=models.CASCADE)
+    user = models.ForeignKey('FloraUser', related_name='purchase_returns', on_delete=models.SET_NULL, null=True)
+    bill_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=True)
+    return_total = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
 
 
     def __str__(self):

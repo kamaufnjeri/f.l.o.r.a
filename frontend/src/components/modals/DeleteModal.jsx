@@ -3,12 +3,12 @@ import { Modal, Button, Spin } from 'antd';
 import { deleteRequest } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import FormHeader from '../forms/FormHeader';
+import { useNavigate } from 'react-router-dom';
 
-const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, setTitle, getData }) => {
-    
+const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, setTitle, getData, navigateUrl=null }) => {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
 
-   
 
     const handleCancel = () => {
         setDeleteUrl("");
@@ -26,6 +26,10 @@ const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, 
             setDeleteUrl('')
             setTitle('')
             setOpenModal(false);
+            
+            if (navigateUrl) {
+                navigate(navigateUrl);
+            }
             
         } else {
             toast.error(`${response.error}`)

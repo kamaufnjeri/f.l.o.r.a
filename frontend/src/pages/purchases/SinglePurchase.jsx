@@ -8,6 +8,7 @@ import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading'
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const SinglePurchase = () => {
   const { id } = useParams();
@@ -17,9 +18,11 @@ const SinglePurchase = () => {
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [openPurchaseReturnModal, setOpenPurchaseReturnModal] = useState();
   const { orgId } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
   const { currentOrg } = useAuth();
-  const navigate = useNavigate();
+  const [openDeleteModal, setOpenDeleteModal] = useState('');
+  const [deleteUrl, setDeleteUrl] = useState('');
+  const [deleteModalTitle, setDeleteModalTitle] = useState('');
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -70,19 +73,27 @@ const SinglePurchase = () => {
     setIsLoading(false)
   }
 
-  const deletePurchase = async () => {
-    const response = await deleteRequest(`${orgId}/purchases/${purchase.id}`);
-    if (response.success) {
-        toast.success('Purchase deleted successfully');
-        navigate(`/dashboard/${orgId}/purchases`)
-    } else {
-        toast.error(`${response.error}`)
+  
+  const deletePurchase = () => {
+    const deleteUrl = `${orgId}/purchases/${purchase.id}`
+    setDeleteUrl(deleteUrl);
+    setDeleteModalTitle(`purchase ${purchase.serial_number}`);
+    setOpenDeleteModal(true);
+  }
 
-    }
-}
   return (
     <div className='flex flex-col gap-4 relative overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       {isLoading && <Loading />}
+      <DeleteModal
+        openModal={openDeleteModal}
+        setOpenModal={setOpenDeleteModal}
+        setDeleteUrl={setDeleteUrl}
+        deleteUrl={deleteUrl}
+        title={deleteModalTitle}
+        setTitle={setDeleteModalTitle}
+        getData={getData}
+        navigateUrl={`/dashboard/${orgId}/purchases`}
+      />
       <PurchaseReturnModal title={`Purchase return of purchase# ${purchase?.serial_number}`}
         setOpenModal={setOpenPurchaseReturnModal}
         onPurchaseReturn={onPaymentSuccess}
@@ -115,11 +126,11 @@ const SinglePurchase = () => {
                   Payments
                 </Link>
               )}
-            
+
             <button onClick={() => showModal(setOpenPurchaseReturnModal)} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
               Return purchase
             </button>
-            {parseFloat(purchase?.returns_total) > 0 && (
+            {purchase?.details?.has_returns && (
               <Link to="purchase_returns" className="hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm">
                 Purchase returns
               </Link>
@@ -202,7 +213,7 @@ const SinglePurchase = () => {
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No#</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>Stock</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Purchase Price</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Purchase Price ({currentOrg.currency})</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Quantity</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Total Amount ({currentOrg.currency})</span>
 
@@ -228,16 +239,15 @@ const SinglePurchase = () => {
         </div>
 
         {purchase?.details?.footer_data && Object.entries(purchase?.details?.footer_data).map(([key, value]) => (
-          <div 
-          className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2 ${
-            key === 'Amount Due' ? 'text-red-500': ''} ${
-              key === 'Total' ? 'underline' : ''}`}
+          <div
+          key={key}
+            className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2 ${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'underline' : ''}`}
           >
-          
-          <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
 
-        </div>
+            <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
+
+          </div>
         ))}
 
         <div className='w-full flex flex-col p-1'>
@@ -271,11 +281,9 @@ const SinglePurchase = () => {
                 </span>
               </div>
             </div>}
-          <div className="w-full flex flex-row gap-4">
 
-
-          </div>
         </div>
+
 
       </div>
 

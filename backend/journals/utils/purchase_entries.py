@@ -1,5 +1,6 @@
 from journals.models import Stock, PurchaseEntries
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
 
 class PurchaseEntriesManager:
@@ -8,7 +9,7 @@ class PurchaseEntriesManager:
         if not isinstance(stock, Stock):
         
             try:
-                stock = Stock.objects.get(id=stock)
+                stock = get_object_or_404(Stock, id=stock)
             except Stock.DoesNotExist:
                 raise serializers.ValidationError(f"Stock with id {stock} not found")
         return stock
@@ -29,13 +30,21 @@ class PurchaseEntriesManager:
     
     def update_purchase_entry(self, entry, purchase):
         stock = self.get_stock(entry)
+
         purchase_entry = PurchaseEntries.objects.get(
             purchase=purchase,
             id=entry.get('id')
         )
         purchase_quantity = entry.get('purchased_quantity')
         purchase_price = entry.get('purchase_price')
-        new_stock_balance = int(stock.get('total_qantity')) - (purchase_entry.purchased_quantity - purchase_quantity)
+
+        from journals.serializers import StockSerializer
+
+        stock_serializer = StockSerializer(stock).data
+        print('stock', stock_serializer)
+
+
+        new_stock_balance = int(stock_serializer.get('total_quantity')) - (purchase_entry.purchased_quantity - purchase_quantity)
 
         if new_stock_balance < 0:
             raise serializers.ValidationError("Remaining quantity can't be a negative value")
@@ -45,7 +54,7 @@ class PurchaseEntriesManager:
         purchase_cogs = purchase_price * purchase_quantity
        
         
-        returned_quantity = purchase.purchased_quantity - purchase.remaining_quantity
+        returned_quantity = purchase_entry.purchased_quantity - purchase_entry.remaining_quantity
         remaining_quantity = purchase_quantity - returned_quantity
 
         if returned_quantity < 0:
@@ -83,7 +92,7 @@ class PurchaseEntriesManager:
         entries_id = []
         for entry_data in purchase_entries:
             if entry_data.get('id'):
-                purchase_cogs, entry_id = self.update_purchase_entry(entry_data=entry_data, purchase=purchase)
+                purchase_cogs, entry_id = self.update_purchase_entry(entry=entry_data, purchase=purchase)
                 cogs += float(purchase_cogs)
                 entries_id.append(entry_id)
             else:

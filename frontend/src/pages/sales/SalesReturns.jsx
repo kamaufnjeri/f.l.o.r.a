@@ -11,21 +11,24 @@ import DateFilter from '../../components/filters/DateFilter';
 import SortFilter from '../../components/filters/SortFilter';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import { useAuth } from '../../context/AuthContext';
 
 
 const SalesReturns = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
+  const { currentOrg } = useAuth();
+  const [header, setHeader] = useState('Sales Returns')
 
   const [searchItem, setSearchItem] = useState({
     name: '',
     date: '',
     sortBy: '',
-    search: ''
+    search: '',
   })
-  const { orgId } = useParams();
   const [salesReturns, setSalesReturns] = useState([]);
   const [salesReturnsData, setSalesReturnsData] = useState([]);
   const [pageNo, setPageNo] = useState(1);
+  const { orgId } = useParams();
   const [isVisible, setIsVisible] = useState(false);
 
   const openDropDown = () => {
@@ -39,6 +42,8 @@ const SalesReturns = () => {
   const getData = async () => {
     const newSalesReturnsData = await getItems(`${orgId}/sales_returns`, `?paginate=true`);
     setSalesReturnsData(newSalesReturnsData);
+    setHeader('Sales Returns')
+
   }
   useEffect(() => {
 
@@ -53,7 +58,6 @@ const SalesReturns = () => {
       sortBy: searchItem.sortBy,
     })
 
-    console.log(queyParamsUrl)
     const newSalesReturns = await getItems(`${orgId}/sales_returns`, queyParamsUrl);
     setSalesReturns(newSalesReturns)
   }
@@ -103,6 +107,8 @@ const SalesReturns = () => {
     const newSalesReturnsData = await getItems(`${orgId}/sales_returns`, queyParamsUrl);
     setSalesReturnsData(newSalesReturnsData);
     setPageNo(1);
+    setHeader(`Sales Returns matching '${searchItem.name}'`)
+
     setSearchItem(prev => ({ ...prev, name: '', search: prev.name }))
   }
 
@@ -133,11 +139,10 @@ const SalesReturns = () => {
       }
     }
     catch (error) {
-      toast.error(`Error': Error fetching SalesReturns`);
+      toast.error(`Error': Error fetching Sales Returns`);
     }
   }
-
-  const downloadPDF = () => {
+ const downloadPDF = () => {
     const querlParams = returnsQueryParams({
       paginate: false,
       search: searchItem.search,
@@ -147,6 +152,7 @@ const SalesReturns = () => {
     const url = `/${orgId}/sales_returns/download/${querlParams}`;
     downloadListPDF(url, 'Sales Returns')
   }
+
   return (
     <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
       <FromToDateModal
@@ -158,30 +164,29 @@ const SalesReturns = () => {
         setPageNo={setPageNo}
         type='sales_returns'
       />
-      <FormHeader header='Sales Returns' />
       <div className='flex flex-row w-full items-center justify-between'>
-        <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-full text-black items-center gap-2'>
+        <form onSubmit={handleSubmit} className='flex h-10 flex-row w-[90%] text-black items-center gap-2'>
           <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
             <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter sales number or description' value={searchItem.name} onChange={e => handleChange(e)} />
             <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
 
-              <div className='w-[35%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[55%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
 
               </div>
-              <div className='w-[30%] rounded-md border-2 border-gray-800  cursor-pointer'>
+              <div className='w-[45%] rounded-md border-2 border-gray-800  cursor-pointer'>
                 <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
               </div>
             </div>
-            {salesReturns.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
+            {salesReturns?.sales_returns?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
-              {salesReturns.map((sales_return) => (<Link to={`/dashboard/${orgId}/sales/${sales_return.sales}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sales_return.sales_no}</Link>))}
+              {salesReturns.sales_returns.map((sales_return) => (<Link to={`/dashboard/${orgId}/${sales_return.details.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sales_return.details.serial_number}</Link>))}
             </div>}
           </div>
 
           <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
         </form>
-        <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
+        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
           <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
             <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
@@ -191,7 +196,10 @@ const SalesReturns = () => {
             </button>
           </div>
 
+
       </div>
+      <FormHeader header={header} />
+
 
 
       <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
@@ -201,40 +209,42 @@ const SalesReturns = () => {
           <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
           <span className='w-[55%] flex flex-col border-gray-800 border-r-2'>
 
-          <div className='w-full flex '>
+            <div className='w-full flex '>
               <span className='border-gray-800 border-r-2 p-1 w-[46%]'>Items</span>
              
               <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-               RReturn Price
+               Rate ({ currentOrg.currency })
               </span>
               <span className='p-1 w-[18%] border-gray-800 border-r-2'>
                 Quantity
               </span>
+              
               <span className='p-1 w-[18%] border-gray-800'>
-                Total
+                Total ({ currentOrg.currency })
               </span>
             </div>
 
           </span>
+
         </div>
-        {salesReturnsData?.results?.data && salesReturnsData.results.data.map((sales_return, index) => (
-          <Link to={`/dashboard/${orgId}/sales/${sales_return.sales}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sales_return.id}>
+        {salesReturnsData?.results?.data?.sales_returns && salesReturnsData.results.data.sales_returns.map((sales_return, index) => (
+          <Link to={`/dashboard/${orgId}/${sales_return.details.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sales_return.id}>
             <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{sales_return.sales_no}</span>
+            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{sales_return.details.serial_number}</span>
             <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{sales_return.date}</span>
             <span className='w-[55%] flex flex-col border-gray-800 border-r-2'>
-            <ul className='flex flex-col w-full'>
+              <ul className='flex flex-col w-full'>
                 {sales_return.return_entries.map((entry, index) => (
                   <li key={index} className='w-full flex'>
                     <span className='border-gray-800 border-r-2 border-b-2 p-1 w-[46%]'>{entry.stock_name}</span>
                     
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2 text-right'>
                       {entry.return_price}
                     </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2 text-right'>
                       {entry.quantity}
                     </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2'>
+                    <span className='p-1 w-[18%] border-gray-800 border-b-2 text-right'>
                       {
                         entry.return_quantity * entry.return_price
                       }
@@ -245,12 +255,12 @@ const SalesReturns = () => {
               <div className='w-full flex flex-row border-gray-800'>
 
                   <span className='border-gray-800 border-r-2 p-1 w-[46%]'><i className='text-sm'>({sales_return.description})</i></span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2'>Total</span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2'>
-                    { sales_return?.items_data?.total_quantity}
+                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>Total</span>
+                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>
+                    { sales_return?.details?.total_quantity}
                   </span>
-                  <span className='p-1 w-[18%] border-gray-800 underline'>
-                    { sales_return?.items_data?.total_amount}
+                  <span className='p-1 w-[18%] border-gray-800 underline text-right'>
+                    { sales_return?.details?.total_amount}
                   </span>
 
               </div>
@@ -258,6 +268,12 @@ const SalesReturns = () => {
 
           </Link>
         ))}
+        {salesReturnsData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+          <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{salesReturnsData?.results?.data?.totals?.quantity}</span>
+          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{salesReturnsData?.results?.data?.totals?.amount}</span>
+
+        </span>}
       </div>
       <PrevNext pageNo={pageNo} data={salesReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 

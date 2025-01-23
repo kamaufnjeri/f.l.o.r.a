@@ -7,7 +7,7 @@ import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading'
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const SingleSales = () => {
   const { id } = useParams();
@@ -19,9 +19,11 @@ const SingleSales = () => {
   const { orgId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const { currentOrg } = useAuth();
-  const navigate = useNavigate();
-
+  const [openDeleteModal, setOpenDeleteModal] = useState('');
+  const [deleteUrl, setDeleteUrl] = useState('');
+  const [deleteModalTitle, setDeleteModalTitle] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+
   const openDropDown = () => {
     setIsVisible(true);
   }
@@ -46,6 +48,7 @@ const SingleSales = () => {
     setOpenModal(true);
   };
 
+
   const onPaymentSuccess = () => {
     getData()
   }
@@ -63,23 +66,20 @@ const SingleSales = () => {
     let title = 'Sales'
 
 
-    if (sales?.details?.type === 'invoice') {
-      title = title.concat(' invoice')
+    if (sales?.details?.type === 'sales') {
+      title = title.concat(' sales')
     }
     downloadPDF(sales, orgId, title)
     setIsLoading(false)
   }
 
-  const deleteSales = async () => {
-    const response = await deleteRequest(`${orgId}/sales/${sales.id}`);
-    if (response.success) {
-        toast.success('Sales deleted successfully');
-        navigate(`/dashboard/${orgId}/sales`)
-    } else {
-        toast.error(`${response.error}`)
+  const deleteSales = () => {
+    const deleteUrl = `${orgId}/sales/${sales.id}`
+    setDeleteUrl(deleteUrl);
+    setDeleteModalTitle(`sales ${sales.serial_number}`);
+    setOpenDeleteModal(true);
+  }
 
-    }
-}
   return (
     <div className='flex flex-col gap-4 relative overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       {isLoading && <Loading />}
@@ -87,6 +87,16 @@ const SingleSales = () => {
         setOpenModal={setOpenSalesReturnModal}
         onSalesReturn={onPaymentSuccess}
         sales={sales} openModal={openSalesReturnModal} />
+      <DeleteModal
+        openModal={openDeleteModal}
+        setOpenModal={setOpenDeleteModal}
+        setDeleteUrl={setDeleteUrl}
+        deleteUrl={deleteUrl}
+        title={deleteModalTitle}
+        setTitle={setDeleteModalTitle}
+        getData={getData}
+        navigateUrl={`/dashboard/${orgId}/sales`}
+      />
       <PaymentModal
         onPaymentSuccess={onPaymentSuccess}
         openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for sales # ${sales?.serial_number}`} type='debit' invoice_id={sales?.invoice?.id} />
@@ -115,11 +125,11 @@ const SingleSales = () => {
                   Payments
                 </Link>
               )}
-            
+
             <button onClick={() => showModal(setOpenSalesReturnModal)} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
               Return sales
             </button>
-            {parseFloat(sales?.returns_total) > 0 && (
+            {sales?.details?.has_returns && (
               <Link to="sales_returns" className="hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm">
                 Sales returns
               </Link>
@@ -202,7 +212,7 @@ const SingleSales = () => {
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No#</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>Stock</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Sales Price</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Sales Price ({currentOrg.currency})</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Quantity</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Total Amount ({currentOrg.currency})</span>
 
@@ -228,16 +238,15 @@ const SingleSales = () => {
         </div>
 
         {sales?.details?.footer_data && Object.entries(sales?.details?.footer_data).map(([key, value]) => (
-          <div key={value}
-          className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2 ${
-            key === 'Amount Due' ? 'text-red-500': ''} ${
-              key === 'Total' ? 'underline' : ''}`}
+          <div
+            key={key}
+            className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 text-right border-l-2 ${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'underline' : ''}`}
           >
-          
-          <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
 
-        </div>
+            <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
+
+          </div>
         ))}
 
         <div className='w-full flex flex-col p-1'>
@@ -257,7 +266,7 @@ const SingleSales = () => {
               <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
                 <span className='w-full border-gray-800 border-r-2 flex flex-col'>
                   {sales.journal_entries && sales.journal_entries.map((entry, index) =>
-                    <div className={`flex flex-row flex-1`} key={entry.id}>
+                    <div className={`flex flex-row flex-1`} key={index}>
                       <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
                       <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
                       <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
@@ -271,11 +280,9 @@ const SingleSales = () => {
                 </span>
               </div>
             </div>}
-          <div className="w-full flex flex-row gap-4">
 
-
-          </div>
         </div>
+
 
       </div>
 

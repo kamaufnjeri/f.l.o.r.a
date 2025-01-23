@@ -13,4 +13,4 @@ class PurchaseEntries(BaseModel):
     cogs = models.DecimalField(max_digits=15, decimal_places=2)
 
     def __str__(self):
-        return self.stock.name
+        return str(self.id)

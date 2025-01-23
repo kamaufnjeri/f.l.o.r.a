@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Button, Spin } from 'antd';
 
-import { postRequest, scrollBottom } from '../../lib/helpers';
+import { getItems, patchRequest, postRequest, scrollBottom } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import FormInitialField from '../forms/FormInitialField';
 import InputNumberField from '../forms/InputNumberField';
@@ -11,63 +11,55 @@ import { useSelectOptions } from '../../context/SelectOptionsContext';
 import SearchableSelectField from '../forms/SearchableSelectField';
 
 
-
-const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurchaseReturn }) => {
+const UpdatePurchaseReturnModal = ({ openModal, setOpenModal, title, purchaseReturnId, setPurchaseReturnId, onPurchaseReturnSuccess }) => {
     const { orgId } = useParams();
     const scrollRef = useRef(null);
     const { getSelectOptions } = useSelectOptions();
     const [stocks, setStocks] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [formData, setFormData] = useState({
-        date: null,
-        description: '',
-        purchase: purchase?.id,
-        return_entries: [
-            { purchase_entry: '', return_quantity: 0 },
-        ],
-    });
+    const [formData, setFormData] = useState({});
+
+    const getData = async () => {
+        setIsLoading(true);
+        const purchaseReturn = await getItems(`${orgId}/purchase_returns/${purchaseReturnId}`);
+        if (!purchaseReturn) {
+            setIsLoading(false);
+            return;
+        }
+        setFormData(purchaseReturn);
+        setStocks(purchaseReturn?.details?.stocks)
+        
+        setIsLoading(false);
+    }
+
 
     useEffect(() => {
         if (openModal) {
-            const newStocks = purchase.purchase_entries.map(
-                (entry) => ({ id: entry.id, name: entry.stock_name }))
-            setStocks(newStocks);
-            setFormData({
-                date: null,
-                description: '',
-                purchase: purchase?.id,
-                return_entries: [
-                    { purchase_entry: '', return_quantity: 0 },
-                ],
-            });
+            getData();
+
         }
-    }, [openModal, purchase]);
+    }, [openModal, purchaseReturnId, ]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        const response = await postRequest(formData, `${orgId}/purchase_returns`);
-        console.log(formData, stocks)
+        const response = await patchRequest(formData, `${orgId}/purchase_returns/${purchaseReturnId}`);
         if (response.success) {
             setIsSubmitted(true);
 
             getSelectOptions();
 
-            setFormData({
-                date: null,
-                description: '',
-                purchase: purchase?.id,
-                return_entries: [
-                    { purchase_entry: '', return_quantity: 0 },
-                ],
-            });
-            onPurchaseReturn();
-            toast.success('Recorded: Purchase return recorded successfully');
+            setFormData(response.data);
+            setStocks(response.data?.details?.stocks)
+            onPurchaseReturnSuccess();
+            toast.success('Edited: Purchase return edited successfully');
             setTimeout(() => setIsSubmitted(false), 500);
         } else {
             toast.error(`${response.error}`);
+            getData();
+
         }
         setIsLoading(false);
 
@@ -89,16 +81,15 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
             return updatedData;
         });
     };
-
     const handleCancel = () => {
         setOpenModal(false);
+        setPurchaseReturnId(null);
     };
 
     useEffect(() => {
 
         scrollBottom(scrollRef);
     }, [formData.return_entries]);
-
     return (
         <>
 
@@ -131,7 +122,7 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
                             <span className='w-[20%]'>Remove</span>
 
                         </div>
-                        {formData?.return_entries.map((entry, index) => (
+                        {formData?.return_entries?.map((entry, index) => (
                             <div key={index} style={{ marginBottom: '16px' }}>
                                 <div className='flex flex-row items-start justify-between w-[100%]'>
                                     <span className='w-[4%]'>{index + 1}</span>
@@ -165,7 +156,7 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
                                             type="danger"
                                             onClick={() => {
                                                 const updatedEntries = formData.return_entries.filter((_, i) => i !== index);
-                                                handleChange('return_entries', updatedEntries);
+                                                setFieldValue('return_entries', updatedEntries);
                                             }}
                                         >
                                             <FaTimes className='text-red-500 text-xl' />
@@ -182,9 +173,9 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
                                     type="dashed"
                                     className='w-[80%]'
                                     onClick={() => {
-                                        if (formData.return_entries.length < purchase.purchase_entries.length) {
-                                            const updatedEntries = [...formData.return_entries, { purchase_entry: '', return_quantity: 0 }];
-                                            handleChange('return_entries', updatedEntries);
+                                        if (values.return_entries.length < purchase.purchase_entries.length) {
+                                            const updatedEntries = [...values.return_entries, { purchase_entry: '', return_quantity: 0 }];
+                                            setFieldValue('return_entries', updatedEntries);
                                         }
                                     }}
                                 >
@@ -193,7 +184,7 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
                             </span></div>
 
                         <Button type="primary" className='w-[30%] self-center' htmlType="submit" disabled={isLoading}>
-                            {isLoading ? <Spin /> : 'Record'}
+                            {isLoading ? <Spin /> : 'Edit'}
                         </Button>
                     </form>
                 </div>
@@ -202,4 +193,4 @@ const PurchaseReturnModal = ({ openModal, setOpenModal, title, purchase, onPurch
     );
 };
 
-export default PurchaseReturnModal;
+export default UpdatePurchaseReturnModal;

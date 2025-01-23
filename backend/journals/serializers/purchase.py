@@ -110,29 +110,40 @@ class PurchaseDetailSerializer(PurchaseSerializer):
 
         footer_data = {}
 
-        if hasattr(obj, 'return_totals') and obj.returns_total is not None:
-            footer_data['Returns'] = obj.returns_totals
+
+        has_returns = False
+
+        if hasattr(obj, 'purchase_returns'):
+            purchase_returns = obj.purchase_returns.all()
+            
+            if purchase_returns:
+                returns_total = sum(float(return_item.return_total) for return_item in purchase_returns)  
+
+                if returns_total > 0:
+                    footer_data['Returns'] = returns_total
+                    amount_paid -= returns_total
+                    has_returns = True
 
         for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
             if entry.get('debit_credit') == 'credit':
-                if entry.get('type') == 'payment':
-                    amount_paid += float(entry.get('amount'))
-                elif entry.get('type') == 'discount':
+                if entry.get('type') == 'discount':
                     footer_data['Discount'] = entry.get('amount') 
+                    amount_paid -= float(entry.get('amount'))
 
         if hasattr(obj, 'bill') and obj.bill is not None:
             amount_due += float(obj.bill.amount_due)
-            amount_paid += float(obj.bill.amount_paid)
+            amount_paid -= float(obj.bill.amount_due)
             purchase_type = 'bill'
 
         if amount_paid > 0:
-            footer_data['Amount Paid'] = amount_paid
+            footer_data['Amount Paid'] = round(amount_paid, 2)
         if amount_due > 0:
             footer_data["Amount Due"] = amount_due
         footer_data['Total'] = total_amount
 
         return {
             "type": purchase_type,
+            "has_returns": has_returns,
             "footer_data": footer_data,
             "total_amount": total_amount,
             "total_quantity": total_quantity,

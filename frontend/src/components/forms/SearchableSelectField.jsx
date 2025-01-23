@@ -62,7 +62,6 @@ const SearchableSelectField = ({ options = [], value, handleChange, name, isSubm
         }
       }, [value, isSubmitted, id, orgId]);
 
-    
 
     return (
         <div className='h-full relative w-full' ref={searchRef}>

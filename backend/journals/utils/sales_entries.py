@@ -49,7 +49,7 @@ class SalesEntriesManager:
         total_sales_price = float(sales_price) * float(sold_quantity)
        
         
-        returned_quantity = sales.sold_quantity - sales.remaining_quantity
+        returned_quantity = sales_entry.sold_quantity - sales_entry.remaining_quantity
         remaining_quantity = sold_quantity - returned_quantity
 
         if returned_quantity < 0:
@@ -86,7 +86,7 @@ class SalesEntriesManager:
         entries_id = []
         for entry_data in sales_entries:
             if entry_data.get('id'):
-                sales_price, entry_id = self.update_sale_entry(entry_data=entry_data, sales=sales)
+                sales_price, entry_id = self.update_sale_entry(entry=entry_data, sales=sales)
                 total_sales_price += float(sales_price)
                 entries_id.append(entry_id)
             else:
