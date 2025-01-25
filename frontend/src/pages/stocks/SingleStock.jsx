@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import UpdateItemModal from '../../components/modals/UpdateItemModal';
 import { toast } from 'react-toastify';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const SingleStock = () => {
     const { orgId, id } = useParams();
@@ -21,7 +22,9 @@ const SingleStock = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const navigate = useNavigate();
+    const [openDeleteModal, setOpenDeleteModal] = useState('');
+    const [deleteUrl, setDeleteUrl] = useState('');
+    const [deleteModalTitle, setDeleteModalTitle] = useState('');
     const { getSelectOptions } = useSelectOptions();
 
     const openDropDown = () => {
@@ -59,17 +62,14 @@ const SingleStock = () => {
 
     }
 
-    const deleteStock = async () => {
-        const response = await deleteRequest(`${orgId}/stocks/${stockData.id}`);
-        if (response.success) {
-          toast.success('Stock deleted successfully');
-          getSelectOptions();
-          navigate(`/dashboard/${orgId}/stocks`)
-        } else {
-          toast.error(`${response.error}`)
 
-        }
+    const deleteStock = () => {
+        const deleteUrl = `${orgId}/stocks/${stockData.id}`
+        setDeleteUrl(deleteUrl);
+        setDeleteModalTitle(`stock ${stockData.name}`);
+        setOpenDeleteModal(true);
     }
+
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/stocks/${id}/download/${querlParams}`;
@@ -85,11 +85,21 @@ const SingleStock = () => {
                 setData={setStockData}
                 type={`stocks/${id}`}
             />
+            <DeleteModal
+                openModal={openDeleteModal}
+                setOpenModal={setOpenDeleteModal}
+                setDeleteUrl={setDeleteUrl}
+                deleteUrl={deleteUrl}
+                title={deleteModalTitle}
+                setTitle={setDeleteModalTitle}
+                getData={getData}
+                navigateUrl={`/dashboard/${orgId}/stocks`}
+            />
             <UpdateItemModal
-            setOpenModal={setOpenEditModal}
-            openModal={openEditModal}
-            setStockData={setStockData}
-            stockData={stockData}
+                setOpenModal={setOpenEditModal}
+                openModal={openEditModal}
+                setStockData={setStockData}
+                stockData={stockData}
             />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
@@ -119,14 +129,14 @@ const SingleStock = () => {
             </div>
 
             <FormHeader header={`Stock Summary for ${stockData.name}`} />
-           
+
             <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-            <div className='w-full flex flex-row justify-between mb-2'>
-                <span><strong>Name: </strong>{stockData.name}</span>
-                <span><strong>Unit Name: </strong>{stockData.unit_name}</span>
-                <span><strong>Unit alias: </strong>{stockData.unit_alias}</span>
-                
-            </div>
+                <div className='w-full flex flex-row justify-between mb-2'>
+                    <span><strong>Name: </strong>{stockData.name}</span>
+                    <span><strong>Unit Name: </strong>{stockData.unit_name}</span>
+                    <span><strong>Unit alias: </strong>{stockData.unit_alias}</span>
+
+                </div>
                 <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1'>No #</span>
                     <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
@@ -139,7 +149,7 @@ const SingleStock = () => {
 
                 </div>
                 {stockData?.stock_summary && stockData.stock_summary.entries.map((entry, index) => (
-                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''}  className={`w-full flex flex-row ${entry.details.type === 'Closing Stock' ? 'font-extrabold underline' : 'font-bold'} border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
+                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''} className={`w-full flex flex-row ${entry.details.type === 'Closing Stock' ? 'font-extrabold underline' : 'font-bold'} border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.type}</span>
@@ -158,15 +168,15 @@ const SingleStock = () => {
                         <span className='font-bold w-[30%] border-r-2 border-gray-800 p-1'>Total Quantity ({stockData.unit_alias})</span>
                         <span className='font-bold w-[40%] p-1'>Total Amount ({currentOrg.currency})</span>
                     </div>
-                {stockData?.stock_summary && stockData.stock_summary.totals.map((entry, index) => (
-                    <div className='flex flex-row w-full border-t-2 border-gray-800' key={index}>
-                         <span className='w-[30%] border-r-2 border-gray-800 p-1'>{entry.name}</span>
-                         <span className='w-[30%] text-right border-r-2 border-gray-800 p-1'>{entry.quantity} </span>
-                         <span className='w-[40%] text-right p-1'>{entry.amount}</span>
-                    </div>
-                   
+                    {stockData?.stock_summary && stockData.stock_summary.totals.map((entry, index) => (
+                        <div className='flex flex-row w-full border-t-2 border-gray-800' key={index}>
+                            <span className='w-[30%] border-r-2 border-gray-800 p-1'>{entry.name}</span>
+                            <span className='w-[30%] text-right border-r-2 border-gray-800 p-1'>{entry.quantity} </span>
+                            <span className='w-[40%] text-right p-1'>{entry.amount}</span>
+                        </div>
 
-                ))} 
+
+                    ))}
                 </div>
             </div>
 

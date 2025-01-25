@@ -32,7 +32,6 @@ const Services = () => {
   const getData = async () => {
     const newServicesData = await getItems(`${orgId}/services`, `?paginate=true`);
     setServicesData(newServicesData);
-    console.log(newServicesData)
     setPageNo(1);
     setSearchItem({ name: '', search: ''})
 
@@ -134,6 +133,7 @@ const Services = () => {
         </Link>
         ))}
       </div>
+  
       <PrevNext pageNo={pageNo} data={servicesData} previousPage={previousPage} nextPage={nextPage} className='w-full'/>
 
     </div>

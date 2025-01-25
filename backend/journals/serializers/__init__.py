@@ -17,3 +17,4 @@ from .bill_invoice import InvoiceSerializer, BillSerializer, InvoiceDetailSerial
 from .organisation import OrganisationSerializer
 from .service import ServiceSerializer, ServiceDetailSerializer
 from .service_income import ServiceIncomeSerializer, ServiceIncomeDetailSerializer, DetailedServiceIncomeEntrySerializer
+from .audit_trail import AuditTrailSerializer

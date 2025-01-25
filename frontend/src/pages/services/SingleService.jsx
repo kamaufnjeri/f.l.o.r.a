@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { deleteRequest, getItems } from '../../lib/helpers';
+import { Link, useParams } from 'react-router-dom'
+import { getItems } from '../../lib/helpers';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import FormHeader from '../../components/forms/FormHeader';
 import DateFilter from '../../components/filters/DateFilter';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateServiceModal from '../../components/modals/UpdateServiceModal.jsx';
+import DeleteModal from '../../components/modals/DeleteModal.jsx';
 
 
 const SingleService = () => {
@@ -22,7 +22,9 @@ const SingleService = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const navigate = useNavigate();
+    const [openDeleteModal, setOpenDeleteModal] = useState('');
+    const [deleteUrl, setDeleteUrl] = useState('');
+    const [deleteModalTitle, setDeleteModalTitle] = useState('');
     const { getSelectOptions } = useSelectOptions();
 
     const openDropDown = () => {
@@ -60,17 +62,14 @@ const SingleService = () => {
 
     }
 
-    const deleteService = async () => {
-        const response = await deleteRequest(`${orgId}/services/${serviceData.id}`);
-        if (response.success) {
-            toast.success('Service deleted successfully');
-            getSelectOptions();
-            navigate(`/dashboard/${orgId}/services`)
-        } else {
-            toast.error(`${response.error}`)
 
-        }
+    const deleteService = () => {
+        const deleteUrl = `${orgId}/services/${serviceData.id}`
+        setDeleteUrl(deleteUrl);
+        setDeleteModalTitle(`service ${serviceData.name}`);
+        setOpenDeleteModal(true);
     }
+
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/services/${id}/download/${querlParams}`;
@@ -85,6 +84,16 @@ const SingleService = () => {
                 searchItem={searchItem}
                 setData={setServiceData}
                 type={`services/${id}`}
+            />
+            <DeleteModal
+                openModal={openDeleteModal}
+                setOpenModal={setOpenDeleteModal}
+                setDeleteUrl={setDeleteUrl}
+                deleteUrl={deleteUrl}
+                title={deleteModalTitle}
+                setTitle={setDeleteModalTitle}
+                getData={getData}
+                navigateUrl={`/dashboard/${orgId}/services`}
             />
             <UpdateServiceModal
 
@@ -144,10 +153,9 @@ const SingleService = () => {
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.quantity}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.price}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.total}</span>
-
                     </Link>
                 ))}
-                {serviceData?.service_data?.total && (
+                {serviceData?.service_data && (
                     <div className={`w-full flex flex-row font-extrabold  underline text-right border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`}>
                         <span className='w-[85%] border-gray-800 border-r-2 p-1'>Total</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{serviceData?.service_data.total}</span>

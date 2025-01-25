@@ -214,7 +214,7 @@ class ServiceDetailAPIView(generics.RetrieveAPIView):
                 has_entries = True
 
             if not has_entries:
-                #instance.delete() 
+                instance.delete() 
                 return Response({"detail": "Service item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
             else:
                 raise serializers.ValidationError("Cannot delete service with associated entries.")

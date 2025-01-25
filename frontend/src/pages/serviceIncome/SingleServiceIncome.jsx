@@ -6,7 +6,7 @@ import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading'
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const SingleServiceIncome = () => {
   const { id } = useParams();
@@ -17,7 +17,9 @@ const SingleServiceIncome = () => {
   const { orgId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const { currentOrg } = useAuth();
-  const navigate = useNavigate();
+  const [openDeleteModal, setOpenDeleteModal] = useState('');
+  const [deleteUrl, setDeleteUrl] = useState('');
+  const [deleteModalTitle, setDeleteModalTitle] = useState('');
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -68,20 +70,26 @@ const SingleServiceIncome = () => {
     setIsLoading(false)
   }
 
-  const deleteServiceIncome = async () => {
-    const response = await deleteRequest(`${orgId}/service_income/${serviceIncome.id}`);
-    if (response.success) {
-        toast.success('Service Income deleted successfully');
-        navigate(`/dashboard/${orgId}/service_income`)
-    } else {
-        toast.error(`${response.error}`)
 
-    }
-}
+  const deleteServiceIncome = () => {
+    const deleteUrl = `${orgId}/service_income/${serviceIncome.id}`
+    setDeleteUrl(deleteUrl);
+    setDeleteModalTitle(`service income ${serviceIncome.serial_number}`);
+    setOpenDeleteModal(true);
+  }
   return (
     <div className='flex flex-col gap-4 relative overflow-y-auto overflow-x-hidden custom-scrollbar h-full'>
       {isLoading && <Loading />}
-     
+      <DeleteModal
+        openModal={openDeleteModal}
+        setOpenModal={setOpenDeleteModal}
+        setDeleteUrl={setDeleteUrl}
+        deleteUrl={deleteUrl}
+        title={deleteModalTitle}
+        setTitle={setDeleteModalTitle}
+        getData={getData}
+        navigateUrl={`/dashboard/${orgId}/service_income`}
+      />
       <PaymentModal
         onPaymentSuccess={onPaymentSuccess}
         openModal={openPaymentModal} setOpenModal={setOpenPaymentModal} title={`Payment for service income # ${serviceIncome?.serial_number}`} type='debit' invoice_id={serviceIncome?.invoice?.id} />
@@ -110,9 +118,9 @@ const SingleServiceIncome = () => {
                   Payments
                 </Link>
               )}
-            
-           
-           
+
+
+
             <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadServiceIncomePdf}>
               Download
             </button>
@@ -191,7 +199,7 @@ const SingleServiceIncome = () => {
         <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
           <span className='w-[10%] border-gray-800 border-r-2 p-1'>No#</span>
           <span className='w-[30%] border-gray-800 border-r-2 p-1'>Service</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Price</span>
+          <span className='w-[20%] border-gray-800 border-r-2 p-1'>Rate ({currentOrg.currency})</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Quantity</span>
           <span className='w-[20%] border-gray-800 border-r-2 p-1'>Total Amount ({currentOrg.currency})</span>
 
@@ -217,17 +225,15 @@ const SingleServiceIncome = () => {
         </div>
 
         {serviceIncome?.details?.footer_data && Object.entries(serviceIncome?.details?.footer_data).map(([key, value]) => (
-          <div 
-          key={value}
-          className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2 ${
-            key === 'Amount Due' ? 'text-red-500': ''} ${
-              key === 'Total' ? 'underline' : ''}`}
+          <div
+            key={value}
+            className={`w-full flex flex-row text-xl font-bold border-gray-800 border-b-2 border-l-2 ${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'underline' : ''}`}
           >
-          
-          <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
-          <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
 
-        </div>
+            <span className='w-[80%] border-gray-800 border-r-2 p-1 text-right'>{key}</span>
+            <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{value}</span>
+
+          </div>
         ))}
 
         <div className='w-full flex flex-col p-1'>

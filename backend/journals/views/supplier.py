@@ -225,6 +225,9 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
                 has_entries = True
 
             if not has_entries:
+                account = instance.account
+                if account:
+                    account.delete()
                 instance.delete() 
                 return Response({"detail": "Supplier item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
             else:

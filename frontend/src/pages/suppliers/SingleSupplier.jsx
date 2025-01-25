@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateSupplierModal from '../../components/modals/UpdateSupplierModal.jsx';
+import DeleteModal from '../../components/modals/DeleteModal.jsx';
 
 
 const SingleSupplier = () => {
@@ -22,7 +23,9 @@ const SingleSupplier = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const navigate = useNavigate();
+    const [openDeleteModal, setOpenDeleteModal] = useState('');
+    const [deleteUrl, setDeleteUrl] = useState('');
+    const [deleteModalTitle, setDeleteModalTitle] = useState('');
     const { getSelectOptions } = useSelectOptions();
 
     const openDropDown = () => {
@@ -60,17 +63,14 @@ const SingleSupplier = () => {
 
     }
 
-    const deleteSupplier = async () => {
-        const response = await deleteRequest(`${orgId}/suppliers/${supplierData?.id}`);
-        if (response.success) {
-            toast.success('Supplier deleted successfully');
-            getSelectOptions();
-            navigate(`/dashboard/${orgId}/suppliers`)
-        } else {
-            toast.error(`${response.error}`)
 
-        }
+    const deleteSupplier = () => {
+        const deleteUrl = `${orgId}/suppliers/${supplierData.id}`
+        setDeleteUrl(deleteUrl);
+        setDeleteModalTitle(`supplier ${supplierData.name}`);
+        setOpenDeleteModal(true);
     }
+
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/suppliers/${id}/download/${querlParams}`;
@@ -85,6 +85,16 @@ const SingleSupplier = () => {
                 searchItem={searchItem}
                 setData={setSupplierData}
                 type={`suppliers/${id}`}
+            />
+            <DeleteModal
+                openModal={openDeleteModal}
+                setOpenModal={setOpenDeleteModal}
+                setDeleteUrl={setDeleteUrl}
+                deleteUrl={deleteUrl}
+                title={deleteModalTitle}
+                setTitle={setDeleteModalTitle}
+                getData={getData}
+                navigateUrl={`/dashboard/${orgId}/suppliers`}
             />
             <UpdateSupplierModal
 

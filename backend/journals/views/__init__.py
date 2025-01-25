@@ -19,3 +19,4 @@ from .select_options import SelectOptionsAPIView
 from .generate_pdf import GeneratePDFAPIView
 from .service import ServiceAPIView,  DownloadServiceAPIView, DownloadServiceDetailAPIView, ServiceDetailAPIView
 from .service_income import ServiceIncomeAPIView, ServiceIncomeDetailAPIView, DownloadServiceIncomeAPIView
+from .audit_trail import AuditTrailAPIView

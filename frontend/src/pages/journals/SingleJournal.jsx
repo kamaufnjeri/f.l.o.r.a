@@ -6,6 +6,7 @@ import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const SingleJournal = () => {
   const { id } = useParams();
@@ -15,6 +16,9 @@ const SingleJournal = () => {
   const { orgId } = useParams();
   const navigate = useNavigate();
   const { currentOrg } = useAuth();
+  const [openDeleteModal, setOpenDeleteModal] = useState('');
+  const [deleteUrl, setDeleteUrl] = useState('');
+  const [deleteModalTitle, setDeleteModalTitle] = useState('');
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -40,15 +44,12 @@ const SingleJournal = () => {
     getData()
   }, []);
 
-  const deleteJournal = async () => {
-    const response = await deleteRequest(`${orgId}/journals/${journal.id}`);
-    if (response.success) {
-        toast.success('Journal deleted successfully');
-        navigate(`/dashboard/${orgId}/journals`)
-    } else {
-        toast.error(`${response.error}`)
-
-    }
+ 
+const deleteJournal = () => {
+  const deleteUrl = `${orgId}/journals/${journal.id}`
+  setDeleteUrl(deleteUrl);
+  setDeleteModalTitle(`journal ${journal.serial_number}`);
+  setOpenDeleteModal(true);
 }
 
   const downloadJournalPDF = () => {
@@ -60,6 +61,16 @@ const SingleJournal = () => {
   }
   return (
     <div className='flex flex-col gap-4 overflow-y-auto relative overflow-x-hidden custom-scrollbar h-full'>
+        <DeleteModal
+        openModal={openDeleteModal}
+        setOpenModal={setOpenDeleteModal}
+        setDeleteUrl={setDeleteUrl}
+        deleteUrl={deleteUrl}
+        title={deleteModalTitle}
+        setTitle={setDeleteModalTitle}
+        getData={getData}
+        navigateUrl={`/dashboard/${orgId}/journals`}
+      />
               {isLoading && <Loading/>}
 
       

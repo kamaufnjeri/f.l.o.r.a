@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateCustomerModal from '../../components/modals/UpdateCustomerModal.jsx';
+import DeleteModal from '../../components/modals/DeleteModal.jsx';
 
 
 const SingleCustomer = () => {
@@ -22,7 +23,9 @@ const SingleCustomer = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const navigate = useNavigate();
+    const [openDeleteModal, setOpenDeleteModal] = useState('');
+    const [deleteUrl, setDeleteUrl] = useState('');
+    const [deleteModalTitle, setDeleteModalTitle] = useState('');
     const { getSelectOptions } = useSelectOptions();
 
     const openDropDown = () => {
@@ -60,17 +63,15 @@ const SingleCustomer = () => {
 
     }
 
-    const deleteCustomer = async () => {
-        const response = await deleteRequest(`${orgId}/customers/${customerData.id}`);
-        if (response.success) {
-            toast.success('Customer deleted successfully');
-            getSelectOptions();
-            navigate(`/dashboard/${orgId}/customers`)
-        } else {
-            toast.error(`${response.error}`)
 
-        }
+
+    const deleteCustomer = () => {
+        const deleteUrl = `${orgId}/customers/${customerData.id}`
+        setDeleteUrl(deleteUrl);
+        setDeleteModalTitle(`customer ${customerData.name}`);
+        setOpenDeleteModal(true);
     }
+
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/customers/${id}/download/${querlParams}`;
@@ -78,6 +79,16 @@ const SingleCustomer = () => {
     }
     return (
         <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+            <DeleteModal
+                openModal={openDeleteModal}
+                setOpenModal={setOpenDeleteModal}
+                setDeleteUrl={setDeleteUrl}
+                deleteUrl={deleteUrl}
+                title={deleteModalTitle}
+                setTitle={setDeleteModalTitle}
+                getData={getData}
+                navigateUrl={`/dashboard/${orgId}/customers`}
+            />
             <FromToDateModal
                 openModal={openDateModal}
                 setOpenModal={setOpenDateModal}
@@ -144,7 +155,7 @@ const SingleCustomer = () => {
                 </div>
                 {customerData?.customer_data && customerData.customer_data.invoices.map((invoice, index) => (
                     <Link to={invoice.details.url ? `/dashboard/${orgId}${invoice.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={index}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{ invoice.serial_number}</span>
+                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{invoice.serial_number}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.details.date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.due_date}</span>
                         <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.details.type}</span>

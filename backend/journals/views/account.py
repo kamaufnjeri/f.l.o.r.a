@@ -2,7 +2,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.serializers import AccountSerializer, AccountDetailsSerializer, CategorySerializer, SubCategorySerializer
 from journals.utils import flatten_errors
-from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES
+from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES, PERMANENT_ACCOUNTS
 from django.db.models import Q
 from journals.models import Account, SubCategory, Category
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -256,10 +256,14 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             data = request.data.copy()
             data['organisation'] = kwargs.get('organisation_id')
             instance = self.get_object()
-            serializer = self.get_serializer(instance, data=data, partial=partial)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            if instance.name.strip().lower() not in map(str.lower, PERMANENT_ACCOUNTS) and \
+            instance.belongs_to.name.strip().lower() not in ('accounts receivable', 'accounts payable'):
+                serializer = self.get_serializer(instance, data=data, partial=partial)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                raise serializers.ValidationError("Cannot update account, it's a permanent account") 
 
         except Account.DoesNotExist:
             return Response({
@@ -298,8 +302,12 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
                     break
 
             if not has_entries:
-                instance.delete() 
-                return Response({"detail": "Account item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                if instance.name.strip().lower() not in map(str.lower, PERMANENT_ACCOUNTS) and \
+                instance.belongs_to.name.strip().lower() not in ('accounts receivable', 'accounts payable'):
+                    instance.delete() 
+                    return Response({"detail": "Account item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                else:
+                    raise serializers.ValidationError("Cannot delete account, it's a permanent account")
             else:
                 raise serializers.ValidationError("Cannot delete account with associated entries or non-zero closing balance.")
 

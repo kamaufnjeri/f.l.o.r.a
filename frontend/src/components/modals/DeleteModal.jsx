@@ -21,15 +21,16 @@ const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, 
         setIsLoading(true);
         const response = await deleteRequest(deleteUrl);
         if (response.success) {
+            if (navigateUrl) {
+                navigate(navigateUrl);
+            }
             toast.success(`${title} deleted successfully`);
             getData();
             setDeleteUrl('')
             setTitle('')
             setOpenModal(false);
             
-            if (navigateUrl) {
-                navigate(navigateUrl);
-            }
+           
             
         } else {
             toast.error(`${response.error}`)
@@ -38,10 +39,15 @@ const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, 
         setIsLoading(false);
     }
 
+    function capitalizeFirstLetter(str) {
+        if (!str) return str; // return the string as is if it's empty
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
 
     return (
         <Modal
-            title={title}
+            title={capitalizeFirstLetter(title)}
             open={openModal}
             onCancel={handleCancel}
             className="overflow-auto custom-scrollbar max-h-[80%]"

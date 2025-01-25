@@ -93,3 +93,5 @@ INITIAL_DATA = [
         ]
     }
 ]
+
+PERMANENT_ACCOUNTS = ('Cash', 'Bank', 'Capital', 'Purchase', 'Discount Allowed', 'Purchase Return', 'Sales', 'Sales Return', 'Service Income', 'Discount Received')

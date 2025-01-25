@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateAccountModal from '../../components/modals/UpdateAccountModal';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 
 const SingleAccount = () => {
@@ -19,10 +20,12 @@ const SingleAccount = () => {
         date: ''
     })
     const { currentOrg } = useAuth();
+    const [openDeleteModal, setOpenDeleteModal] = useState('');
+    const [deleteUrl, setDeleteUrl] = useState('');
+    const [deleteModalTitle, setDeleteModalTitle] = useState('');
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const navigate = useNavigate();
     const { getSelectOptions } = useSelectOptions();
 
     const openDropDown = () => {
@@ -46,6 +49,7 @@ const SingleAccount = () => {
     const showModal = (setOpenModal) => {
         setOpenModal(true);
     };
+    
     const handleDatesChange = async (e) => {
         if (e.target.value === '*') {
             showModal(setOpenDateModal);
@@ -60,17 +64,14 @@ const SingleAccount = () => {
 
     }
 
-    const deleteAccount = async () => {
-        const response = await deleteRequest(`${orgId}/accounts/${accountData.id}`);
-        if (response.success) {
-            toast.success('Account deleted successfully');
-            getSelectOptions();
-            navigate(`/dashboard/${orgId}/accounts`)
-        } else {
-            toast.error(`${response.error}`)
 
-        }
+    const deleteAccount = () => {
+        const deleteUrl = `${orgId}/accounts/${accountData.id}`
+        setDeleteUrl(deleteUrl);
+        setDeleteModalTitle(`account ${accountData.name}`);
+        setOpenDeleteModal(true);
     }
+
     const downloadPDF = () => {
         const querlParams = `?date=${searchItem.date}`
         const url = `/${orgId}/accounts/${id}/download/${querlParams}`;
@@ -92,6 +93,16 @@ const SingleAccount = () => {
                 openModal={openEditModal}
                 setAccountData={setAccountData}
                 accountData={accountData}
+            />
+            <DeleteModal
+                openModal={openDeleteModal}
+                setOpenModal={setOpenDeleteModal}
+                setDeleteUrl={setDeleteUrl}
+                deleteUrl={deleteUrl}
+                title={deleteModalTitle}
+                setTitle={setDeleteModalTitle}
+                getData={getData}
+                navigateUrl={`/dashboard/${orgId}/accounts`}
             />
             <div className='flex flex-row w-full items-center justify-between'>
                 <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
@@ -160,28 +171,28 @@ const SingleAccount = () => {
                 ))}
                 {accountData?.account_data?.totals && (
                     <><div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>
-                       
+
                         <span className='w-[70%] border-gray-800 border-r-2 p-1 text-right'>Total</span>
 
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData.account_data.totals.debit}</span>
                         <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData.account_data.totals.credit}</span>
                     </div>
-                    <div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>
-                       
-                        <span className='w-[70%] border-gray-800 border-r-2 p-1 text-right'>Balance</span>
+                        <div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>
 
-                        {accountData?.account_data?.totals.closing.debit_credit === 'debit' ? <>
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData?.account_data?.totals.closing.amount}</span>
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
-                        </> :
-                            <>
-                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
+                            <span className='w-[70%] border-gray-800 border-r-2 p-1 text-right'>Balance</span>
+
+                            {accountData?.account_data?.totals.closing.debit_credit === 'debit' ? <>
                                 <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData?.account_data?.totals.closing.amount}</span>
-                            </>
-                        }
-                    </div>
+                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
+                            </> :
+                                <>
+                                    <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
+                                    <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData?.account_data?.totals.closing.amount}</span>
+                                </>
+                            }
+                        </div>
                     </>
-                    
+
                 )}
 
             </div>
