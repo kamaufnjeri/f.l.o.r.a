@@ -8,13 +8,15 @@ import axios from 'axios';
 import PrevNext from '../../components/shared/PrevNext';
 import { Link, useParams } from 'react-router-dom';
 import { downloadListPDF } from '../../lib/download/downloadList';
+import AddItemModal from '../../components/modals/AddItemModal';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 const Stocks = () => {
   const [searchItem, setSearchItem] = useState({
     name: '',
     search: ''
-  })
+  });
   const { orgId } = useParams();
   const [stocks, setStocks] = useState([]);
   const [stocksData, setStocksData] = useState([]);
@@ -91,6 +93,9 @@ const Stocks = () => {
   }
   return (
     <div className='flex-1 flex flex-col items-center justify-center maincontainer-height mr-2 relative'>
+                                   <SubHeader item={true} getData={getData}/>
+
+
       <div className='flex flex-row w-full items-center justify-between'>
       <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
         <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Search stocks by name' value={searchItem.name} onChange={e => handleChange(e)} />

@@ -4,7 +4,6 @@ import OrganisationInviteEmail from '../../components/OrganisationInviteEmail';
 
 const Dashboard = () => {
     const { user, currentOrg } = useAuth();
-    console.log(currentOrg)
 
     return (
         <div className='flex-1 flex flex-col font-medium gap-4 w-full h-full items-center justify-center'>

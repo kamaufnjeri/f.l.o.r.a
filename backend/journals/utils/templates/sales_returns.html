@@ -63,25 +63,17 @@
                 </tr>
             </thead>
             <tbody>
-                {% for return in data %}
+                {% for return in data.get('sales_returns') %}
                 {% set col = loop.index %}
+                {% set row_span = return.get('return_entries')|length + 1 %}
 
                     {% for entry in return.get('return_entries') %}
-                        {% if loop.index == 1 %}
-                            {% set first_entry = true %}
-                        {% else %}
-                            {% set first_entry = false %}
-                        {% endif %}
+                        
                         <tr>
-                            {% if first_entry %}
-                                <td>{{ col }}</td>
-                                <td>{{ return.get('sales_no') }}</td>
-                                <td>{{ return.get('date') }}</td>
-                            {% else %}
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
+                            {% if loop.index == 1 %}
+                                <td rowspan="{{ row_span }}">{{ col }}</td>
+                                <td rowspan="{{ row_span }}">{{ return.get('details').get('serial_number') }}</td>
+                                <td rowspan="{{ row_span }}">{{ return.get('date') }}</td>
                             {% endif %}
                             <td colspan="2">{{ entry.get('stock_name') }}</td>
                             <td style="text-align: right;">{{ entry.get('return_price') }}</td>
@@ -92,16 +84,23 @@
                             </td>
                         </tr>
                     {% endfor %}
-                    <tr style="border-bottom: 3px;">
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td colspan="2"><i>({{ return.get('description') }})</i></td>
-                        <td style="text-align: right; text-decoration: underline;">Total</td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('items_data').get('total_quantity') }}</td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('items_data').get('total_amount') }}</td>
+                    <tr>
+                                     
+                        <td colspan="3" style="text-align: right; display: flex; gap: 8px;">
+                            <i>({{ return.get('description') }})</i>
+                            <span style="text-decoration: underline;">Total</span>
+                            <span>&nbsp;</span>
+                        </td>
+                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_quantity') }}</td>
+                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_amount') }}</td>
                     </tr>
                 {% endfor %}
+                <tr style="font-weight: bold; background-color: #d1d5db;">
+                    <td colspan="6" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount') }}</td>
+
+                </tr>
             </tbody>
         </table>
     </section>

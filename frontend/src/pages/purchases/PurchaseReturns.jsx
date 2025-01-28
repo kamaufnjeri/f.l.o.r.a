@@ -142,7 +142,7 @@ const PurchaseReturns = () => {
       toast.error(`Error': Error fetching Purchase Returns`);
     }
   }
- const downloadPDF = () => {
+  const downloadPDF = () => {
     const querlParams = returnsQueryParams({
       paginate: false,
       search: searchItem.search,
@@ -154,7 +154,7 @@ const PurchaseReturns = () => {
   }
 
   return (
-    <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+    <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
       <FromToDateModal
         openModal={openDateModal}
         setOpenModal={setOpenDateModal}
@@ -164,120 +164,138 @@ const PurchaseReturns = () => {
         setPageNo={setPageNo}
         type='purchase_returns'
       />
-      <div className='flex flex-row w-full items-center justify-between'>
-        <form onSubmit={handleSubmit} className='flex h-10 flex-row w-[90%] text-black items-center gap-2'>
-          <div className='w-[90%] relative h-[90%] flex flex-row gap-2'>
-            <input type='name' className='w-[35%] h-full border-2 border-gray-800 rounded-md outline-none p-2' placeholder='Enter purchase number or description' value={searchItem.name} onChange={e => handleChange(e)} />
-            <div className='p-1 flex flex-row gap-1 w-[65%] h-full font-bold text-sm'>
+      <div className='flex flex-row w-full'>
+        <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2'>
+          <div className='grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-2 relative col-span-2'>
+            <input type='name' className='h-10 border border-gray-800 rounded-md outline-none focus:border-none focus:ring-2 focus:ring-blue-500 p-2' placeholder='Enter purchase number or description' value={searchItem.name} onChange={e => handleChange(e)} />
 
-              <div className='w-[55%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
+            <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
 
-              </div>
-              <div className='w-[45%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
-              </div>
-            </div>
+
+            <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
+
             {purchaseReturns?.purchase_returns?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
               {purchaseReturns.purchase_returns.map((purchase_return) => (<Link to={`/dashboard/${orgId}/${purchase_return.details.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{purchase_return.details.serial_number}</Link>))}
             </div>}
           </div>
+          <div className='grid grid-cols-2 gap-2 '>
+            <button className='h-10 w-[100px] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
 
-          <button className='w-[10%] h-[90%] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
-        </form>
-        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-          <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
+            <div className='flex items-center justify-center place-self-end'>
+              <div className={`rounded-md p-1 bg-neutral-200 relative
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-            <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
-           
-            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-              Download
-            </button>
-          </div>
 
-
-      </div>
-      <FormHeader header={header} />
-
-
-
-      <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
-        <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1'>Return #</span>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Purchase #</span>
-          <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
-          <span className='w-[55%] flex flex-col border-gray-800 border-r-2'>
-
-            <div className='w-full flex '>
-              <span className='border-gray-800 border-r-2 p-1 w-[46%]'>Items</span>
-             
-              <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-               Rate ({ currentOrg.currency })
-              </span>
-              <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-                Quantity
-              </span>
-              
-              <span className='p-1 w-[18%] border-gray-800'>
-                Total ({ currentOrg.currency })
-              </span>
-            </div>
-
-          </span>
-
-        </div>
-        {purchaseReturnsData?.results?.data?.purchase_returns && purchaseReturnsData.results.data.purchase_returns.map((purchase_return, index) => (
-          <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`} className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={purchase_return.id}>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{purchase_return.details.serial_number}</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{purchase_return.date}</span>
-            <span className='w-[55%] flex flex-col border-gray-800 border-r-2'>
-              <ul className='flex flex-col w-full'>
-                {purchase_return.return_entries.map((entry, index) => (
-                  <li key={index} className='w-full flex'>
-                    <span className='border-gray-800 border-r-2 border-b-2 p-1 w-[46%]'>{entry.stock_name}</span>
-                    
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2 text-right'>
-                      {entry.return_price}
-                    </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2 text-right'>
-                      {entry.quantity}
-                    </span>
-                    <span className='p-1 w-[18%] border-gray-800 border-b-2 text-right'>
-                      {
-                        entry.return_quantity * entry.return_price
-                      }
-              </span>
-                  </li>
-                ))}
-              </ul>
-              <div className='w-full flex flex-row border-gray-800'>
-
-                  <span className='border-gray-800 border-r-2 p-1 w-[46%]'><i className='text-sm'>({purchase_return.description})</i></span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>Total</span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>
-                    { purchase_return?.details?.total_quantity}
-                  </span>
-                  <span className='p-1 w-[18%] border-gray-800 underline text-right'>
-                    { purchase_return?.details?.total_amount}
-                  </span>
+                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                  Download
+                </button>
 
               </div>
-            </span>
+              {!isVisible ?
+                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                <FaTimes className='cursor-pointer hover:text-purple-800  text-lg' onClick={closeDropDown} />
 
-          </Link>
-        ))}
-        {purchaseReturnsData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
-          <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchaseReturnsData?.results?.data?.totals?.quantity}</span>
-          <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{purchaseReturnsData?.results?.data?.totals?.amount}</span>
+              }
 
-        </span>}
+            </div>
+          </div>
+        </form>
+
+
       </div>
-      <PrevNext pageNo={pageNo} data={purchaseReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
+      <div className='flex flex-row items-center justify-between w-full'>
+        <FormHeader header={header} />
+        <PrevNext pageNo={pageNo} data={purchaseReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
-    </div>
+      </div>
+
+      <table className="min-w-full border-collapse border border-gray-800">
+        <thead>
+          <tr className="bg-gray-400 text-left">
+            <th className=" p-1 border-r border-b border-gray-800">Purchase #</th>
+            <th className=" p-1 border-r border-b border-gray-800">Date</th>
+            <th className="p-1 border-r border-b border-gray-800">Item</th>
+            <th className="p-1 border-r border-b border-gray-800">Rate ({currentOrg.currency})</th>
+            <th className="p-1 border-r border-b border-gray-800">Quantity</th>
+            <th className="p-1 border-b border-gray-800">Total ({currentOrg.currency})</th>
+          </tr>
+        </thead>
+        <tbody>
+          {purchaseReturnsData?.results?.data?.purchase_returns &&
+            purchaseReturnsData.results.data.purchase_returns.map((purchase_return) => {
+              return (
+                <>
+                  {purchase_return.return_entries.map((entry, index) => (
+                    <tr
+                      key={`${purchase_return.id}-${index}`}
+                      className="hover:bg-gray-200 cursor-pointer text-left"
+                    >
+                      {index === 0 && (
+                        <>
+                          <td
+                            className="border-r border-b border-gray-800 p-1"
+                            rowSpan={purchase_return.return_entries.length + 1}
+                          >
+                            <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
+                              {purchase_return.details.serial_number}
+                            </Link>
+                          </td>
+                          <td
+                            className="border-r border-b border-gray-800 p-1"
+                            rowSpan={purchase_return.return_entries.length + 1}
+                          >
+                            <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
+                              {purchase_return.date}
+                            </Link>
+                          </td>
+                        </>
+                      )}
+                      <td className="border-r border-b border-gray-800 p-1">
+                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.stock_name}</Link>
+                      </td>
+                      <td className="border-r border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.return_price}</Link>
+                      </td>
+                      <td className="border-r border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.quantity}</Link>
+                      </td>
+                      <td className="border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
+                          {entry.return_quantity * entry.return_price}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                   <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
+                      <i className='text-sm'>({purchase_return.description})</i>
+                      <span className='underline'>Total</span>
+                    </td>
+                    <td className="border-r border-b border-gray-800 p-1 underline text-right">
+                      {purchase_return.details?.total_quantity}
+                    </td>
+                    <td className="border-b border-r border-gray-800 p-1 underline text-right">
+                      {purchase_return.details?.total_amount}
+                    </td>
+                </>
+              );
+            })}
+          {purchaseReturnsData?.results?.data?.totals && (
+            <tr className="bg-gray-300 font-bold text-right">
+              <td colSpan={4} className="border-r border-b border-gray-800 p-1">
+                Grand Total:
+              </td>
+              <td className="border-r border-b border-gray-800 p-1">
+                {purchaseReturnsData.results.data.totals.quantity}
+              </td>
+              <td className="border-b border-gray-800 p-1">
+                {purchaseReturnsData.results.data.totals.amount}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+    </div >
   )
 }
 

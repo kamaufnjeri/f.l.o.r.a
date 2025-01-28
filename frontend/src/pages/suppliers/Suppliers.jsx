@@ -9,6 +9,8 @@ import { Link, useParams } from 'react-router-dom';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from "../../context/AuthContext";
+import AddSupplierModal from '../../components/modals/AddSupplierModal';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 const Suppliers = () => {
@@ -23,6 +25,7 @@ const Suppliers = () => {
   const [isVisible, setIsVisible] = useState(false);
   const { currentOrg } = useAuth();
   const [header, setHeader] = useState('Suppliers')
+
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -96,6 +99,9 @@ const Suppliers = () => {
 
   return (
     <div className='flex-1 flex flex-col items-center justify-center relative h-full mr-2'>
+                                         <SubHeader supplier={true} getData={getData}/>
+
+
       <div className='flex flex-row w-full items-center justify-between'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row self-start w-[40%] border-2 border-gray-800 rounded-md text-black relative'>
           <input type='name' className='w-[70%] outline-none border-none p-2' placeholder='Search suppliers by name' value={searchItem.name} onChange={e => handleChange(e)} />

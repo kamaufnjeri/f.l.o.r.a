@@ -7,6 +7,7 @@ import FormInitialField from '../../components/forms/FormInitialField';
 import JournalEntries from '../../components/forms/JournalEntries';
 import { useParams } from 'react-router-dom';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 
@@ -83,6 +84,7 @@ const RecordJournal = () => {
         ref={scrollRef}
         className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar"
       >
+        <SubHeader account={true}/>
         <FormHeader header="Record journal" />
         <form
           className="flex-1 flex flex-col w-full h-full gap-2"

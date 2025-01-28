@@ -13,7 +13,7 @@ const validationSchema = Yup.object({
   description: Yup.string().required('Description is required'),
 })
 
-const AddServiceModal = ({ openModal, setOpenModal }) => {
+const AddServiceModal = ({ openModal, setOpenModal, getData=null }) => {
   const {orgId} = useParams();
   const { getSelectOptions } = useSelectOptions();
 
@@ -46,6 +46,9 @@ const AddServiceModal = ({ openModal, setOpenModal }) => {
             if (response.success) {
               toast.success('Recorded: Service added successfully');
               getSelectOptions();
+              if (getData) {
+                getData();
+              }
             } else {
               toast.error(`Error: ${response.error}`)
 

@@ -16,7 +16,7 @@ const validationSchema = Yup.object({
   opening_stock_rate: Yup.number().required('Opening stock rate must be positive'),
 })
 
-const AddItemModal = ({ openModal, setOpenModal }) => {
+const AddItemModal = ({ openModal, setOpenModal, getData=null }) => {
   const {orgId} = useParams();
   const { getSelectOptions } = useSelectOptions();
 
@@ -52,6 +52,9 @@ const AddItemModal = ({ openModal, setOpenModal }) => {
             if (response.success) {
               toast.success('Recorded: Stock Item added successfully');
               getSelectOptions();
+              if (getData) {
+                getData();
+              }
             } else {
               toast.error(`${response.error}`)
 

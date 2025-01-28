@@ -1,57 +1,53 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import { Outlet } from 'react-router-dom'
-import SmallScreenBar from './SmallScreenBar'
-import AddAccountModal from '../modals/AddAccountModal'
-import AddItemModal from '../modals/AddItemModal'
+
 
 const Layout = () => {
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-    const [openAddItemModal, setOpenAddItemModal] = useState(false);
-    const [openAddAccountModal, setOpenAddAccountModal] = useState(false);
-    const [showSideBar, setShowSideBar] = useState(true)
+  const [showSideBar, setShowSideBar] = useState(true);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
+    const container = containerRef.current;
 
-    window.addEventListener('resize', handleResize);
+    if (container) {
+      const observer = new MutationObserver(() => {
+        container.scrollTop = container.scrollHeight;
+      });
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-  const renderItems = () => {
-    if (windowWidth > 720) {
-      return  (<div className='flex-none'>
-      <Sidebar setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal} setShowSideBar={setShowSideBar} showSideBar={showSideBar}/>
-      <Header setOpenAddAccountModal={setOpenAddAccountModal} setOpenAddItemModal={setOpenAddItemModal} setShowSideBar={setShowSideBar} showSideBar={showSideBar}/> 
-      <div className={`flex-1 mt-[70px] p-3 maincontainer-height ${showSideBar ? 'decrease-maincontainer' : 'increase-maincontainer'}`}>
-        <Outlet/>
-      </div> 
-    </div>)
-    } else {
-      return (<>
-      <SmallScreenBar className='flex-none'/>
-      <div className={`flex-1 p-3`}>
-        <Outlet/>
-      </div>
-      </>);
+      observer.observe(container, { childList: true, subtree: true });
+
+      return () => observer.disconnect();
     }
-  };
+  }, []);
+
 
   return (
-    
-    <div className='absolute right-0 top-0 left-0 bottom-0 w-screen h-screen overflow-hidden flex flex-col'>
-      <AddAccountModal openModal={openAddAccountModal} setOpenModal={setOpenAddAccountModal}/>
-      <AddItemModal openModal={openAddItemModal} setOpenModal={setOpenAddItemModal}/>
-      {renderItems()}
-      
+
+    <div className='absolute right-0 top-0 left-0 bottom-0 w-screen h-screen overflow-hidden'>
+      <Sidebar showSideBar={showSideBar} />
+
+      <Header setShowSideBar={setShowSideBar} showSideBar={showSideBar} />
+
+
+      <div 
+      ref={containerRef}
+      className={`flex flex-col h-[calc(100vh-80px)] px-10 py-4 absolute 
+      overflow-y-auto custom-scrollbar gap-4 top-[70px] right-0 bottom-0
+         ${showSideBar ? 
+          'lg:w-[calc(100%-290px)] md:w-[calc(100%-290px)] w-full left-0 md:left-[280px] lg:left-[280px' :
+          'w-full left-0'
+        }`}>
+
+
+        <Outlet />
+      </div>
+
+
     </div>
   );
 };
- 
+
 
 export default Layout

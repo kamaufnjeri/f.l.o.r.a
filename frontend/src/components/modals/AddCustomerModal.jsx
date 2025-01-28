@@ -25,7 +25,7 @@ const validationSchema = Yup.object({
   .required('Phone number is required'),
 })
 
-const AddCustomerModal = ({ openModal, setOpenModal }) => {
+const AddCustomerModal = ({ openModal, setOpenModal, getData=null }) => {
   const { orgId} = useParams();
   const { getSelectOptions } = useSelectOptions();
 
@@ -60,6 +60,9 @@ const AddCustomerModal = ({ openModal, setOpenModal }) => {
             if (response.success) {
               toast.success('Recorded: Customer added successfully')
               getSelectOptions();
+              if (getData) {
+                getData();
+              }
             } else {
               toast.error(`${response.error}`)
             }

@@ -19,7 +19,7 @@ const validationSchema = Yup.object({
 
 const { Option } = Select;
 
-const AddAccountModal = ({ openModal, setOpenModal }) => {
+const AddAccountModal = ({ openModal, setOpenModal, getData=null }) => {
   const [entryTypes] = useState(['debit', 'credit']);
   const { subCategories } = useSelectOptions();
   const { orgId } = useParams();
@@ -56,8 +56,12 @@ const AddAccountModal = ({ openModal, setOpenModal }) => {
             const response = await postRequest(values, `${orgId}/accounts`, resetForm);
             
             if (response.success) {
-              toast.success('Account added successfully')
+              toast.success('Account added successfully');
+              if (getData) {
+                getData();
+              }
               getSelectOptions();
+            
             } else {
               toast.error(`Error: ${response.error}`);
             }

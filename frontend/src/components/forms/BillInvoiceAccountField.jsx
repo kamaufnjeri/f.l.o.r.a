@@ -8,9 +8,9 @@ import moment from 'moment';
 import InputNumberField from './InputNumberField';
 
 const maxDate = moment().add(1, 'year').endOf('year').format('YYYY-MM-DD');
-const minDate =moment().format('YYYY-MM-DD');
+const minDate = moment().format('YYYY-MM-DD');
 
-const BillInvoiceAccountField = ({ header, setShowBill, formData, handleChange, accounts, isSubmitted = false, type='bill' }) => {
+const BillInvoiceAccountField = ({ header, setShowBill, formData, handleChange, accounts, isSubmitted = false, type = 'bill' }) => {
   const entries = findEntriesByType(formData?.journal_entries, type);
   const entry = entries?.[0]?.entry || {};
   const index = entries?.[0]?.index;
@@ -32,40 +32,47 @@ const BillInvoiceAccountField = ({ header, setShowBill, formData, handleChange, 
   };
 
   return (
-    <div className='flex flex-col gap-2 w-full'>
-      <div className='flex flex-row gap-5 items-start w-full'>
-        <span className='w-[20%]  text-xl font-bold'>{header}</span>
-        <label htmlFor="date" className="w-[20%]">Due Date</label>
-        <span className="w-[40%]">
-          <DateField value={formData.due_date} handleChange={handleChange} name="due_date" maxDate={maxDate} minDate={getMinDate()}/>
-        </span>
-        <span className='w-[20%]'>
-          <Button
-            type="danger"
-            onClick={removeBill}
-          >
-            <FaTimes className='text-red-500 text-xl' />
-          </Button>
-        </span>
-      </div>
-      <div className="flex flex-row gap-5 items-start w-full">
+    <table className='min-w-full'>
+      <tbody>
+        <tr className='text-left'>
+          <td className='p-1'>
+            <h2 className='text-xl font-semibold'>{header}</h2>
 
-        <span className='w-[40%]'>
-          <SearchableSelectField isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={accounts} value={entry?.account} name={'account'} />
-        </span>
-        <span className='w-[40%]'>
-                    <InputNumberField
-                        value={entry.amount}
-                        name={'amount'}
-                        handleChange={handleChange}
-                        index={index}
-                    />
-                </span>
-        
-      </div>
-      
+          </td>
+          <td className='p-1' >
+            <label htmlFor="date" className="w-[20%]">Due Date</label>
 
-    </div>
+          </td>
+          <td className='p-1' >
+            <DateField value={formData.due_date} handleChange={handleChange} name="due_date" maxDate={maxDate} minDate={getMinDate()} />
+
+          </td>
+          <td className='p-1' >
+            <Button
+              type="danger"
+              onClick={removeBill}
+            >
+              <FaTimes className='text-red-500 text-xl' />
+            </Button>
+          </td>
+        </tr>
+        <tr >
+          <td className='p-1'  colSpan={2}>
+            <SearchableSelectField isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={accounts} value={entry?.account} name={'account'} />
+
+          </td>
+          <td className='p-1'  colSpan={2}>
+            <InputNumberField
+              value={entry.amount}
+              name={'amount'}
+              handleChange={handleChange}
+              index={index}
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
   )
 }
 

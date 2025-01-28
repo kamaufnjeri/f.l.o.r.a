@@ -14,7 +14,7 @@ const PaymentAccountsFields = ({values, setFieldValue, type}) => {
 
   return (
     <div className='flex flex-col gap-2 w-full'>
-        <Row className='flex flex-row w-full text-xl font-bold'><Col className='w-full'><span>
+        <Row className='flex flex-row w-full text-xl font-semibold'><Col className='w-full'><span>
             Payment Accounts
         </span>
         </Col></Row>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { capitalizeFirstLetter, deleteRequest, getItems, replaceDash } from '../../lib/helpers';
+import { getItems } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import downloadPDF from '../../lib/download/download';
 import Loading from '../../components/shared/Loading';
-import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import DeleteModal from '../../components/modals/DeleteModal';
+
 
 const SingleJournal = () => {
   const { id } = useParams();

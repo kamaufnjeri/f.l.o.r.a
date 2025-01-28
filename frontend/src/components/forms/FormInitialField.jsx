@@ -4,25 +4,38 @@ import { inputContainer } from '../../lib/styles';
 
 const FormInitialField = memo(({ formData, handleChange }) => {
   return (
-    <div className='flex flex-col gap-2 w-full'>
-      <div className="flex flex-row gap-5 items-start w-full">
-        <label htmlFor="description" className="w-[30%]">Description</label>
+    <table className='min-w-full'>
+      <tbody>
+        <tr>
+          <td>
+          <label htmlFor="description" >Description</label>
+
+          </td>
         
-            <textarea
-                name='description'
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder={`Enter description`}
-                className={`${inputContainer} w-[70%]`}
-                required
-            ></textarea>
-       
-      </div>
-      <div className="flex flex-row gap-5 items-start w-full">
-        <label htmlFor="date" className="w-[29%]">Date</label>
-        <DateField className="w-[80%]" value={formData.date} handleChange={handleChange} name="date" />
-      </div>
-    </div>
+        <td colSpan={2}>
+          <textarea
+            name='description'
+            value={formData.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder={`Enter description`}
+            className={`${inputContainer} min-w-full`}
+            required
+        ></textarea>
+        </td>
+   
+        </tr>
+        <tr>
+          <td>
+          <label htmlFor="date">Date</label>
+          </td>
+          <td colSpan={3}>
+          <DateField  value={formData.date} handleChange={handleChange} name="date" className='w-full'/>
+
+          </td>
+        </tr>
+      </tbody>
+    
+    </table>
   );
 });
 

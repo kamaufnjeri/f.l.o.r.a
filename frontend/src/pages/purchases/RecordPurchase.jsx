@@ -12,6 +12,7 @@ import { FaPlus } from 'react-icons/fa';
 import AccountsField from '../../components/forms/AccountsField';
 import BillInvoiceAccountField from '../../components/forms/BillInvoiceAccountField';
 import DiscountAccountField from '../../components/forms/DiscountAccountField';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 const RecordPurchase = () => {
@@ -148,17 +149,18 @@ const RecordPurchase = () => {
 
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center">
-            <div ref={scrollRef} className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
+            <SubHeader supplier={true} item={true} account={true}/>
+            <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
                 <FormHeader header="Record Purchase" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
-                    <div className="flex gap-4">
-                        <div className="w-[50%] flex flex-col gap-2">
-                            <span>Purchase No: {serialNumbers.purchase}</span>
+                    <div className="flex gap-4 flex-col lg:flex-row">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                            <span className='font-semibold text-xl'>Purchase No: {serialNumbers.purchase}</span>
 
                             <FormInitialField formData={formData} handleChange={handleChange} />
-                            <div className='w-full flex flex-row gap-2'>
+                            <div className='w-full flex flex-row gap-2 items-center justify-center'>
                                 <div className='w-[40%]'>
                                     <PurchaseSalesAccountField
                                         values={formData?.journal_entries}
@@ -188,7 +190,7 @@ const RecordPurchase = () => {
                             </div>
 
                         </div>
-                        <div className="w-[50%] flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
                             <AccountsField
                                 formData={formData}
                                 isSubmitted={isSubmitted}

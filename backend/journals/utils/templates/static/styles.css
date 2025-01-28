@@ -1,6 +1,7 @@
 body {
     font-family: Helvetica, sans-serif;
     background-color: #f4f4f4;
+    color: black;
 }
 
 header {
@@ -15,6 +16,7 @@ aside th, aside td {
 }
 aside th {
     font-size: 16px;
+    font-weight: bold;
     text-decoration: underline;
 }
 aside td {
@@ -73,8 +75,7 @@ section table, section th, section td {
 }
 
 section th {
-    background-color: darkmagenta;
-    color: white;
+    background-color: #9CA3AF;
     text-align: left;
     font-weight: bold;
     padding: 4px;

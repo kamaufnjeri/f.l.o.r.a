@@ -4,13 +4,13 @@ import { sortOptions } from '../../lib/constants'
 const SortFilter = ({ handleSortsChange, searchItem }) => {
   return (
     <select 
-      className='border-none outline-none' 
+      className='rounded-md border-gray-800 border p-2 outline-none focus:border-none focus:ring-2 focus:ring-blue-500 font-semibold' 
       value={searchItem.sortBy} 
       onChange={(e) => handleSortsChange(e)}
-      title="Select sorting option" // Title for the select element
+      title="Select sorting option" 
     >
       <option value="" disabled>
-        Select sorting option {/* Placeholder option */}
+        Select sorting option
       </option>
 
       {sortOptions.map((option, index) => (

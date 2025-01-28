@@ -50,7 +50,7 @@ const SingleSalesReturns = () => {
     getData();
   }, [])
 
-  
+
   const nextPage = async () => {
     try {
       const response = await api.get(salesReturnsData.next);
@@ -114,8 +114,8 @@ const SingleSalesReturns = () => {
     setOpenDeleteModal(true);
   }
   return (
-    <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
-     {openUpdateSalesReturnModal && <UpdateSalesReturnModal
+    <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
+      {openUpdateSalesReturnModal && <UpdateSalesReturnModal
         setOpenModal={setOpenUpdateSalesReturnModal}
         openModal={openUpdateSalesReturnModal}
         salesReturnId={salesReturnId}
@@ -132,150 +132,177 @@ const SingleSalesReturns = () => {
         setTitle={setDeleteModalTitle}
         getData={getData}
       />
-      <div className='w-full flex flex-row gap-2 items-center justify-between'>
-        <FormHeader header={title} />
+      <div className='w-full flex flex-col gap-2 items-start justify-between'>
 
-        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-        <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-       border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-          <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
-          <button onClick={hideJournalEntries} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[90%] p-1 rounded-sm'>
-            {buttonName}
-          </button>
+        <div className='flex flex-row items-start justify-between w-[90%] '>
+          <FormHeader header={title} />
+          <PrevNext pageNo={pageNo} data={salesReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
-          <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
-            Download
-          </button>
+          <div className='absolute  top-7 right-9'>
+            <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+     border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
 
+              <button onClick={hideJournalEntries} className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm'>
+                {buttonName}
+              </button>
+
+              <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                Download
+              </button>
+
+            </div>
+            {!isVisible ?
+              <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+              <FaTimes className='cursor-pointer hover:text-purple-800  text-lg' onClick={closeDropDown} />
+
+            }
+          </div>
         </div>
       </div>
+      <table className="min-w-full border-collapse border border-gray-800">
+        <thead>
+          <tr className="bg-gray-400 text-left">
+            <th className=" p-1 border-r border-b border-gray-800">Return #</th>
+            <th className=" p-1 border-r border-b border-gray-800">Date</th>
+            <th className="p-1 border-r border-b border-gray-800">Item</th>
+            <th className="p-1 border-r border-b border-gray-800">Rate ({currentOrg.currency})</th>
+            <th className="p-1 border-r border-b border-gray-800">Quantity</th>
+            <th className="p-1 border-r border-b border-gray-800">Total ({currentOrg.currency})</th>
+            <th className="p-1 border-r border-b border-gray-800"></th>
 
-      <div className='overflow-auto custom-scrollbar flex flex-col max-h-[75%] flex-1 w-full m-2'>
-        <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-          <div className='w-[90%] flex flex-row'>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1'>Return #</span>
-            <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
-            <span className='w-[70%] flex flex-col border-gray-800 border-r-2'>
-
-              <div className='w-full flex flex-row'>
-                <span className='border-gray-800 border-r-2 p-1 w-[46%]'>Items</span>
-
-                <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-                  Rate ({currentOrg.currency})
-                </span>
-                <span className='p-1 w-[18%] border-gray-800 border-r-2'>
-                  Quantity
-                </span>
-                <span className='p-1 w-[18%] border-gray-800'>
-                  Total ({currentOrg.currency})
-                </span>
-              </div>
-
-            </span>
-          </div>
-          <span className='w-[10%] border-r-2 border-gray-800 '></span>
-
-
-        </div>
-        {salesReturnsData?.results?.data?.sales_returns && salesReturnsData.results.data.sales_returns.map((sales_return, index) => (
-          <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={sales_return.id}>
-            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`} className='w-[90%] flex flex-row'>
-              <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-              <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{sales_return.date}</span>
-              <span className='w-[70%] flex flex-col border-gray-800 border-r-2'>
-                <ul className='flex flex-col w-full'>
+          </tr>
+        </thead>
+        <tbody>
+          {salesReturnsData?.results?.data?.sales_returns &&
+            salesReturnsData.results.data.sales_returns.map((sales_return) => {
+              return (
+                <>
                   {sales_return.return_entries.map((entry, index) => (
-                    <li key={index} className='w-full flex'>
-                      <span className='border-gray-800 border-r-2 border-b-2 p-1 w-[46%]'>{entry.stock_name}</span>
-
-                      <span className='p-1 w-[18%] border-gray-800 border-b-2  border-r-2 text-right'>
-                        {entry.return_price}
-                      </span>
-                      <span className='p-1 w-[18%] border-gray-800 border-b-2 border-r-2 text-right'>
-                        {entry.quantity}
-                      </span>
-                      <span className='p-1 w-[18%] border-gray-800 border-b-2 text-right'>
-                        {
-                          entry.return_quantity * entry.return_price
-                        }
-                      </span>
-                    </li>
+                    <tr
+                      key={`${sales_return.id}-${index}`}
+                      className="hover:bg-gray-200 cursor-pointer text-left"
+                    >
+                      {index === 0 && (
+                        <>
+                          <td
+                            className="border-r border-b border-gray-800 p-1"
+                            rowSpan={sales_return.return_entries.length + 1}
+                          >
+                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                              {index + 1}
+                            </Link>
+                          </td>
+                          <td
+                            className="border-r border-b border-gray-800 p-1"
+                            rowSpan={sales_return.return_entries.length + 1}
+                          >
+                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                              {sales_return.date}
+                            </Link>
+                          </td>
+                        </>
+                      )}
+                      <td className="border-r border-b border-gray-800 p-1">
+                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.stock_name}</Link>
+                      </td>
+                      <td className="border-r border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.return_price}</Link>
+                      </td>
+                      <td className="border-r border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.quantity}</Link>
+                      </td>
+                      <td className="border-r border-b border-gray-800 p-1 text-right">
+                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                          {entry.return_quantity * entry.return_price}
+                        </Link>
+                      </td>
+                      {index === 0 && (
+                        <>
+                          <td className='border-b border-r border-gray-800 p-1 space-y-2'
+                            rowSpan={sales_return.return_entries.length + 1}
+                          >
+                            <Button type="primary" className='w-full self-center' onClick={() => openUpdateSalesReturnModalFunc(sales_return.id)}>
+                              Edit
+                            </Button>
+                            <Button type="primary" danger className='w-full self-center' onClick={() => deleteSalesReturn(sales_return.id)}>
+                              Delete
+                            </Button>
+                          </td>
+                        </>)}
+                    </tr>
                   ))}
-                </ul>
-                <div className='w-full flex flex-row border-gray-800'>
 
-                  <span className='border-gray-800 border-r-2 p-1 w-[46%]'><i className='text-sm'>({sales_return.description})</i></span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>Total</span>
-                  <span className='p-1 w-[18%] border-gray-800 underline border-r-2 text-right'>
-                    {sales_return?.details?.total_quantity}
-                  </span>
-                  <span className='p-1 w-[18%] border-gray-800 underline text-right'>
-                    {sales_return?.details?.total_amount}
-                  </span>
+                  <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
+                    <i className='text-sm'>({sales_return.description})</i>
+                    <span className='underline'>Total</span>
+                  </td>
+                  <td className="border-r border-b border-gray-800 p-1 underline text-right">
+                    {sales_return.details?.total_quantity}
+                  </td>
+                  <td className="border-b border-r border-gray-800 p-1 underline text-right">
+                    {sales_return.details?.total_amount}
+                  </td>
 
-                </div>
+                  {showJournalEntries && <tr>
+                    <td className="border-b border-r border-gray-800 p-1"></td>
+                    <td className="border-b border-r border-gray-800 p-1"></td>
+                    <td className="border-b border-r border-gray-800 p-1" colSpan={4}>
 
-                {showJournalEntries && <div className='p-1 flex flex-col w-full'>
-                  <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                      <div className='w-full flex flex-row flex-1'>
-                        <span className='w-[60%] p-1'>Account</span>
-                        <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit  ({currentOrg.currency})</span>
-                        <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit  ({currentOrg.currency})</span>
-                      </div>
+                      <table className='min-w-full border-collapse border border-gray-800'>
+                        <thead>
+                          <tr className='text-left bg-gray-400'>
 
-                    </span>
+                            <th className='p-1 border-r border-b border-gray-800'>Account</th>
+                            <th className='p-1 border-r border-b border-gray-800'>Debit ({currentOrg.currency})</th>
+                            <th className='p-1 border-r border-b border-gray-800'>Credit ({currentOrg.currency})</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sales_return.journal_entries && sales_return.journal_entries.map((entry, index) =>
+                            <tr
+                              key={index}
 
-                  </div>
-                  <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2'>
-                    <span className='w-full border-gray-800 border-r-2 flex flex-col'>
-                      {sales_return.journal_entries && sales_return.journal_entries.map((entry, index) =>
-                        <div className={`flex flex-row flex-1`} key={index}>
-                          <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                          <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                          <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
-                        </div>)}
-                      <div className={`flex flex-row flex-1`}>
-                        <i className='text-sm w-[60%] p-1'>({sales_return.description})</i>
-                        <span className='w-[20%] border-gray-800 border-l-2 underline p-1 text-right'>{sales_return?.journal_entries_total?.debit_total}</span>
-                        <span className='w-[20%] border-gray-800 border-l-2 underline p-1 text-right'>{sales_return?.journal_entries_total?.debit_total}</span>
-                      </div>
-                    </span>
-                  </div>
-                </div>}
+                            >
+                              <td className={`border-gray-800 border-r border-b p-1 ${entry.debit_credit == 'debit' ? '' : 'pl-14'}`}>{entry.account_name}</td>
+                              <td className="border-gray-800 border-r border-b p-1 text-right">{entry.debit_credit == 'debit' ? entry.amount : '-'}</td>
+                              <td className="border-gray-800 border-r border-b p-1 text-right">{entry.debit_credit == 'credit' ? entry.amount : '-'}</td>
 
-              </span>
-            </Link>
-            <span className='w-[10%] border-r-2 border-gray-800 flex flex-col gap-1 pt-1'>
-              <Button type="primary" className='w-full self-center' onClick={() => openUpdateSalesReturnModalFunc(sales_return.id)}>
-                Edit
-              </Button>
-              <Button type="primary" danger className='w-full self-center' onClick={() => deleteSalesReturn(sales_return.id)}>
-                Delete
-              </Button>
-            </span>
+                            </tr>)}
+                          <tr className='text-right font-bold bg-gray-300'>
+                            <td className="border-gray-800 space-x-4 border-r border-b p-1">
+                              <i className='text-sm'>({sales_return.description})</i>
 
+                              <span >Total</span>
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1">{sales_return?.journal_entries_total?.debit_total}</td>
+                            <td className="border-gray-800 border-r border-b p-1">{sales_return?.journal_entries_total?.debit_total}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td className="border-b border-r border-gray-800 p-1"></td>
 
-          </span>
-        ))}
-        {salesReturnsData?.results?.data?.totals && <span className='w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 font-bold underline text-right'>
+                  </tr>}
+                </>
+              );
+            })}
+          {salesReturnsData?.results?.data?.totals && (
+            <tr className="bg-gray-300 font-bold text-right">
+              <td colSpan={4} className="border-r border-b border-gray-800 p-1">
+                Grand Total:
+              </td>
+              <td className="border-r border-b border-gray-800 p-1">
+                {salesReturnsData.results.data.totals.quantity}
+              </td>
+              <td className="border-b border-r border-gray-800 p-1">
+                {salesReturnsData.results.data.totals.amount}
+              </td>
+              <td className="border-b border-r border-gray-800 p-1"></td>
 
-          <div className='w-[90%] flex flex-row '>
-            <span className='w-[74.7%] border-gray-800 border-r-2 p-1'>Total</span>
-
-            <span className='w-[25.3%] flex flex-row'>
-              <span className='w-[49.5%] border-gray-800 border-r-2 p-1 text-right'>{salesReturnsData?.results?.data?.totals?.quantity}</span>
-              <span className='w-[51%] border-gray-800 border-r-2 p-1 text-right'>{salesReturnsData?.results?.data?.totals?.amount}</span>
-
-            </span>
-          </div>
-          <span className='w-[10%] border-r-2 border-gray-800 '></span>
-
-
-        </span>}
-      </div>
-      <PrevNext pageNo={pageNo} data={salesReturnsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
-
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }

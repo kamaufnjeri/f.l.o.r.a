@@ -12,6 +12,7 @@ import AccountsField from '../../components/forms/AccountsField';
 import BillInvoiceAccountField from '../../components/forms/BillInvoiceAccountField';
 import DiscountAccountField from '../../components/forms/DiscountAccountField';
 import ServiceIncomeEntriesFields from '../../components/forms/ServiceIncomeEntriesFields';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 const RecordServiceIncome = () => {
@@ -149,6 +150,8 @@ const RecordServiceIncome = () => {
 
     return (
         <div className="flex-1 flex flex-col items-center justify-center">
+                                    <SubHeader customer={true} service={true} account={true}/>
+
             <div ref={scrollRef} className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar">
                 <FormHeader header="Record Service Income" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
