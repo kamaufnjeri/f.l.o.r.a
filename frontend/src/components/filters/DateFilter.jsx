@@ -4,14 +4,14 @@ import { dateOptions } from '../../lib/constants'
 const DateFilter = ({ handleDatesChange, searchItem }) => {
   return (
     <select 
-      className='rounded-md border-gray-800 border p-2 outline-none focus:border-none focus:ring-2 focus:ring-blue-500 font-semibold' 
+      className='rounded-md border-gray-800 border p-2 outline-none focus:border-none focus:ring-2 focus:ring-blue-500 font-semibold cursor-pointer' 
       onChange={(e) => handleDatesChange(e)} 
       value={searchItem?.date || ""} 
-      title="Select a date range"
+      title="Date range"
     >
      
       <option value="" disabled>
-        Select a date range
+        Date range
       </option>
 
       {dateOptions.map((option, index) => (

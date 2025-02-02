@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ css_path }}">
     <title>{{ title }}</title>
 </head>
+
 <body>
     <header>
         <table>
@@ -27,7 +29,7 @@
     <aside>
         <table>
             {% if search_filters %}
-            
+
             <tbody>
                 {% for key, value in search_filters.items() %}
                 <tr>
@@ -39,92 +41,84 @@
                             {% else %}
                             <li><strong>{{ key }}: </strong>{{ value }}</li>
                             {% endif %}
-                            
+
                         </ul>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
-            
+
             {% endif %}
         </table>
-       
+
     </aside>
     <section>
         <table>
             <thead>
-                <tr style="border-bottom: 3px;">
-                    <th>Payment #</th>
+                <tr >
+                    <th>No.</th>
                     <th>Date</th>
                     <th>Type</th>
                     <th>Amount Paid ({{ organisation.currency }})</th>
 
-                    <th colspan="2">Description</th>
+                    <th colspan="2">Account</th>
                     <th>Debit ({{ organisation.currency }})</th>
                     <th>Credit ({{ organisation.currency }})</th>
                 </tr>
             </thead>
             <tbody>
                 {% for payment in data.get('payments') %}
-                    {% set col = loop.index %}
-                    {% for entry in payment.get('journal_entries') %}
+                {% set col = loop.index %}
+                {%set row_span = payment.get('journal_entries') | length + 1 %}
+
+                {% for entry in payment.get('journal_entries') %}
+                <tr>
                     {% if loop.index == 1 %}
-                    {%set first_entry = true %}
-                    {% else %}
-                    {%set first_entry = false %}
+                    <td rowspan="{{ row_span }}">{{ col }}</td>
+                    <td rowspan="{{ row_span }}">{{ payment.get('date') }}</td>
+                    <td rowspan="{{ row_span }}">{{ payment.get('details').get('type').title() }}</td>
 
                     {% endif %}
-                    <tr>
-                        {% if first_entry %}
-                            <td>{{ col }}</td>
-                            <td >{{ payment.get('date') }}</td>
-                            <td >{{ payment.get('details').get('type').title() }}</td>
-                            <td>{{ payment.get('amount_paid' )}}</td>
-                        {% else %}
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                        {% endif %}
 
-                        
-                            {% if entry.get('debit_credit') == "debit" %}
-                                <td colspan="2">{{ entry.get('account_name') }}</td>
-                            {% else %}
-                                <td colspan="2" style="padding-left: 15px;">{{ entry.get('account_name') }}</td>
-                            {% endif %}
-                        
-                        <td  style="text-align: right;">
-                            {% if entry.get('debit_credit') == "debit" %}
-                                {{ entry.get('amount') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td  style="text-align: right;">
-                            {% if entry.get('debit_credit') == "credit" %}
-                                {{ entry.get('amount') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    <tr style="border-bottom: 3px;">
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td colspan="2"><i>({{ payment.get('description') }})</i></td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                   
+
+                    {% if entry.get('debit_credit') == "debit" %}
+                    <td colspan="2">{{ entry.get('account_name') }}</td>
+                    {% else %}
+                    <td colspan="2" style="padding-left: 15px;">{{ entry.get('account_name') }}</td>
+                    {% endif %}
+
+                    <td style="text-align: right;">
+                        {% if entry.get('debit_credit') == "debit" %}
+                        {{ entry.get('amount') }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if entry.get('debit_credit') == "credit" %}
+                        {{ entry.get('amount') }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    {% if loop.index == 1 %}
+
+                    <td rowspan="{{ row_span }}">{{ payment.get('amount_paid' )}}</td>
+
+                    {% endif %}
+                </tr>
                 {% endfor %}
-                
-                <tr style="font-weight: bold; text-decoration: underline; font-size: 16px; border-bottom: 3px;">
-                    <td colspan="3" style="text-align: right;">Total</td>
-                    <td  style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
+                <tr >
+
+                    <td colspan="4" style="text-align: center;"><i>({{ payment.get('description') }})</i></td>
+
+                </tr>
+
+                {% endfor %}
+
+                <tr style="font-weight: bold; background-color: #d1d5db;">
+                    <td colspan="7" style="text-align: right;">Total</td>
+                    <td style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
                 </tr>
             </tbody>
         </table>
@@ -133,4 +127,5 @@
         <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>
     </footer>
 </body>
+
 </html>

@@ -8,6 +8,7 @@ import JournalEntries from '../../components/forms/JournalEntries';
 import { useParams } from 'react-router-dom';
 import { useSelectOptions } from '../../context/SelectOptionsContext';
 import Loading from '../../components/shared/Loading';
+import SubHeader from '../../components/shared/SubHeader';
 
 
 
@@ -68,34 +69,27 @@ const UpdateSingleJournal = () => {
   useEffect(() => {
     
     scrollBottom(scrollRef);
-  }, [formData.journal_entries]);
+  }, [formData?.journal_entries]);
 
 
  
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center">
-      <div
-        ref={scrollRef}
-        className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar"
-      >
+    <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
+      <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
+        <SubHeader account={true} />
         <FormHeader header="Edit journal" />
-       {formData ? <form
-          className="flex-1 flex flex-col w-full h-full gap-2"
-          onSubmit={handleSubmit}
-        >
+       {formData ?  <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
           <div className="flex flex-row justify-between text-gray-800 mr-2">
-            <span>Journal No : {formData.serial_number}</span>
+            <span className='font-semibold text-xl'>Journal No : {formData.serial_number}</span>
           </div>
-          <div className="w-[80%]">
             <FormInitialField
               formData={formData}
               handleChange={handleChange}
             />
-          </div>
 
           <JournalEntries
-            values={formData}
+            formData={formData}
             handleChange={handleChange}
             accounts={accounts}
             isSubmitted={isSubmitted}

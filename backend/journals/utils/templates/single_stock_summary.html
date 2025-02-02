@@ -76,19 +76,24 @@
                     <th>No #</th>
                     <th>Date</th>
                     <th>Transaction Type</th>
+                    <th colspan="2">Details</th>
                     <th>Quantity {{ data.get('unit_alias')}}</th>
                     <th>Rate ({{ organisation.currency }})</th>
                     <th>Total Amount ({{ organisation.currency }})</th>
-                    <th colspan="2">Details </th>
                 </tr>
             </thead>
             <tbody>
                 {% for entry in data.get('stock_summary').get('entries') %}
                 
-                <tr>
+                <tr
+                {% if entry.get("details").get('type') == 'Closing Stock' %}
+                style="font-weight: bold; background-color: #d1d5db;"
+                {% endif %}    
+                >
                     <td>{{ loop.index }}</td>
                     <td>{{ entry.get('details').get('date') }}</td>
                     <td>{{ entry.get('details').get('type') }}</td>
+                    <td colspan="2">{{ entry.get('details').get('description')}} </td>
                     <td style="text-align: right;">
                         {% if entry.get('details').get('type') in ('Sales', 'Purchase Return') %}
                         <span>(-)</span>
@@ -97,14 +102,13 @@
                     </td>
                     <td style="text-align: right;">{{ entry.get('details').get('rate') }}</td>
                     <td style="text-align: right;">{{ entry.get('details').get('total') }}</td>
-                    <td colspan="2">{{ entry.get('details').get('description')}} </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </section>
     <section>
-        <table style="width: 50%; margin-top: 20px;" width="50%">
+        <table style="margin-top: 20px;">
             <thead>
             <tr>
                 <th>Name</th>

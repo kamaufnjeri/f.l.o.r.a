@@ -1,4 +1,4 @@
-import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, FaChartPie, FaUsers, FaTruck, FaTh } from 'react-icons/fa';
+import { FaBox, FaShoppingCart, FaFileInvoiceDollar, FaBook, FaClipboardList, FaChartPie, FaUsers, FaTruck, FaTh, FaHome } from 'react-icons/fa';
 import { IoMdSettings, IoMdHelp } from "react-icons/io";
 import { MdWork } from 'react-icons/md';
 
@@ -54,18 +54,18 @@ export const statusOptions = [
 ]
 export const sortOptions = [
     {
-        name: 'Reset',
-        value: 'reset'
-    },
-    {
-        name: "Newest Date",
+        name: "Recently Added",
         value: "newest"
     },
     {
-        name: "Oldest Date",
+        name: "Earliest Added",
         value: "oldest"
     },
-
+    
+    {
+        name: 'Reset',
+        value: 'reset'
+    },
 ]
 export const dateOptions = [
     {
@@ -96,8 +96,15 @@ export const dateOptions = [
 
 export const sidebarIcons = [
     {
+        name: "Dashboard",
+        icon: <FaHome className='text-2xl' />,
+        lists: null,
+
+       url: ''
+    },
+    {
         name: "Purchases",
-        icon: <FaShoppingCart className='text-xl' />,
+        icon: <FaShoppingCart className='text-2xl' />,
         url: null,
         lists: [
             {
@@ -116,7 +123,7 @@ export const sidebarIcons = [
     },
     {
         name: "Sales",
-        icon: <FaFileInvoiceDollar className='text-xl' />,
+        icon: <FaFileInvoiceDollar className='text-2xl' />,
         url: null,
         lists: [
             {
@@ -135,7 +142,7 @@ export const sidebarIcons = [
     },
     {
         name: "Journals",
-        icon: <FaBook className='text-xl' />,
+        icon: <FaBook className='text-2xl' />,
         url: null,
         lists: [
             {
@@ -150,7 +157,7 @@ export const sidebarIcons = [
     },
     {
         name: "Services",
-        icon: <MdWork className='text-xl' />,
+        icon: <MdWork className='text-2xl' />,
         url: null,
         lists: [
             
@@ -160,7 +167,7 @@ export const sidebarIcons = [
             },
             {
                 name: 'Services',
-                url: 'Services'
+                url: 'services'
             },
             {
                 name: 'Services income',
@@ -170,35 +177,52 @@ export const sidebarIcons = [
     },
     {
         name: "Accounts",
-        icon: <FaClipboardList className='text-xl' />,
+        icon: <FaClipboardList className='text-2xl' />,
         lists: null,
 
-       url: 'accounts'
+       url: '/accounts'
     },
     {
         name: "Stocks",
-        icon: <FaBox className='text-xl' />,
+        icon: <FaBox className='text-2xl' />,
         lists: null,
-        url: 'stocks'
+        url: '/stocks'
     },
     {
         name: "Customers",
-        icon: <FaUsers className='text-xl' />,
+        icon: <FaUsers className='text-2xl' />,
         lists: null,
-        url: 'customers'
+        url: '/customers'
        
     },
 
     {
         name: "Suppliers",
-        icon: <FaTruck className='text-xl' />,
+        icon: <FaTruck className='text-2xl' />,
         lists: null,
-        url: 'suppliers'
+        url: '/suppliers'
     },
-
+    {
+        name: "Others",
+        icon: <FaTh className='text-2xl' />,
+        lists: [
+            {
+                name: 'Bills',
+                url: 'bills'
+            },
+            {
+                name: 'Invoices',
+                url: 'invoices'
+            },
+            {
+                name: 'Payments',
+                url: 'payments'
+            }
+        ]
+    },
     {
         name: "Reports",
-        icon: <FaChartPie className='text-xl' />,
+        icon: <FaChartPie className='text-2xl' />,
         lists: [
             {
                 name: 'Trial Balance',
@@ -215,34 +239,14 @@ export const sidebarIcons = [
         ]
     },
     {
-        name: "Others",
-        icon: <FaTh className='text-xl' />,
-        lists: [
-            {
-                name: 'Bills',
-                url: 'bills'
-            },
-            {
-                name: 'Invoices',
-                url: 'invoices'
-            },
-            {
-                name: 'Payment',
-                url: 'payments'
-            }
-        ]
-    }
-];
-
-export const sidebarIconsBottom = [
-    {
         name: "Settings",
-        icon: <IoMdSettings className='text-xl' />,
-        url: "settings"
+        icon: <IoMdSettings className='text-2xl' />,
+        url: "/settings"
     },
     {
         name: "Help and Support",
-        icon: <IoMdHelp className='text-xl' />,
-        url: 'helpandsuppot'
+        icon: <IoMdHelp className='text-2xl' />,
+        url: '/help-and-suppot'
     }
-]
+];
+

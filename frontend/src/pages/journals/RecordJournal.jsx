@@ -27,7 +27,7 @@ const RecordJournal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -58,55 +58,45 @@ const RecordJournal = () => {
   };
 
 
-  const handleChange = (field, value, index=null) => {
+  const handleChange = (field, value, index = null) => {
     if (index === null) {
-      setFormData((prev) => ({...prev, [field]: value}))
+      setFormData((prev) => ({ ...prev, [field]: value }))
     } else {
       const updatedEntries = [...formData.journal_entries];
       updatedEntries[index][field] = value;
-      setFormData((prev) => ({...prev, journal_entries: updatedEntries}));
+      setFormData((prev) => ({ ...prev, journal_entries: updatedEntries }));
     }
   };
 
   useEffect(() => {
-    
+
     scrollBottom(scrollRef);
   }, [formData.journal_entries]);
 
 
   useEffect(() => {
-    setFormData((prev) => ({...prev, serial_number: serialNumbers.journal}));
+    setFormData((prev) => ({ ...prev, serial_number: serialNumbers.journal }));
   }, [serialNumbers, orgId]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center">
-      <div
-        ref={scrollRef}
-        className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar"
-      >
-        <SubHeader account={true}/>
+    <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
+      <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
+        <SubHeader account={true} />
         <FormHeader header="Record journal" />
-        <form
-          className="flex-1 flex flex-col w-full h-full gap-2"
-          onSubmit={handleSubmit}
-        >
+        <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
           <div className="flex flex-row justify-between text-gray-800 mr-2">
-            <span>Journal No : {serialNumbers.journal}</span>
+            <span className='font-semibold text-xl'>Journal No : {serialNumbers.journal}</span>
           </div>
-          <div className="w-[80%]">
-            <FormInitialField
-              formData={formData}
-              handleChange={handleChange}
-            />
-          </div>
-
+          <FormInitialField
+            formData={formData}
+            handleChange={handleChange}
+          />
           <JournalEntries
-            values={formData}
+            formData={formData}
             handleChange={handleChange}
             accounts={accounts}
             isSubmitted={isSubmitted}
           />
-
           <Button type="primary" className='w-[30%] self-center' htmlType="submit" disabled={isLoading}>
             {isLoading ? <Spin /> : 'Record'}
           </Button>

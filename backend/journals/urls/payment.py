@@ -7,5 +7,4 @@ urlpatterns = [
     path('', PaymentAPIView.as_view()),
     path('download/', DownloadPaymentAPIView.as_view()),
     path("<pk>/", PaymentDetailAPIView.as_view())
-
 ]

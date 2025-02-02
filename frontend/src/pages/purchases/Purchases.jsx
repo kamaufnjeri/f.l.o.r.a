@@ -5,7 +5,7 @@ import { capitalizeFirstLetter, getItems, getQueryParams } from '../../lib/helpe
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import TypesFilter from '../../components/filters/TypesFilter';
 import SortFilter from '../../components/filters/SortFilter';
@@ -18,7 +18,6 @@ const Purchases = () => {
   const [openDateModal, setOpenDateModal] = useState(false);
   const { currentOrg } = useAuth();
   const [header, setHeader] = useState('Purchases')
-
   const [searchItem, setSearchItem] = useState({
     name: '',
     search: '',
@@ -27,6 +26,11 @@ const Purchases = () => {
     sortBy: '',
   })
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
+
+  const handleRowClick = (purchaseId) => {
+    navigate(`/dashboard/${orgId}/purchases/${purchaseId}`);
+  };
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -39,8 +43,8 @@ const Purchases = () => {
 
   const [selectOptions, setSelectOptions] = useState([
     { name: "All", value: "all" },
-    { name: "Bill Purchases", value: "is_bills" },
-    { name: "Regular Purchases", value: "is_not_bills" },
+    { name: "Bills", value: "is_bills" },
+    { name: "Regular", value: "is_not_bills" },
   ])
   const { orgId } = useParams();
   const [purchases, setPurchases] = useState([]);
@@ -195,8 +199,8 @@ const Purchases = () => {
         type='purchases'
       />
       <div className='flex flex-row w-full'>
-        <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-2 relative col-span-2'>
+        <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2 shadow-md p-2'>
+          <div className='grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 gap-2 relative col-span-2'>
             <input type='name' className='h-10 border border-gray-800 rounded-md outline-none focus:border-none focus:ring-2 focus:ring-blue-500 p-2' placeholder='Enter purchase number or description' value={searchItem.name} onChange={e => handleChange(e)} />
             <TypesFilter searchItem={searchItem} selectOptions={selectOptions} type='purchases' handleTypesChange={handlePurchasesChange} />
 
@@ -218,7 +222,7 @@ const Purchases = () => {
               <div className={`rounded-md p-1 bg-neutral-200 relative
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
 
-                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                <button type='button' className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
                   Download
                 </button>
 
@@ -236,89 +240,96 @@ const Purchases = () => {
 
 
       </div>
+      
+      <div className='min-h-[400px] w-full p-2 shadow-md custom-scrollbar overflow-x-auto'>
       <div className='flex flex-row items-center justify-between w-full'>
         <FormHeader header={header} />
         {purchasesData && <PrevNext pageNo={pageNo} data={purchasesData} previousPage={previousPage} nextPage={nextPage} className='w-full' />}
 
       </div>
+        <table className='min-w-full border-collapse border border-gray-800 '>
+       
+          <thead>
+            
+            <tr className='text-left bg-gray-400'>
+              <th className='p-1 border-r border-b border-gray-800'>Purchase #</th>
+              <th className='p-1 border-r border-b border-gray-800'>Date</th>
+              <th className='p-1 border-r border-b border-gray-800'>Type</th>
+              <th className='p-1 border-r border-b border-gray-800' colSpan={2}>Items</th>
+              <th className='p-1 border-r border-b border-gray-800'>Total Amount ({currentOrg?.currency})</th>
+              <th className='p-1 border-r border-b border-gray-800'>Total Quantity</th>
+              <th className='p-1 border-r border-b border-gray-800'>Due Amount ({currentOrg?.currency})</th>
 
-      <table className='min-w-full border-collapse border border-gray-800'>
-        <thead>
-          <tr className='text-left bg-gray-400'>
-            <th className='p-1 border-r border-b border-gray-800'>Purchase #</th>
-            <th className='p-1 border-r border-b border-gray-800'>Date</th>
-            <th className='p-1 border-r border-b border-gray-800'>Type</th>
-            <th className='p-1 border-r border-b border-gray-800' colSpan={2}>Items</th>
-            <th className='p-1 border-r border-b border-gray-800'>Total Amount ({currentOrg?.currency})</th>
-            <th className='p-1 border-r border-b border-gray-800'>Total Quantity</th>
-            <th className='p-1 border-r border-b border-gray-800'>Due Amount ({currentOrg?.currency})</th>
-
-          </tr>
+            </tr>
 
 
-        </thead>
-        <tbody>
-          {purchasesData?.results?.data?.purchases && purchasesData.results.data.purchases.map((purchase, index) => (
+          </thead>
+          <tbody>
+            {purchasesData?.results?.data?.purchases && purchasesData.results.data.purchases.map((purchase, index) => (
 
-            <tr
-              key={purchase.id}
-              className="hover:bg-gray-200 cursor-pointer"
-            >
-              <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${purchase.id}`}>
+              <tr
+                key={purchase.id}
+                onClick={() => handleRowClick(purchase.id)}
+
+                className="hover:bg-gray-200 cursor-pointer"
+              >
+                <td className="border-gray-800 border-r border-b p-1">
+
                   {purchase.serial_number}
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${purchase.id}`}>
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1">
+
                   {purchase.date}
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${purchase.id}`}>
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1">
+
                   {capitalizeFirstLetter(purchase.details.type)}
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1" colSpan={2}>
-                <Link to={`${purchase.id}`} >
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1" colSpan={2}>
+
                   <ul className="flex flex-wrap gap-3">
                     {purchase.details.items.map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
                   <i className="text-sm">({purchase.description})</i>
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${purchase.id}`}>
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1 text-right">
+
                   {purchase.details.total_amount}
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${purchase.id}`}>
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1 text-right">
+
                   {purchase.details.total_quantity}
-                </Link>
-              </td>
-              <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${purchase.id}`}>
+
+                </td>
+                <td className="border-gray-800 border-r border-b p-1 text-right">
+
                   {purchase.details.amount_due > 0 ? purchase.details.amount_due : '-'}
-                </Link>
-              </td>
-            </tr>))}
-          {purchasesData?.results?.data?.totals &&
-            <tr className='text-right font-bold bg-gray-300'>
-              <td className='border-gray-800 border-r border-b p-1' colSpan={5}>Total</td>
-              <td className='border-gray-800 border-r border-b p-1'>
-                {purchasesData?.results?.data?.totals?.amount}
-              </td>
-              <td className='border-gray-800 border-r border-b p-1'>{purchasesData?.results?.data?.totals?.quantity}</td>
-              <td className='border-gray-800 border-r border-b p-1'>{purchasesData?.results?.data?.totals?.amount_due}</td>
-            </tr>
-          }
 
-        </tbody>
+                </td>
+              </tr>))}
+            {purchasesData?.results?.data?.totals &&
+              <tr className='text-right font-bold bg-gray-300'>
+                <td className='border-gray-800 border-r border-b p-1' colSpan={5}>Total</td>
+                <td className='border-gray-800 border-r border-b p-1'>
+                  {purchasesData?.results?.data?.totals?.amount}
+                </td>
+                <td className='border-gray-800 border-r border-b p-1'>{purchasesData?.results?.data?.totals?.quantity}</td>
+                <td className='border-gray-800 border-r border-b p-1'>{purchasesData?.results?.data?.totals?.amount_due}</td>
+              </tr>
+            }
 
-      </table>
+          </tbody>
+
+        </table>
+      </div>
+
 
 
     </div>

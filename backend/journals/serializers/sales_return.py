@@ -137,7 +137,6 @@ class SalesReturnSerializer(serializers.ModelSerializer):
 
             journal_entries_data = [sales_return_account_data]
             journal_entries_data = journal_entries_data + payment_journal_entries
-            print(journal_entries_data)
 
             journal_entries_manager.validate_double_entry(journal_entries_data)
 
@@ -226,7 +225,6 @@ class DetailedSalesReturnSerializer(SalesReturnSerializer):
             journal_entries_data = [sales_return_account_data]
             journal_entries_data = journal_entries_data + payment_journal_entries
 
-            print(total_return)
 
             journal_entries_manager.validate_double_entry(journal_entries_data)
 

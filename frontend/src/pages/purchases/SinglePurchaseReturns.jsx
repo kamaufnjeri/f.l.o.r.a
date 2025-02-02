@@ -4,7 +4,7 @@ import { getItems } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
@@ -28,8 +28,11 @@ const SinglePurchaseReturns = () => {
   const [deleteUrl, setDeleteUrl] = useState('');
   const [deleteModalTitle, setDeleteModalTitle] = useState('');
   const [purchaseReturnId, setPurchaseReturnId] = useState(null);
+  const navigate = useNavigate();
 
-
+  const handleRowClick = (url) => {
+    navigate(`/dashboard/${orgId}/${url}`);
+  };
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -180,7 +183,9 @@ const SinglePurchaseReturns = () => {
                   {purchase_return.return_entries.map((entry, index) => (
                     <tr
                       key={`${purchase_return.id}-${index}`}
-                      className="hover:bg-gray-200 cursor-pointer text-left"
+                      onClick={() => handleRowClick(purchase_return.details.url)}
+
+                      className="cursor-pointer text-left"
                     >
                       {index === 0 && (
                         <>
@@ -188,51 +193,62 @@ const SinglePurchaseReturns = () => {
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={purchase_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
-                              {index + 1}
-                            </Link>
+
+                            {index + 1}
+
                           </td>
                           <td
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={purchase_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
-                              {purchase_return.date}
-                            </Link>
+
+                            {purchase_return.date}
+
                           </td>
                         </>
                       )}
                       <td className="border-r border-b border-gray-800 p-1">
-                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.stock_name}</Link>
+                        {entry.stock_name}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.return_price}</Link>
+                        {entry.return_price}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>{entry.quantity}</Link>
+                        {entry.quantity}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${purchase_return.details.url}`}>
-                          {entry.return_quantity * entry.return_price}
-                        </Link>
+
+                        {entry.return_quantity * entry.return_price}
+
                       </td>
                       {index === 0 && (
                         <>
-                          <td className='border-b border-r border-gray-800 p-1 space-y-2'                             
-                          rowSpan={purchase_return.return_entries.length + 1}
->
-                            <Button type="primary" className='w-full self-center p-1' onClick={() => openUpdatePurchaseReturnModalFunc(purchase_return.id)}>
+                          <td className='border-b border-r border-gray-800 p-1 space-y-2'
+
+                            rowSpan={purchase_return.return_entries.length + 1}
+                          >
+                            <Button type="primary" className='w-full self-center p-1' onClick={(e) => {
+                              e.stopPropagation();
+                              openUpdatePurchaseReturnModalFunc(purchase_return.id);
+                            }}>
                               Edit
                             </Button>
-                            <Button type="primary" danger className='w-full self-center p-1' onClick={() => deletePurchaseReturn(purchase_return.id)}>
+                            <Button type="primary" danger className='w-full self-center p-1' onClick={(e) => {
+                              e.stopPropagation();
+
+                              deletePurchaseReturn(purchase_return.id);
+                            }}>
                               Delete
                             </Button>
                           </td>
                         </>)}
                     </tr>
                   ))}
-                  
-                  <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
+
+                  <tr
+                    onClick={() => handleRowClick(purchase_return.details.url)}
+                    className="cursor-pointer">
+                    <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-y-2">
                       <i className='text-sm'>({purchase_return.description})</i>
                       <span className='underline'>Total</span>
                     </td>
@@ -242,7 +258,7 @@ const SinglePurchaseReturns = () => {
                     <td className="border-b border-r border-gray-800 p-1 underline text-right">
                       {purchase_return.details?.total_amount}
                     </td>
-
+                  </tr>
                   {showJournalEntries && <tr>
                     <td className="border-b border-r border-gray-800 p-1"></td>
                     <td className="border-b border-r border-gray-800 p-1"></td>
@@ -304,7 +320,7 @@ const SinglePurchaseReturns = () => {
         </tbody>
       </table>
 
-      
+
 
     </div>
   )

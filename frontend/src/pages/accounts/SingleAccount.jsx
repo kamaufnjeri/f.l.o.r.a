@@ -26,7 +26,14 @@ const SingleAccount = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const { getSelectOptions } = useSelectOptions();
+    const navigate = useNavigate();
+
+    const handleRowClick = (url) => {
+        if (url) {
+            navigate(`/dashboard/${orgId}${url}`);
+
+        }
+    };
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -49,7 +56,7 @@ const SingleAccount = () => {
     const showModal = (setOpenModal) => {
         setOpenModal(true);
     };
-    
+
     const handleDatesChange = async (e) => {
         if (e.target.value === '*') {
             showModal(setOpenDateModal);
@@ -78,7 +85,7 @@ const SingleAccount = () => {
         downloadListPDF(url, `${accountData.name} Account`)
     }
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
             <FromToDateModal
                 openModal={openDateModal}
                 setOpenModal={setOpenDateModal}
@@ -104,101 +111,101 @@ const SingleAccount = () => {
                 getData={getData}
                 navigateUrl={`/dashboard/${orgId}/accounts`}
             />
-            <div className='flex flex-row w-full items-center justify-between'>
-                <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
-
-                    <div className='w-[40%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                        <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
-
+            <div className='grid grid-cols-2 w-full gap-4 items-start '>
+                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
+                <div className='absolute  top-5 right-2'>
+                    <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                            Download
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
+                            Edit
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteAccount}>
+                            Delete
+                        </button>
                     </div>
+                    {!isVisible ?
+                        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                        <FaTimes className='cursor-pointer hover:text-purple-800 text-lg' onClick={closeDropDown} />
 
-                </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-                <div className={`absolute right-1 top-8 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-           border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                    <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
-
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-                        Download
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
-                        Edit
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteAccount}>
-                        Delete
-                    </button>
+                    }
                 </div>
 
             </div>
-
-            <FormHeader header={`${accountData.name} Account`} />
-
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-                <div className='w-full flex flex-row justify-between mb-2'>
+            <div className='flex flex-col items-start justify-between w-full gap-2'>
+                <FormHeader header={`${accountData.name} Account`} />
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-2 w-full'>
                     <span><strong>Name: </strong>{accountData.name}</span>
                     <span><strong>Group: </strong>{accountData.group}</span>
                     <span><strong>Category: </strong>{accountData.category}</span>
                     <span><strong>Sub Category: </strong>{accountData.sub_category}</span>
-
                 </div>
-                <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>No #</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Type</span>
-                    <span className='w-[30%] border-gray-800 border-r-2 p-1'>Details</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Debit ({currentOrg.currency})</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Credit ({currentOrg.currency})</span>
+            </div>
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-b border-r border-gray-800'>No.</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Date</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Type</th>
 
-                </div>
-                {accountData?.account_data && accountData.account_data.entries.map((entry, index) => (
-                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.type}</span>
-                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.details.description}</span>
-                        {entry.debit_credit === 'debit' ? <>
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.amount}</span>
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>-</span>
+                        <th className='p-1 border-b border-r border-gray-800' colSpan={2}>Details</th>
+
+                        <th className='p-1 border-b border-r border-gray-800'>Debit ({currentOrg.currency})</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Credit ({currentOrg.currency})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {accountData?.account_data && accountData.account_data.entries.map((entry, index) => (
+                        <tr key={index} className='hover:bg-gray-200 cursor-pointer'
+                            onClick={() => handleRowClick(entry.details.url)}
+                        >
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {index + 1}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.date}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.type}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800' colSpan={2}>
+                                {entry.details.description}
+                            </td>
+
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.debit_credit === "debit" ? entry.amount : "-"}
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.debit_credit === "credit" ? entry.amount : "-"}
+                            </td>
+                        </tr>
+                    ))}
+{accountData.account_data?.totals &&
+                   <> <tr className='text-right font-bold bg-gray-300 '>
+                        <td className='p-1 border-b border-r border-gray-800' colSpan={5}>Total</td>
+                        <td className='p-1 border-b border-r border-gray-800'>{accountData.account_data.totals.debit}</td>
+                        <td className='p-1 border-b border-r border-gray-800'>{accountData.account_data.totals.credit}</td>
+
+                    </tr>
+                    <tr className='text-right font-bold bg-blue-400 ' >
+                        <td className='p-1 border-b border-r border-gray-800' colSpan={5}>Balance</td>
+
+                        {accountData?.account_data?.totals.closing.debit_credit === 'debit' ? <>
+                            <td className='p-1 border-b border-r border-gray-800'>{accountData?.account_data?.totals.closing.amount}</td>
+                            <td className='p-1 border-b border-r border-gray-800'>-</td>
                         </> :
                             <>
-                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>-</span>
-                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.amount}</span>
+                                <td className='p-1 border-b border-r border-gray-800'>-</td>
+
+                                <td className='p-1 border-b border-r border-gray-800'>{accountData?.account_data?.totals.closing.amount}</td>
                             </>
                         }
-
-
-                    </Link>
-                ))}
-                {accountData?.account_data?.totals && (
-                    <><div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>
-
-                        <span className='w-[70%] border-gray-800 border-r-2 p-1 text-right'>Total</span>
-
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData.account_data.totals.debit}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData.account_data.totals.credit}</span>
-                    </div>
-                        <div className={`w-full flex flex-row font-extrabold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer underline`}>
-
-                            <span className='w-[70%] border-gray-800 border-r-2 p-1 text-right'>Balance</span>
-
-                            {accountData?.account_data?.totals.closing.debit_credit === 'debit' ? <>
-                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData?.account_data?.totals.closing.amount}</span>
-                                <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
-                            </> :
-                                <>
-                                    <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'></span>
-                                    <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{accountData?.account_data?.totals.closing.amount}</span>
-                                </>
-                            }
-                        </div>
-                    </>
-
-                )}
-
-            </div>
+                    </tr> </>}
+                </tbody>
+            </table>
         </div>
-
-
     )
 }
 

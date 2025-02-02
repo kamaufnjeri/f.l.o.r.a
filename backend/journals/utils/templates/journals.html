@@ -63,21 +63,14 @@
             </thead>
             <tbody>
                 {% for journal in data.get('journals') %}
-                    
-                    {% for entry in journal.get('journal_entries') %}
-                    {% if loop.index == 1 %}
-                    {%set first_entry = true %}
-                    {% else %}
-                    {%set first_entry = false %}
+                {%set row_span = journal.get('journal_entries') | length + 1 %}
 
-                    {% endif %}
+                    {% for entry in journal.get('journal_entries') %}
                     <tr>
-                        {% if first_entry %}
-                            <td>{{ journal.get('serial_number') }}</td>
-                            <td >{{ journal.get('date') }}</td>
-                        {% else %}
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
+                        {% if loop.index == 1 %}
+                            <td rowspan="{{ row_span }}">{{ journal.get('serial_number') }}</td>
+                            <td rowspan="{{ row_span }}">{{ journal.get('date') }}</td>
+                        
                         {% endif %}
 
                         
@@ -103,17 +96,13 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    <tr style="border-bottom: 3px;">
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td colspan="2"><i>({{ journal.get('description') }})</i></td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
+                    <tr class="text-center">
+                        <td colspan="4"><i>({{ journal.get('description') }})</i></td>
                     </tr>
                    
                 {% endfor %}
                 
-                <tr style="font-weight: bold; text-decoration: underline; font-size: 16px; border-bottom: 3px;">
+                <tr style="font-weight: bold; background-color: #d1d5db;">
                     <td colspan="4" style="text-align: right;">Total</td>
                     <td  style="text-align: right;">{{ data.get('totals').get('debit_total') }}</td>
                     <td  style="text-align: right;">{{ data.get('totals').get('credit_total') }}</td>

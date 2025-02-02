@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { capitalizeFirstLetter, deleteRequest, getItems, replaceDash } from '../../lib/helpers';
+import { capitalizeFirstLetter, getItems, replaceDash } from '../../lib/helpers';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import FormHeader from '../../components/forms/FormHeader';
 import DateFilter from '../../components/filters/DateFilter';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
-import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateCustomerModal from '../../components/modals/UpdateCustomerModal.jsx';
 import DeleteModal from '../../components/modals/DeleteModal.jsx';
 
@@ -26,7 +24,14 @@ const SingleCustomer = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState('');
     const [deleteUrl, setDeleteUrl] = useState('');
     const [deleteModalTitle, setDeleteModalTitle] = useState('');
-    const { getSelectOptions } = useSelectOptions();
+    const navigate = useNavigate();
+
+    const handleRowClick = (url) => {
+        if (url) {
+            navigate(`/dashboard/${orgId}${url}`);
+
+        }
+    };
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -78,7 +83,7 @@ const SingleCustomer = () => {
         downloadListPDF(url, `Customer ${customerData.name} Details`)
     }
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
             <DeleteModal
                 openModal={openDeleteModal}
                 setOpenModal={setOpenDeleteModal}
@@ -104,77 +109,102 @@ const SingleCustomer = () => {
                 setCustomerData={setCustomerData}
                 customerData={customerData}
             />
-            <div className='flex flex-row w-full items-center justify-between'>
-                <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
+            <div className='grid grid-cols-2 w-full gap-4 items-start '>
+                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
-                    <div className='w-[40%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                        <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
+                <div className='grid grid-cols-2 w-full gap-4 items-start '>
+                    <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
+                    <div className='absolute  top-5 right-2'>
+                        <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+                           border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+                            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                                Download
+                            </button>
+                            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
+                                Edit
+                            </button>
+                            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteCustomer}>
+                                Delete
+                            </button>
+                        </div>
+                        {!isVisible ?
+                            <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                            <FaTimes className='cursor-pointer hover:text-purple-800 text-lg' onClick={closeDropDown} />
 
+                        }
                     </div>
 
-                </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-                <div className={`absolute right-1 top-8 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-           border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                    <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
-
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-                        Download
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
-                        Edit
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteCustomer}>
-                        Delete
-                    </button>
                 </div>
-
             </div>
-
-            <FormHeader header={`Customer ${customerData.name} Details`} />
-
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-                <div className='w-full flex flex-row justify-between mb-2'>
+            <div className='flex flex-col items-start justify-between w-full gap-2'>
+                <FormHeader header={`Customer ${customerData.name} Details`} />
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2 w-full'>
                     <span><strong>Name: </strong>{customerData.name}</span>
                     <span><strong>Email: </strong>{customerData.email}</span>
                     <span><strong>Phone Number: </strong>{customerData.phone_number}</span>
-
                 </div>
-                <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Invoice #</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Due Date</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Status</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Due Days</span>
-
-                    <span className='w-[20%] border-gray-800 border-r-2 p-1'>Details</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Amount Paid ({currentOrg.currency})</span>
-
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Amount Due ({currentOrg.currency})</span>
-                </div>
-                {customerData?.customer_data && customerData.customer_data.invoices.map((invoice, index) => (
-                    <Link to={invoice.details.url ? `/dashboard/${orgId}${invoice.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={index}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{invoice.serial_number}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.details.date}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.due_date}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.details.type}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(replaceDash(invoice.status))}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{invoice.details.due_days}</span>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1'>{invoice.details.description}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{invoice.amount_paid}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{invoice.amount_due}</span>
-
-                    </Link>
-                ))}
-                {customerData?.customer_data?.totals && (
-                    <div className={`w-full flex flex-row font-extrabold  underline text-right border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`}>
-                        <span className='w-[80%] border-gray-800 border-r-2 p-1'>Total</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{customerData?.customer_data.totals.amount_paid}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{customerData?.customer_data.totals.amount_due}</span>
-
-                    </div>)}
             </div>
+
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-b border-r border-gray-800'>Sale/ Service Income #</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Date</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Due date</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Status</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Due days</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Type</th>
+                        <th className='p-1 border-b border-r border-gray-800' colSpan={2}>Details</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Amout paid ({currentOrg.currency})</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Amount due ({currentOrg.currency})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {customerData?.customer_data && customerData?.customer_data?.invoices.map((invoice, index) => (
+                        <tr key={index} className='hover:bg-gray-200 cursor-pointer'
+                            onClick={() => handleRowClick(invoice.details.url)}
+                        >
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {invoice.details.serial_number}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {invoice.details.date}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {invoice.due_date}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {capitalizeFirstLetter(replaceDash(invoice.status))}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {invoice.details.due_days}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {invoice.details.type}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800' colSpan={2}>
+                                {invoice.details.description}
+                            </td>
+
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {invoice.amount_paid}
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {invoice.amount_due}
+                            </td>
+                        </tr>
+                    ))}
+                    {customerData?.customer_data?.totals && (
+                        <tr className='text-right font-bold bg-gray-300 '>
+                            <td className='p-1 border-b border-r border-gray-800' colSpan={8}>Total</td>
+                            <td className='p-1 border-b border-r border-gray-800'>{customerData.customer_data.totals.amount_due}</td>
+                            <td className='p-1 border-b border-r border-gray-800'>{customerData.customer_data.totals.amount_due}</td>
+
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+            
 
         </div>
     )

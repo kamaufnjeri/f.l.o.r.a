@@ -5,7 +5,7 @@ import { capitalizeFirstLetter, getItems, getQueryParams } from '../../lib/helpe
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import TypesFilter from '../../components/filters/TypesFilter';
 import SortFilter from '../../components/filters/SortFilter';
@@ -27,6 +27,13 @@ const Sales = () => {
     sortBy: '',
   })
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
+
+
+  const handleRowClick = (salesId) => {
+    navigate(`/dashboard/${orgId}/sales/${salesId}`);
+  };
+
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -39,8 +46,8 @@ const Sales = () => {
 
   const [selectOptions, setSelectOptions] = useState([
     { name: "All", value: "all" },
-    { name: "Invoice Sales", value: "is_invoices" },
-    { name: "Regular Sales", value: "is_not_invoices" },
+    { name: "Invoices", value: "is_invoices" },
+    { name: "Regular", value: "is_not_invoices" },
   ])
   const { orgId } = useParams();
   const [sales, setSales] = useState([]);
@@ -183,6 +190,7 @@ const Sales = () => {
     const url = `/${orgId}/sales/download/${querlParams}`;
     downloadListPDF(url, 'Sales')
   }
+
   return (
     <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
       <FromToDateModal
@@ -203,24 +211,28 @@ const Sales = () => {
 
             <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
-
             <SortFilter searchItem={searchItem} handleSortsChange={handleSortsChange} />
 
             {sales?.sales?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
               {sales?.sales?.map((sale) => (<Link to={`${sale.id}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sale.serial_number}</Link>))}
             </div>}
+
           </div>
           <div className='grid grid-cols-2 gap-2 '>
-            <button className='h-10 w-[100px] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
+            <button type='submit' className='h-10 w-[100px] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
 
             <div className='flex items-center justify-center place-self-end'>
               <div className={`rounded-md p-1 bg-neutral-200 relative
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
 
-                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                <button type='button' className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={(e) => {
+                  e.stopPropagation();
+                  downloadPDF();
+                  }}>
                   Download
                 </button>
+                
 
               </div>
               {!isVisible ?
@@ -259,47 +271,47 @@ const Sales = () => {
 
             <tr
               key={sale.id}
+              onClick={() => handleRowClick(sale.id)}
               className="hover:bg-gray-200 cursor-pointer"
             >
               <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${sale.id}`}>
+               
                   {sale.serial_number}
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${sale.id}`}>
+               
                   {sale.date}
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1">
-                <Link to={`${sale.id}`}>
+               
                   {capitalizeFirstLetter(sale.details.type)}
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1" colSpan={2}>
-                <Link to={`${sale.id}`} >
                   <ul className="flex flex-wrap gap-3">
                     {sale.details.items.map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
                   <i className="text-sm">({sale.description})</i>
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${sale.id}`}>
+               
                   {sale.details.total_amount}
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${sale.id}`}>
+               
                   {sale.details.total_quantity}
-                </Link>
+                
               </td>
               <td className="border-gray-800 border-r border-b p-1 text-right">
-                <Link to={`${sale.id}`}>
+               
                   {sale.details.amount_due > 0 ? sale.details.amount_due : '-'}
-                </Link>
+                
               </td>
             </tr>))}
           {salesData?.results?.data?.totals &&

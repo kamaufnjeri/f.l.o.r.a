@@ -131,7 +131,7 @@ const RecordServiceIncome = () => {
         scrollBottom(scrollRef);
     }, [formData.journal_entries, formData.service_income_entries]);
 
-   
+
 
     const addInvoice = () => {
         const updatedEntries = [...formData.journal_entries, { account: '', debit_credit: 'debit', amount: 0.0, type: 'invoice' }];
@@ -149,19 +149,18 @@ const RecordServiceIncome = () => {
 
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center">
-                                    <SubHeader customer={true} service={true} account={true}/>
-
-            <div ref={scrollRef} className="flex-1 flex flex-col font-medium gap-4 w-full max-h-[80vh] min-h-[80vh] overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
+            <SubHeader customer={true} service={true} account={true} />
+            <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
                 <FormHeader header="Record Service Income" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
-                    <div className="flex gap-4">
-                        <div className="w-[50%] flex flex-col gap-2">
-                            <span>Service Income No: {serialNumbers.service_income}</span>
+                <div className="flex gap-4 flex-col lg:flex-row">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                            <span className='font-semibold text-xl'>Service Income No: {serialNumbers.service_income}</span>
 
                             <FormInitialField formData={formData} handleChange={handleChange} />
-                            <div className='w-full flex flex-row gap-2'>
+                            <div className='w-full flex flex-row gap-2 items-center justify-center'>
                                 <div className='w-[40%]'>
                                     <PurchaseSalesAccountField
                                         values={formData?.journal_entries}
@@ -192,7 +191,7 @@ const RecordServiceIncome = () => {
                             </div>
 
                         </div>
-                        <div className="w-[50%] flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
                             <AccountsField
                                 formData={formData}
                                 isSubmitted={isSubmitted}

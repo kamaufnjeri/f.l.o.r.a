@@ -5,7 +5,7 @@ import { getItems, returnsQueryParams } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import DateFilter from '../../components/filters/DateFilter';
 import SortFilter from '../../components/filters/SortFilter';
@@ -30,6 +30,11 @@ const SalesReturns = () => {
   const [pageNo, setPageNo] = useState(1);
   const { orgId } = useParams();
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
+
+  const handleRowClick = (url) => {
+    navigate(`/dashboard/${orgId}/${url}`);
+  };
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -142,7 +147,7 @@ const SalesReturns = () => {
       toast.error(`Error': Error fetching Sales Returns`);
     }
   }
- const downloadPDF = () => {
+  const downloadPDF = () => {
     const querlParams = returnsQueryParams({
       paginate: false,
       search: searchItem.search,
@@ -168,17 +173,17 @@ const SalesReturns = () => {
         <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2'>
           <div className='grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-2 relative col-span-2'>
             <input type='name' className='h-10 border border-gray-800 rounded-md outline-none focus:border-none focus:ring-2 focus:ring-blue-500 p-2' placeholder='Enter sales number or description' value={searchItem.name} onChange={e => handleChange(e)} />
-            
-                <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
 
-             
-                <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
-              
+            <DateFilter handleDatesChange={handleDatesChange} searchItem={searchItem} />
+
+
+            <SortFilter handleSortsChange={handleSortsChange} searchItem={searchItem} />
+
             {salesReturns?.sales_returns?.length > 0 && searchItem.name && <div className='max-h-36 overflow-auto  custom-scrollbar absolute left-0 top-10 flex flex-col bg-gray-800 p-2 rounded-md w-full z-10 text-white'>
 
               {salesReturns.sales_returns.map((sales_return) => (<Link to={`/dashboard/${orgId}/${sales_return.details.url}`} className='hover:bg-white hover:text-gray-800 w-full cursor-pointer rounded-md p-1'>{sales_return.details.serial_number}</Link>))}
             </div>}
-            </div>
+          </div>
           <div className='grid grid-cols-2 gap-2 '>
             <button className='h-10 w-[100px] bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
 
@@ -186,7 +191,7 @@ const SalesReturns = () => {
               <div className={`rounded-md p-1 bg-neutral-200 relative
              border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
 
-                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                <button type='button' className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
                   Download
                 </button>
 
@@ -228,7 +233,8 @@ const SalesReturns = () => {
                   {sales_return.return_entries.map((entry, index) => (
                     <tr
                       key={`${sales_return.id}-${index}`}
-                      className="hover:bg-gray-200 cursor-pointer text-left"
+                      onClick={() => handleRowClick(sales_return.details.url)}
+                      className="cursor-pointer text-left"
                     >
                       {index === 0 && (
                         <>
@@ -236,37 +242,40 @@ const SalesReturns = () => {
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={sales_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                            
                               {sales_return.details.serial_number}
-                            </Link>
+                            
                           </td>
                           <td
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={sales_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                            
                               {sales_return.date}
-                            </Link>
+                            
                           </td>
                         </>
                       )}
                       <td className="border-r border-b border-gray-800 p-1">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.stock_name}</Link>
+                        {entry.stock_name}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.return_price}</Link>
+                        {entry.return_price}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.quantity}</Link>
+                        {entry.quantity}
                       </td>
                       <td className="border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                        
                           {entry.return_quantity * entry.return_price}
-                        </Link>
+                        
                       </td>
                     </tr>
                   ))}
-                  <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
+                  <tr
+                    onClick={() => handleRowClick(sales_return.details.url)}
+                    className="cursor-pointer">
+                    <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
                       <i className='text-sm'>({sales_return.description})</i>
                       <span className='underline'>Total</span>
                     </td>
@@ -276,6 +285,8 @@ const SalesReturns = () => {
                     <td className="border-b border-r border-gray-800 p-1 underline text-right">
                       {sales_return.details?.total_amount}
                     </td>
+                  </tr>
+
                 </>
               );
             })}

@@ -94,7 +94,7 @@
                     <td>{{  entry.get('details').get('date') }}</td>
                     <td colspan="2">{{ entry.get('details').get('description')}} </td>
 
-                    <td>
+                    <td style="text-align: right;">
                         {% if entry.get('quantity') %}
                         {{ entry.get('quantity') }}
                         {% else %}
@@ -116,7 +116,7 @@
                     </td>
                 </tr>
                 {% endfor %}
-                <tr style="font-weight: bold; text-decoration: underline;">
+                <tr style="font-weight: bold; background-color: #d1d5db;">
                     <td colspan="6" style="text-align: right;">Total</td>
                     <td style="text-align: right;">{{ data.get('service_data').get('total') }}</td>
                 </tr>

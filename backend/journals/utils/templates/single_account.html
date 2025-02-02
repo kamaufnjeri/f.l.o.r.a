@@ -105,12 +105,12 @@
                 {% set totals = data.get('account_data').get('totals') %}
 
                 {% if totals %}
-                <tr style="font-weight: bold; text-decoration: underline;">
+                <tr style="font-weight: bold; background-color: #d1d5db;">
                     <td colspan="5" style="text-align: right;">Total</td>
                     <td style="text-align: right;">{{ totals.get('debit') }}</td>
                     <td style="text-align: right;">{{ totals.get('credit') }}</td>
                 </tr>
-                <tr style="text-decoration: underline; font-weight: bold;">
+                <tr style="font-weight: bold; background-color: #60A5FA;">
                     <td colspan="5" style="text-align: right;">Balance</td>
                     {% if totals.get('closing').get('debit_credit') == 'debit' %}
                     <td style="text-align: right;">{{ totals.get('closing').get('amount') }}</td>

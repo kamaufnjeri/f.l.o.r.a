@@ -3,45 +3,50 @@ import { Button } from 'antd';
 import InputNumberField from '../forms/InputNumberField';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import SearchableSelectField from './SearchableSelectField';
+import { useAuth } from '../../context/AuthContext';
 
 const ServiceIncomeEntriesFields = ({ formData, handleChange, services, isSubmitted = false }) => {
+    const { currentOrg } = useAuth();
+
     return (
-        <div className='flex-1 flex flex-col gap-2'>
-            <div className='flex flex-row w-[100%] justify-between items-start'>
-                <span className='w-[10%]'><span>No. </span></span>
-                <span className='w-[25%]'><span>Service</span></span>
-                <span className='w-[25%]'><span>Quantity</span></span>
-                <span className='w-[25%]'><span>Price</span></span>
-                <span className='w-[10%]'>Remove</span>
-            </div>
+        <table className='table-auto min-w-full border-collapse'>
+        <thead>
+            <tr className='text-left'>
+                <th className='p-1' colSpan={2}>Sevice</th>
+                <th className='p-1' colSpan={2}>Quantity</th>
+                <th className='p-1' colSpan={2}>Rate ({currentOrg.currency})</th>
+                <th className='p-1' >Remove</th>
+            </tr>
 
-            {formData?.service_income_entries?.map((entry, index) => (
-                <div key={index} className='flex flex-row w-full gap-3'>
-                    <span className='w-[10%]'><span>{index + 1}</span></span>
-                    <span className='w-[25%]'>
-                        <SearchableSelectField item={true} isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={services} value={entry.service} name={'service'} />
+        </thead>
+        <tbody>
+        {formData?.service_income_entries?.map((entry, index) => (
+                <tr key={index}>
 
-                    </span>
-                    <span className='w-[25%]'>
-                        <InputNumberField
+                    <td className='p-1' colSpan={2}>
+                    <SearchableSelectField item={true} isSubmitted={isSubmitted} handleChange={handleChange} index={index} options={services} value={entry.service} name={'service'} />
+
+                    </td>
+                    <td className='p-1' colSpan={2} >
+                    <InputNumberField
                             value={entry.quantity}
                             name={'quantity'}
                             handleChange={handleChange}
                             index={index}
                             item={true}
                         />
-                    </span>
-                    <span className='w-[25%]'>
-                        <InputNumberField
+                    </td>
+                    <td className='p-1' colSpan={2} >
+                    <InputNumberField
                         value={entry.price}
                         name={'price'}
                         handleChange={handleChange}
                         index={index}
                         item={true}
                     />
-                    </span>
-                    <span className='w-[10%]'>
-                        {formData?.service_income_entries.length > 1 && (
+                    </td>
+                    <td className='p-1' >
+                    {formData?.service_income_entries.length > 1 && (
                             <Button
                                 type="danger"
                                 onClick={() => {
@@ -52,13 +57,12 @@ const ServiceIncomeEntriesFields = ({ formData, handleChange, services, isSubmit
                                 <FaTimes className='text-red-500 text-xl' />
                             </Button>
                         )}
-                    </span>
-                </div>
-
+                    </td>
+                </tr>
             ))}
-            <div className='flex flex-row w-full gap-2'>
-                <span className='w-[30%]'>
-                    <Button
+            <tr>
+                <td className='p-1'>
+                <Button
                         type="dashed"
                         className='w-[80%]'
                         onClick={() => {
@@ -68,9 +72,12 @@ const ServiceIncomeEntriesFields = ({ formData, handleChange, services, isSubmit
                     >
                         <FaPlus /> Add Entry
                     </Button>
-                </span>
-            </div>
-        </div>
+                </td>
+
+            </tr>
+        </tbody>
+    </table>
+        
     )
 }
 

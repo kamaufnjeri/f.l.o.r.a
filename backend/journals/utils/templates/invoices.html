@@ -64,7 +64,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Purchase #</th>
+                    <th>Sale/ Service Income #</th>
+                    <th>Date</th>
                     <th>Due Date</th>
                     <th>Type</th>
                     <th>Customer</th>
@@ -79,6 +80,7 @@
                 {% for invoice in data.get('invoices') %}
                 <tr>
                     <td>{{ invoice.get('details').get('serial_number') }}</td>
+                    <td>{{ invoice.get('details').get('date') }}</td>
                     <td>{{ invoice.get('due_date') }}</td>
                     <td>{{ invoice.get('details').get('type').title().replace('_', " ") }}</td>
                     <td>{{ invoice.get('customer_name') }}</td>
@@ -90,8 +92,8 @@
 
                 </tr>
                 {% endfor %}
-                <tr style="font-weight: bold; text-decoration: underline;">
-                    <td colspan="6" style="text-align: right;">Total</td>
+                <tr  style="font-weight: bold; background-color: #d1d5db;">
+                    <td colspan="7" style="text-align: right;">Total</td>
                     <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
                     <td style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
 

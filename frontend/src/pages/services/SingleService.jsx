@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getItems } from '../../lib/helpers';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import FormHeader from '../../components/forms/FormHeader';
@@ -7,7 +7,6 @@ import DateFilter from '../../components/filters/DateFilter';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
-import { useSelectOptions } from '../../context/SelectOptionsContext';
 import UpdateServiceModal from '../../components/modals/UpdateServiceModal.jsx';
 import DeleteModal from '../../components/modals/DeleteModal.jsx';
 
@@ -25,7 +24,14 @@ const SingleService = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState('');
     const [deleteUrl, setDeleteUrl] = useState('');
     const [deleteModalTitle, setDeleteModalTitle] = useState('');
-    const { getSelectOptions } = useSelectOptions();
+    const navigate = useNavigate();
+
+    const handleRowClick = (url) => {
+        if (url) {
+            navigate(`/dashboard/${orgId}${url}`);
+
+        }
+    };
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -35,7 +41,7 @@ const SingleService = () => {
         setIsVisible(false);
     }
 
-
+    console.log(serviceData)
     const getData = async () => {
         const newServiceData = await getItems(`${orgId}/services/${id}`);
         setServiceData(newServiceData)
@@ -76,7 +82,7 @@ const SingleService = () => {
         downloadListPDF(url, `Service ${serviceData.name} Details`)
     }
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
             <FromToDateModal
                 openModal={openDateModal}
                 setOpenModal={setOpenDateModal}
@@ -102,66 +108,80 @@ const SingleService = () => {
                 setServiceData={setServiceData}
                 serviceData={serviceData}
             />
-            <div className='flex flex-row w-full items-center justify-between'>
-                <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
-
-                    <div className='w-[40%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                        <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
-
+            <div className='grid grid-cols-2 w-full gap-4 items-start'>
+                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
+                <div className=' absolute  top-5 right-2'>
+                    <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                            Download
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
+                            Edit
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteService}>
+                            Delete
+                        </button>
                     </div>
+                    {!isVisible ?
+                        <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                        <FaTimes className='cursor-pointer hover:text-purple-800 text-lg' onClick={closeDropDown} />
 
-                </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-                <div className={`absolute right-1 top-8 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-           border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                    <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+                    }
 
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-                        Download
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
-                        Edit
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteService}>
-                        Delete
-                    </button>
                 </div>
 
             </div>
-
-            <FormHeader header={`Service ${serviceData.name} Details`} />
-
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-                <div className='w-full flex flex-row gap-4 mb-2'>
+            <div className='flex flex-col items-start justify-between w-full gap-2'>
+                <FormHeader header={`Service ${serviceData.name} Details`} />
+                <div className='w-full flex lg:flex-row md:flex-row flex-col gap-4 mb-2'>
                     <span><strong>Name: </strong>{serviceData.name}</span>
                     <span><strong>Description: </strong>{serviceData.description}</span>
 
                 </div>
-                <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Service Income #</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
-                    <span className='w-[30%] border-gray-800 border-r-2 p-1 '>Details</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Quantity</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Rate ({currentOrg.currency})</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Total ({currentOrg.currency})</span>
-                </div>
-                {serviceData?.service_data && serviceData.service_data.entries.map((entry, index) => (
-                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''} className={`w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={index}>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>{entry.details.serial_number}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
-                        <span className='w-[30%] border-gray-800 border-r-2 p-1 '>{entry.details.description}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.quantity}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.price}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.total}</span>
-                    </Link>
-                ))}
-                {serviceData?.service_data && (
-                    <div className={`w-full flex flex-row font-extrabold  underline text-right border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`}>
-                        <span className='w-[85%] border-gray-800 border-r-2 p-1'>Total</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{serviceData?.service_data.total}</span>
-
-                    </div>)}
             </div>
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-b border-r border-gray-800'>Service Income #</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Date</th>
+                        <th className='p-1 border-b border-r border-gray-800' colSpan={2}>Details</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Quantity</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Rate ({currentOrg.currency})</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Total ({currentOrg.currency})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {serviceData?.service_data && serviceData.service_data.entries.map((entry, index) => (
+                        <tr key={entry.id} className='hover:bg-gray-200 cursor-pointer'
+                            onClick={() => handleRowClick(entry.details.url)}
+                        >
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.serial_number}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.date}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800' colSpan={2}>
+                                {entry.details.description}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800 text-right'>
+                                {entry.quantity}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800 text-right'>
+                                {entry.price}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800 text-right'>
+                                {entry.details.total}</td>
+                        </tr>
+                    ))}
+
+                    <tr className='text-right font-bold bg-gray-300 '>
+                        <td className='p-1 border-b border-r border-gray-800' colSpan={6}>Total</td>
+                        <td className='p-1 border-b border-r border-gray-800'>{serviceData?.service_data?.total}</td>
+                    </tr>
+                </tbody>
+            </table>
 
         </div>
     )

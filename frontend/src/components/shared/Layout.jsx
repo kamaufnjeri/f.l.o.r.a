@@ -33,11 +33,11 @@ const Layout = () => {
 
       <div 
       ref={containerRef}
-      className={`flex flex-col h-[calc(100vh-80px)] px-10 py-4 absolute 
-      overflow-y-auto custom-scrollbar gap-4 top-[70px] right-0 bottom-0
+      className={`flex flex-col h-[calc(100vh-80px)] p-4 absolute 
+      overflow-y-auto custom-scrollbar overflow-x-hidden gap-4 top-[70px] right-0 bottom-0
          ${showSideBar ? 
-          'lg:w-[calc(100%-290px)] md:w-[calc(100%-290px)] w-full left-0 md:left-[280px] lg:left-[280px' :
-          'w-full left-0'
+          'lg:w-[calc(100%-220px)] md:w-[calc(100%-220px)] w-full left-0 md:left-[220px] lg:left-[220px]' :
+          'w-[calc(100%)-70px] left-[70px]'
         }`}>
 
 

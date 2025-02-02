@@ -4,7 +4,7 @@ import { getItems } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
@@ -28,6 +28,11 @@ const SingleSalesReturns = () => {
   const [deleteUrl, setDeleteUrl] = useState('');
   const [deleteModalTitle, setDeleteModalTitle] = useState('');
   const [salesReturnId, setSalesReturnId] = useState(null);
+  const navigate = useNavigate();
+
+  const handleRowClick = (url) => {
+    navigate(`/dashboard/${orgId}/${url}`);
+  };
 
 
 
@@ -180,7 +185,8 @@ const SingleSalesReturns = () => {
                   {sales_return.return_entries.map((entry, index) => (
                     <tr
                       key={`${sales_return.id}-${index}`}
-                      className="hover:bg-gray-200 cursor-pointer text-left"
+                      onClick={() => handleRowClick(sales_return.details.url)}
+                      className="cursor-pointer text-left"
                     >
                       {index === 0 && (
                         <>
@@ -188,43 +194,49 @@ const SingleSalesReturns = () => {
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={sales_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                            
                               {index + 1}
-                            </Link>
+                            
                           </td>
                           <td
                             className="border-r border-b border-gray-800 p-1"
                             rowSpan={sales_return.return_entries.length + 1}
                           >
-                            <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                            
                               {sales_return.date}
-                            </Link>
+                            
                           </td>
                         </>
                       )}
                       <td className="border-r border-b border-gray-800 p-1">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.stock_name}</Link>
+                        {entry.stock_name}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.return_price}</Link>
+                        {entry.return_price}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>{entry.quantity}</Link>
+                        {entry.quantity}
                       </td>
                       <td className="border-r border-b border-gray-800 p-1 text-right">
-                        <Link to={`/dashboard/${orgId}/${sales_return.details.url}`}>
+                        
                           {entry.return_quantity * entry.return_price}
-                        </Link>
+                        
                       </td>
                       {index === 0 && (
                         <>
                           <td className='border-b border-r border-gray-800 p-1 space-y-2'
                             rowSpan={sales_return.return_entries.length + 1}
                           >
-                            <Button type="primary" className='w-full self-center' onClick={() => openUpdateSalesReturnModalFunc(sales_return.id)}>
+                            <Button type="primary" className='w-full self-center' onClick={(e) => {
+                              e.stopPropagation();
+                              openUpdateSalesReturnModalFunc(sales_return.id);
+                            }}>
                               Edit
                             </Button>
-                            <Button type="primary" danger className='w-full self-center' onClick={() => deleteSalesReturn(sales_return.id)}>
+                            <Button type="primary" danger className='w-full self-center' onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSalesReturn(sales_return.id);
+                              }}>
                               Delete
                             </Button>
                           </td>
@@ -232,16 +244,20 @@ const SingleSalesReturns = () => {
                     </tr>
                   ))}
 
-                  <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
-                    <i className='text-sm'>({sales_return.description})</i>
-                    <span className='underline'>Total</span>
-                  </td>
-                  <td className="border-r border-b border-gray-800 p-1 underline text-right">
-                    {sales_return.details?.total_quantity}
-                  </td>
-                  <td className="border-b border-r border-gray-800 p-1 underline text-right">
-                    {sales_return.details?.total_amount}
-                  </td>
+                  <tr
+                    onClick={() => handleRowClick(sales_return.details.url)}
+                    className="cursor-pointer">
+                    <td colSpan={2} className="border-r border-b border-gray-800 p-1 text-right space-x-2">
+                      <i className='text-sm'>({sales_return.description})</i>
+                      <span className='underline'>Total</span>
+                    </td>
+                    <td className="border-r border-b border-gray-800 p-1 underline text-right">
+                      {sales_return.details?.total_quantity}
+                    </td>
+                    <td className="border-b border-r border-gray-800 p-1 underline text-right">
+                      {sales_return.details?.total_amount}
+                    </td>
+                  </tr>
 
                   {showJournalEntries && <tr>
                     <td className="border-b border-r border-gray-800 p-1"></td>

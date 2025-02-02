@@ -225,7 +225,6 @@ class DetailedPurchaseReturnSerializer(PurchaseReturnSerializer):
             journal_entries_data = [purchase_return_account_data]
             journal_entries_data = journal_entries_data + payment_journal_entries
 
-            print(total_return)
 
             journal_entries_manager.validate_double_entry(journal_entries_data)
 

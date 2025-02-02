@@ -65,6 +65,7 @@
             <thead>
                 <tr>
                     <th>Purchase #</th>
+                    <th>Date</th>
                     <th>Due Date</th>
                     <th>Type</th>
                     <th>Supplier</th>
@@ -79,6 +80,7 @@
                 {% for bill in data.get('bills') %}
                 <tr>
                     <td>{{ bill.get('details').get('serial_number') }}</td>
+                    <td>{{ bill.get('details').get('date') }}</td>
                     <td>{{ bill.get('due_date') }}</td>
                     <td>{{ bill.get('details').get('type').title().replace('_', " ") }}</td>
                     <td>{{ bill.get('supplier_name') }}</td>
@@ -90,8 +92,8 @@
 
                 </tr>
                 {% endfor %}
-                <tr style="font-weight: bold; text-decoration: underline;">
-                    <td colspan="6" style="text-align: right;">Total</td>
+                <tr  style="font-weight: bold; background-color: #d1d5db;">
+                    <td colspan="7" style="text-align: right;">Total</td>
                     <td style="text-align: right;">{{ data.get('totals').get('amount_due') }}</td>
                     <td style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
 

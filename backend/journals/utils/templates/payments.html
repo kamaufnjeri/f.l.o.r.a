@@ -54,8 +54,8 @@
         <table>
             <thead>
                 <tr style="border-bottom: 3px;">
-                    <th>Payment #</th>
-                    <th>Serial No #</th>
+                    <th>No.</th>
+                    <th>Purchase/ Sale /Service Income #</th>
                     <th>Date</th>
                     <th>Type</th>
                     <th colspan="2">Description</th>
@@ -74,7 +74,7 @@
                     <td style="text-align: right;">{{ payment.get('amount_paid') }}</td>
                 </tr>
                 {% endfor %}
-                <tr style="font-weight: bold; text-decoration: underline; font-size: 16px; border-bottom: 3px;">
+                <tr  style="font-weight: bold; background-color: #d1d5db;">
                     <td colspan="6" style="text-align: right;">Total</td>
                     <td  style="text-align: right;">{{ data.get('totals').get('amount_paid') }}</td>
                 </tr>

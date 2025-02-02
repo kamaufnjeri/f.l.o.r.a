@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { deleteRequest, getItems } from '../../lib/helpers';
 import FromToDateModal from '../../components/modals/FromToDateModal';
 import FormHeader from '../../components/forms/FormHeader';
 import DateFilter from '../../components/filters/DateFilter';
@@ -8,9 +7,8 @@ import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
 import UpdateItemModal from '../../components/modals/UpdateItemModal';
-import { toast } from 'react-toastify';
-import { useSelectOptions } from '../../context/SelectOptionsContext';
 import DeleteModal from '../../components/modals/DeleteModal';
+import { getItems } from '../../lib/helpers';
 
 const SingleStock = () => {
     const { orgId, id } = useParams();
@@ -25,7 +23,14 @@ const SingleStock = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState('');
     const [deleteUrl, setDeleteUrl] = useState('');
     const [deleteModalTitle, setDeleteModalTitle] = useState('');
-    const { getSelectOptions } = useSelectOptions();
+    const navigate = useNavigate();
+
+    const handleRowClick = (url) => {
+        if (url) {
+            navigate(`/dashboard/${orgId}${url}`);
+
+        }
+    };
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -76,7 +81,7 @@ const SingleStock = () => {
         downloadListPDF(url, `Stock Summary for ${stockData.name}`)
     }
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex flex-col items-start justify-start h-full gap-2 w-full '>
             <FromToDateModal
                 openModal={openDateModal}
                 setOpenModal={setOpenDateModal}
@@ -101,84 +106,115 @@ const SingleStock = () => {
                 setStockData={setStockData}
                 stockData={stockData}
             />
-            <div className='flex flex-row w-full items-center justify-between'>
-                <form className='flex h-10 flex-row self-start w-[70%] text-black items-center gap-2'>
-
-                    <div className='w-[40%] rounded-md border-2 border-gray-800  cursor-pointer'>
-                        <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
-
+            <div className='grid grid-cols-2 w-full gap-4 items-start'>
+                <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
+                <div className='absolute  top-5 right-2'>
+                    <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+                     border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                            Download
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
+                            Edit
+                        </button>
+                        <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteStock}>
+                            Delete
+                        </button>
+                       
                     </div>
+                    {!isVisible ?
+                            <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                            <FaTimes className='cursor-pointer hover:text-purple-800 text-lg' onClick={closeDropDown} />
 
-                </form>
-                <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800' />
-                <div className={`absolute right-1 top-8 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-           border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                    <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
-
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-                        Download
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={() => setOpenEditModal(true)}>
-                        Edit
-                    </button>
-                    <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={deleteStock}>
-                        Delete
-                    </button>
+                        }
                 </div>
-
             </div>
-
-            <FormHeader header={`Stock Summary for ${stockData.name}`} />
-
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-                <div className='w-full flex flex-row justify-between mb-2'>
+            <div className='flex flex-col items-start justify-between w-full gap-2'>
+                <FormHeader header={`Stock Summary for ${stockData.name}`} />
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2 w-full'>
                     <span><strong>Name: </strong>{stockData.name}</span>
                     <span><strong>Unit Name: </strong>{stockData.unit_name}</span>
                     <span><strong>Unit alias: </strong>{stockData.unit_alias}</span>
-
-                </div>
-                <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>No #</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Date</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Transaction Type</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Quantity ({stockData.unit_alias})</span>
-
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'>Rate ({currentOrg.currency})</span>
-                    <span className='w-[15%] border-gray-800 border-r-2 p-1'>Total Amount  ({currentOrg.currency})</span>
-                    <span className='w-[30%] border-gray-800 border-r-2 p-1'>Details</span>
-
-                </div>
-                {stockData?.stock_summary && stockData.stock_summary.entries.map((entry, index) => (
-                    <Link to={entry.details.url ? `/dashboard/${orgId}${entry.details.url}` : ''} className={`w-full flex flex-row ${entry.details.type === 'Closing Stock' ? 'font-extrabold underline' : 'font-bold'} border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer`} key={entry.id}>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{entry.details.date}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>{entry.details.type}</span>
-
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{(entry.details.type === 'Sales' || entry.details.type === 'Purchase Return') ? '(-)' : ''}{entry.details.quantity}</span>
-
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.rate}</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 text-right'>{entry.details.total}</span>
-                        <span className='w-[30%] border-gray-800 border-r-2 p-1'>{entry.details.description}</span>
-
-                    </Link>
-                ))}
-                <div className='w-[50%] flex flex-col border-2 border-gray-800 mt-2'>
-                    <div className='w-full flex flex-row'>
-                        <span className='font-bold w-[30%] border-r-2 border-gray-800 p-1'>Name</span>
-                        <span className='font-bold w-[30%] border-r-2 border-gray-800 p-1'>Total Quantity ({stockData.unit_alias})</span>
-                        <span className='font-bold w-[40%] p-1'>Total Amount ({currentOrg.currency})</span>
-                    </div>
-                    {stockData?.stock_summary && stockData.stock_summary.totals.map((entry, index) => (
-                        <div className='flex flex-row w-full border-t-2 border-gray-800' key={index}>
-                            <span className='w-[30%] border-r-2 border-gray-800 p-1'>{entry.name}</span>
-                            <span className='w-[30%] text-right border-r-2 border-gray-800 p-1'>{entry.quantity} </span>
-                            <span className='w-[40%] text-right p-1'>{entry.amount}</span>
-                        </div>
-
-
-                    ))}
                 </div>
             </div>
+           
+
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-b border-r border-gray-800'>No.</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Date</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Transaction type</th>
+                        <th className='p-1 border-b border-r border-gray-800' colSpan={2}>Details</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Quantity ({stockData.unit_alias})</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Rate ({currentOrg.currency})</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Total amount ({currentOrg.currency})</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                {stockData?.stock_summary && stockData.stock_summary.entries.map((entry, index) => (
+                        <tr key={index} className={`hover:bg-gray-200 cursor-pointer ${entry.details.type === 'Closing Stock' ? 'font-bold bg-gray-300' : 'font-bold'}`}
+                            onClick={() => handleRowClick(entry.details.url)}
+                        >
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {index + 1}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.date}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.details.type}
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1 text-left" colSpan={2}>
+                                {entry.details.description}
+                            </td>
+                            <td className='p-1 border-b border-r border-gray-800 text-right'>
+                            {(entry.details.type === 'Sales' || entry.details.type === 'Purchase Return') ? '(-)' : ''}{entry.details.quantity}
+                            </td>
+
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.details.rate}
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.details.total}
+                            </td>
+                           
+                        </tr>
+                    ))}
+
+                </tbody>
+            </table>
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-b border-r border-gray-800'>Name</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Total quantity ({stockData.unit_alias})</th>
+                       <th className='p-1 border-b border-r border-gray-800'>Total amount ({currentOrg.currency})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {stockData?.stock_summary && stockData.stock_summary.totals.map((entry, index) => (
+                        <tr key={index} className='hover:bg-gray-200 cursor-pointer'
+                            onClick={() => handleRowClick(entry.details.url)}
+                        >
+                            <td className='p-1 border-b border-r border-gray-800'>
+                                {entry.name}
+                            </td>
+                           
+
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.quantity}
+                            </td>
+                            <td className="border-gray-800 border-r border-b p-1 text-right">
+                                {entry.amount}
+                            </td>
+                        </tr>
+                    ))}
+
+                </tbody>
+            </table>
+           
 
         </div>
 

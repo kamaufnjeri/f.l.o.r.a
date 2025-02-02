@@ -231,7 +231,7 @@ const SingleSales = () => {
               <td className="border-gray-800 border-r border-b p-1">{entry.stock_name}</td>
               <td className="border-gray-800 border-r border-b p-1 text-right">{entry.sales_price}</td>
               <td className="border-gray-800 border-r border-b p-1 text-right">{entry.quantity}</td>
-              <td className="border-gray-800 border-r border-b p-1 text-right">{entry.cogs}</td>
+              <td className="border-gray-800 border-r border-b p-1 text-right">{entry.total_sales_price}</td>
             </tr>))}
           <tr className='font-bold'>
             <td className="border-gray-800 space-x-4 border-r border-b p-1 text-right" colSpan={3}>

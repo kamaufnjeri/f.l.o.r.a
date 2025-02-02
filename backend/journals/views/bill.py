@@ -216,7 +216,8 @@ class DownloadBillPaymentsApiView(generics.ListAPIView):
             title = request.data.get('title')
           
             serialized_data = self.get_serializer(queryset, many=True).data
-            data = get_payments_totals(serialized_data.data)
+            print('download', serialized_data)
+            data = get_payments_totals(serialized_data)
 
             pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='single_payments.html')
             buffer = pdf_generator.create_pdf()

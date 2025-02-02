@@ -4,7 +4,7 @@ import { capitalizeFirstLetter, getItems } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import PrevNext from '../../components/shared/PrevNext';
 import { downloadListPDF } from '../../lib/download/downloadList';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +26,11 @@ const SingleInvoicePayments = () => {
     const { currentOrg } = useAuth();
     const [title, setTitle] = useState('')
     const [isVisible, setIsVisible] = useState(false);
+    const navigate = useNavigate();
+
+    const handleRowClick = (url) => {
+        navigate(`/dashboard/${orgId}${url}`);
+    };
 
     const openDropDown = () => {
         setIsVisible(true);
@@ -100,7 +105,7 @@ const SingleInvoicePayments = () => {
     }
 
     return (
-        <div className='flex-1 flex flex-col items-center relative h-full mr-2'>
+        <div className='flex flex-col items-start justify-start h-full gap-2 w-full'>
             <UpdatePaymentModal
                 setOpenModal={setOpenUpdatePaymentModal}
                 openModal={openUpdatePaymentModal}
@@ -120,83 +125,134 @@ const SingleInvoicePayments = () => {
                 getData={getData}
             />
 
-            <FormHeader header={title} />
-            <FaEllipsisV onClick={() => openDropDown()} className='absolute right-0 top-0 cursor-pointer hover:text-purple-800' />
-            <div className={`absolute right-1 top-5 rounded-md w-[12rem] p-1 z-10 bg-neutral-200
-             border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
-                <FaTimes className='absolute right-1 top-2 cursor-pointer hover:text-purple-800' onClick={closeDropDown} />
+            <div className='w-full flex flex-col gap-2 items-start justify-between'>
 
-                <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-[80%] p-1 rounded-sm' onClick={downloadPDF}>
-                    Download
-                </button>
-            </div>
-            <div className='overflow-auto custom-scrollbar flex flex-col flex-1 max-h-[75%] w-full m-2'>
-                <div className='w-full flex flex-row text-xl font-bold border-y-2 border-gray-800 border-l-2'>
-                    <div className='w-[90%] flex flex-row gap-2'>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1'>Payment #</span>
-                        <span className='w-[15%] border-gray-800 border-r-2 p-1 '>Date</span>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 '>Type</span>
-                        <span className='w-[40%] border-gray-800 border-r-2 flex flex-col'>
-                            <div className='flex flex-row flex-1'>
-                                <span className='w-[60%] p-1'>Account</span>
-                                <span className='w-[20%] border-gray-800 border-l-2 p-1'>Debit ({currentOrg.currency})</span>
-                                <span className='w-[20%] border-gray-800 border-l-2 p-1'>Credit ({currentOrg.currency})</span>
-                            </div>
+                <div className='flex flex-row items-start justify-between w-[90%] '>
+                    <FormHeader header={title} />
+                    <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
-                        </span>
-                        <span className='w-[20%] border-gray-800 border-r-2 p-1 '>Amount Paid ({currentOrg.currency})</span>
+                    <div className='absolute  top-7 right-9'>
+                        <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
+border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
+
+                            <button className='hover:bg-neutral-100 flex flex-row gap-2 items-center w-full p-1 rounded-sm' onClick={downloadPDF}>
+                                Download
+                            </button>
+
+                        </div>
+                        {!isVisible ?
+                            <FaEllipsisV onClick={() => openDropDown()} className='cursor-pointer hover:text-purple-800 text-lg' /> :
+                            <FaTimes className='cursor-pointer hover:text-purple-800  text-lg' onClick={closeDropDown} />
+
+                        }
                     </div>
-
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1'></span>
-
-
                 </div>
-                {paymentsData?.results?.data?.payments && paymentsData.results.data.payments.map((payment, index) => (
-                    <div className='w-full flex flex-row font-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer' key={payment.id}>
-                        <Link to={`/dashboard/${orgId}${payment?.details?.url}`} className='w-[90%] flex flex-row gap-2'>
-
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{index + 1}</span>
-                            <span className='w-[15%] border-gray-800 border-r-2 p-1'>{payment.date}</span>
-                            <span className='w-[10%] border-gray-800 border-r-2 p-1 '>{capitalizeFirstLetter(payment?.details?.type)}</span>
-                            <span className='w-[40%] border-gray-800 border-r-2 flex flex-col'>
-                                {payment.journal_entries.map((entry, index) =>
-                                    <div className={`flex flex-row flex-1`} key={index}>
-                                        <div className='w-[60%] p-1'><span className={`${entry.debit_credit == 'debit' ? '' : 'pl-8'}`}>{entry.account_name}</span></div>
-                                        <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'debit' ? entry.amount : '-'}</span>
-                                        <span className='w-[20%] border-gray-800 border-l-2 border-b-2 p-1 text-right'>{entry.debit_credit == 'credit' ? entry.amount : '-'}</span>
-                                    </div>)}
-                                <div className={`flex flex-row flex-1`}>
-                                    <i className='text-sm w-[60%] p-1'>({payment.description})</i>
-
-                                </div>
-                            </span>
-                            <span className='w-[20%] border-gray-800 border-r-2 p-1 text-right'>{payment.amount_paid}</span>
-                        </Link>
-                        <span className='w-[10%] border-gray-800 border-r-2 p-1 relative flex flex-col gap-2'>
-
-                            <Button type="primary" className='w-full self-center' onClick={() => openUpdatePaymentModalFunc(payment.id)}>
-                                Edit
-                            </Button>
-                            <Button type="primary" danger className='w-full self-center' onClick={() => deletePayment(payment.id)}>
-                                Delete
-                            </Button>
-
-                        </span>
-
-                    </div>
-                ))}
-                {paymentsData?.results?.data?.totals && <span className='text-right text-xl font-bold w-full flex flex-row text-bold border-b-2 border-gray-800 border-l-2 hover:bg-gray-300 hover:cursor-pointer'>
-
-
-                    <span className='w-[71.8%] border-gray-800 border-r-2 p-1 underline text-right'>Total</span>
-
-                    <span className='w-[18.2%] border-gray-800 border-r-2 p-1 underline text-right'>{paymentsData?.results?.data?.totals.amount_paid}</span>
-                    <span className='w-[10%] border-gray-800 border-r-2 p-1 '></span>
-
-
-                </span>}
             </div>
-            <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
+            <table className='min-w-full border-collapse border border-gray-800'>
+                <thead>
+                    <tr className='text-left bg-gray-400'>
+                        <th className='p-1 border-r border-b border-gray-800'>No.</th>
+                        <th className='p-1 border-r border-b border-gray-800'>Date</th>
+                        <th className='p-1 border-r border-b border-gray-800'>Type</th>
+                        <th className='p-1 border-r border-b border-gray-800' colSpan={2}>Account</th>
+                        <th className='p-1 border-r border-b border-gray-800'>Debit ({currentOrg?.currency})</th>
+                        <th className='p-1 border-r border-b border-gray-800'>Credit ({currentOrg?.currency})</th>
+                        <th className='p-1 border-r border-b border-gray-800'>Amount paid ({currentOrg?.currency})</th>
+                        <th className='p-1 border-r border-b border-gray-800'></th>
+
+                    </tr>
+
+
+                </thead>
+                <tbody>
+                    {paymentsData?.results?.data && paymentsData.results.data.payments.map((payment, index) => (
+                        <>
+                            {payment?.journal_entries.map((entry, entryIndex) => (
+                                <tr
+                                    key={`${payment.id}-${entryIndex}`}
+                                    onClick={() => handleRowClick(payment?.details?.url)}
+
+                                    className="hover:bg-gray-200 cursor-pointer"
+                                >
+
+                                    {entryIndex === 0 && <>
+                                        <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
+
+                                            {index + 1}
+                                        </td>
+                                        <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
+
+                                            {payment?.date}
+                                        </td>
+                                        <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
+                                            {capitalizeFirstLetter(payment?.details?.type)}
+                                        </td>
+
+
+                                    </>}
+
+                                    <td
+                                        className={`p-1 border-r border-b border-gray-800 ${entry.debit_credit === "debit" ? "" : "pl-14"
+                                            }`}
+                                        colSpan={2}
+                                    >
+                                        {entry.account_name}
+                                    </td>
+                                    <td className="border-gray-800 border-r border-b p-1 text-right">
+                                        {entry.debit_credit === "debit" ? entry.amount : "-"}
+                                    </td>
+                                    <td className="border-gray-800 border-r border-b p-1 text-right">
+                                        {entry.debit_credit === "credit" ? entry.amount : "-"}
+                                    </td>
+                                    {entryIndex === 0 && (
+                                        <>
+                                            <td className="border-gray-800 border-r border-b p-1 text-right" rowSpan={payment.journal_entries.length + 1}>
+
+                                                {payment.amount_paid}
+
+                                            </td>
+                                            <td className="border-gray-800 border-r border-b p-1 space-y-2" rowSpan={payment.journal_entries.length + 1}>
+                                            <Button type="primary" className='w-full self-center' onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openUpdatePaymentModalFunc(payment.id);
+                                                    }}>
+                                                    Edit
+                                                </Button>
+                                                <Button type="primary" danger className='w-full self-center' onClick={(e) => {
+                                                    e.stopPropagation();
+                                                     deletePayment(payment.id);
+                                                    }}>
+                                                    Delete
+                                                </Button>
+
+                                            </td>
+                                        </>)}
+                                </tr>
+                            ))}
+                            <tr
+                                onClick={() => handleRowClick(payment.details.url)}
+                                className="cursor-pointer">
+
+                                <td colSpan={4} className="border-r border-b border-gray-800 p-1 text-center space-x-2">
+                                    <i className='text-sm'>({payment.description})</i>
+                                </td>
+                            </tr>
+                        </>
+                    ))}
+                    {paymentsData?.results?.data?.totals &&
+                        <tr className='text-right font-bold bg-gray-300'>
+                            <td className='border-gray-800 border-r border-b p-1' colSpan={6}>Total</td>
+
+                            <td className='border-gray-800 border-r border-b p-1'>{paymentsData?.results?.data?.totals.amount_paid}</td>
+                            <td className='border-gray-800 border-r border-b p-1'>{paymentsData?.results?.data?.totals.amount_paid}</td>
+                            <td className='border-gray-800 border-r border-b p-1'></td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
         </div>
     )
 }

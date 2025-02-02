@@ -72,22 +72,27 @@
                     <td style="text-align: right;">{{ entry.get('cogs') }}</td>
                 </tr>
                 {% endfor %}
-                <tr style="text-decoration: underline;">
-                    <td colspan="2" style="text-decoration: none;"><i>({{ data.get('description') }})</i></td>
-
-                    <td style="text-align: right;">Sub Total</td>
-                    <td style="text-align: right;">{{ data.get('details').get('total_quantity')}}</td>
-                    <td style="text-align: right;">{{ data.get('details').get('total_amount')}}</td>
+                <tr >
+                    <td colspan="3" style="text-align: right; display: flex; gap: 8px;">
+                        <i>({{ data.get('description') }})</i>
+                        <span style="text-decoration: underline;">Sub Total</span>
+                        <span>&nbsp;</span>
+                    </td>
+                    <td style="text-align: right; text-decoration: underline;">{{ data.get('details').get('total_quantity')}}</td>
+                    <td style="text-align: right; text-decoration: underline;">{{ data.get('details').get('total_amount')}}</td>
                 </tr>
 
                 {% if data.get('details').get('footer_data') %}
                 {% for key, value in data.get('details').get('footer_data').items() %}
-                <tr>
+                <tr
+                {% if "Total" in key %}
+                style="font-weight: bold; background-color: #d1d5db;"
+                {% endif %}           
+                 >
                     <td style="text-align: right;" colspan="4">
                         {% if key == "Amount Due" %}
                         <strong style="text-decoration: underline; color: red;">{{ key }}</strong>
-                        {% elif "Total" in key %}
-                        <span style="text-decoration: underline;;">{{ key }}</span>
+                        
                         {% else %}
                         {{ key }}
                         {% endif %}
@@ -96,7 +101,7 @@
                         {% if key == "Amount Due" %}
                         <strong style="color: red; text-decoration: underline;">{{ value }}</strong>
                         {% elif "Total" in key %}
-                        <strong style="text-decoration: underline;">{{ value }}</strong>
+                        <strong >{{ value }}</strong>
                         {% else %}
                         {{ value }}
                         {% endif %}

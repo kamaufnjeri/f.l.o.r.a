@@ -221,10 +221,6 @@ const RecordSales = () => {
                             >
                                 <FaPlus /> Add Invoice
                             </Button>}
-
-
-
-
                         </div>
                     </div>
                     <SalesEntriesFields stocks={stocks} isSubmitted={isSubmitted} formData={formData} handleChange={handleChange} />

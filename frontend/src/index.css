@@ -12,8 +12,8 @@
 }
 
 .decrease-width {
-  opacity: 0;
-  width: 0px;
+  opacity: 1;
+  width: 70px;
   transition: all .3s ease;
 }
 

@@ -1,18 +1,15 @@
 import React, { useRef, useState } from 'react'
-import { FaHome, FaPlus } from 'react-icons/fa';
 import { FaChevronDown } from 'react-icons/fa';
 import { GoArrowRight, GoDotFill } from "react-icons/go";
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 import { sidebarIcons } from '../../lib/constants';
-import AddCustomerModal from '../modals/AddCustomerModal';
-import AddSupplierModal from '../modals/AddSupplierModal';
 import { useAuth } from '../../context/AuthContext';
-import AddServiceModal from '../modals/AddServiceModal';
+import { MdLogout } from 'react-icons/md';
 
 const SideBarMainComponent = () => {
   const dropButtonssRef = useRef([]);
-  const { user, currentOrg, changeCurrentOrg } = useAuth();
+  const { user, currentOrg, changeCurrentOrg, logout } = useAuth();
   const { pathname } = useLocation();
   const dropIconRef = useRef([]);
   const dropItemsRef = useRef([]);
@@ -31,56 +28,31 @@ const SideBarMainComponent = () => {
     }
   }
   return (
-    <div className='flex-1 flex flex-col ml-2 overflow-y-auto custom-scrollbar'>
-      <div className='flex flex-row'>
-        <div className='w-1/6 flex flex-col gap-4'>
-          {user && user?.user_organisations.map((organisation, index) => (
-            <div key={index} className={`organisation ${currentOrg.id === organisation.org_id ? 'text-purple-800 border-purple-800' : 'border-purple-800'}`}>
-              <span onClick={() => changeCurrentOrg(organisation.org_id)}>
-                {organisation.org_name[0]}
-              </span>
-              <i className='text-xs font-light absolute -bottom-4 -left-2 bg-gray-300 p-1 hidden'>{organisation.org_name}</i>
-            </div>
-
-          ))}
-
-          <Link to='/organisation-create' className={`organisation`}>
-            <FaPlus />
-            <i className='text-xs font-light absolute -bottom-4 w-[100px] -left-2 bg-gray-300 p-1  hidden'>Add Organisation</i>
-          </Link>
-        </div>
+    <div className='flex-1 flex flex-col overflow-y-auto custom-scrollbar w-full gap-[2px]'>
+       
         {
           (currentOrg && currentOrg.name !== '') ? (
-            <div className='w-5/6'>
-              <Link
-                className={`flex flex-row items-center gap-5 cursor-pointer m-1 p-1 rounded-sm hover:bg-neutral-200 hover:text-purple-600
-        ${pathname === '/dashboard' ? 'text-purple-700' : 'text-neutral-900'}`}
-                to={`/dashboard/${currentOrg.id}`}
-              >
-                <FaHome className='text-xl' />
-                <span className='font-medium text-xl flex-1'>Dashboard</span>
-              </Link>
-
+            <>
+              
               {
                 sidebarIcons.map((iconItem, index) => (
-                  <div key={index} className='flex flex-col m-1'>
+                  <>
                     {iconItem.lists ? (
-                      // Dropdown with lists
                       <>
                         <div
-                          className='flex flex-row items-center gap-5 cursor-pointer rounded-sm p-1 text-neutral-900 hover:bg-neutral-200 hover:text-purple-600'
+                          className='flex flex-row items-center gap-5 cursor-pointer rounded-sm p-1 text- hover:bg-neutral-200 hover:text-purple-600'
                           onClick={() => displayDropDownItems(index)}
                           ref={(el) => dropButtonssRef.current[index] = el}
                         >
                           {iconItem.icon}
-                          <span className='font-medium text-xl flex-1'>{iconItem.name}</span>
+                          <span className='font-medium text-base flex-1'>{iconItem.name}</span>
                           <div ref={(el) => dropIconRef.current[index] = el} className='rotate-chevron-0'>
                             <FaChevronDown className='text-sm' />
                           </div>
                         </div>
                         <div
                           ref={(el) => dropItemsRef.current[index] = el}
-                          className='flex-col ml-2 mb-1 mr-1 rounded-sm font-medium drop-items-hidden'
+                          className='flex-col ml-2  rounded-sm font-medium drop-items-hidden'
                         >
                           {iconItem.lists.map((listItem, listIndex) => (
                             <ShowListItem
@@ -93,26 +65,29 @@ const SideBarMainComponent = () => {
                         </div>
                       </>
                     ) : (
-                      // Simple link without dropdown
                       <Link
-                        to={`/dashboard/${currentOrg.id}/${iconItem.url}`}
+                        to={`/dashboard/${currentOrg.id}${iconItem.url}`}
                         key={index}
                         className='flex flex-row items-center gap-5 cursor-pointer rounded-sm p-1 text-neutral-900 hover:bg-neutral-200 hover:text-purple-600'
                       >
                         {iconItem.icon}
-                        <span className='font-medium text-xl flex-1'>{iconItem.name}</span>
+                        <span className='font-medium text-base flex-1'>{iconItem.name}</span>
                       </Link>
                     )}
-                  </div>
+                  </>
                 ))
               }
-            </div>
+              
+                <div className='flex flex-row items-center gap-5 cursor-pointer rounded-sm p-1  text-red-500 hover:bg-neutral-200' onClick={logout}>
+                  <MdLogout className='text-2xl' />
+                  <span>Logout</span>
+              </div>
+            </>
           ) : (
             <></>
           )
         }
 
-      </div>
 
     </div>
   )
