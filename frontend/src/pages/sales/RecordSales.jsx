@@ -158,7 +158,7 @@ const RecordSales = () => {
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
                 <div className="flex gap-4 flex-col lg:flex-row">
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
                             <span className='font-semibold text-xl'>Sales No: {serialNumbers.sales}</span>
 
                             <FormInitialField formData={formData} handleChange={handleChange} />
@@ -193,7 +193,7 @@ const RecordSales = () => {
                             </div>
 
                         </div>
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
                             <AccountsField
                                 formData={formData}
                                 isSubmitted={isSubmitted}

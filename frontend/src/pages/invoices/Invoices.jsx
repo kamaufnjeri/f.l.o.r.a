@@ -157,8 +157,8 @@ const Invoices = () => {
         <div className='flex flex-col items-start justify-start h-full gap-2 w-full '>
 
             <div className='flex flex-row w-full'>
-                <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2'>
-                    <div className='grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-2 relative col-span-2'>
+                <form onSubmit={handleSubmit} className='grid md:grid-cols-3 lg:grid-cols-3 grid-cols-1 self-start w-full text-black items-center gap-2 shadow-md rounded-md p-2'>
+                    <div className='grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-2 relative col-span-2'>
                         <input type='name' className='h-10 border border-gray-800 rounded-md outline-none focus:border-none focus:ring-2 focus:ring-blue-500 p-2' placeholder='Enter sales or service income number or customer' value={searchItem.name} onChange={e => handleChange(e)} />
 
                         <TypesFilter searchItem={searchItem} handleTypesChange={handleDueDaysChange} selectOptions={dueDaysOptions} type='dueDays' title='due days' />
@@ -195,6 +195,8 @@ const Invoices = () => {
 
 
             </div>
+            <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
             <div className='flex flex-row items-center justify-between w-full'>
                 <FormHeader header={header} />
                 <PrevNext pageNo={pageNo} data={invoicesData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
@@ -260,7 +262,7 @@ const Invoices = () => {
                     )}
                 </tbody>
             </table>
-
+</div>
         </div>
     )
 }

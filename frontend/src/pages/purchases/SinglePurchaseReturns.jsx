@@ -135,7 +135,7 @@ const SinglePurchaseReturns = () => {
         setTitle={setDeleteModalTitle}
         getData={getData}
       />
-      <div className='w-full flex flex-col gap-2 items-start justify-between'>
+      <div className='w-full flex flex-col gap-2 items-start justify-between shadow-md rounded-md p-2'>
 
         <div className='flex flex-row items-start justify-between w-[90%] '>
           <FormHeader header={title} />
@@ -162,6 +162,7 @@ const SinglePurchaseReturns = () => {
           </div>
         </div>
       </div>
+      <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
       <table className="min-w-full border-collapse border border-gray-800">
         <thead>
           <tr className="bg-gray-400 text-left">
@@ -320,7 +321,7 @@ const SinglePurchaseReturns = () => {
         </tbody>
       </table>
 
-
+</div>
 
     </div>
   )

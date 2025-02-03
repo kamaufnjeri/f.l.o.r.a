@@ -164,7 +164,7 @@ const UpdatePurchase = () => {
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
                     <div className="flex gap-4 flex-col lg:flex-row">
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
                             <span className='font-semibold text-xl'>Purchase No:  {formData.serial_number}</span>
 
                             <FormInitialField formData={formData} handleChange={handleChange} />
@@ -198,7 +198,7 @@ const UpdatePurchase = () => {
                             </div>
 
                         </div>
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
                             <AccountsField
                                 formData={formData}
                                 isSubmitted={isSubmitted}

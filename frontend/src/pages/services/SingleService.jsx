@@ -41,7 +41,6 @@ const SingleService = () => {
         setIsVisible(false);
     }
 
-    console.log(serviceData)
     const getData = async () => {
         const newServiceData = await getItems(`${orgId}/services/${id}`);
         setServiceData(newServiceData)
@@ -108,7 +107,7 @@ const SingleService = () => {
                 setServiceData={setServiceData}
                 serviceData={serviceData}
             />
-            <div className='grid grid-cols-2 w-full gap-4 items-start'>
+            <div className='grid grid-cols-2 w-full gap-4 items-start shadow-md rounded-md p-2'>
                 <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
                 <div className=' absolute  top-5 right-2'>
                     <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
@@ -132,6 +131,8 @@ const SingleService = () => {
                 </div>
 
             </div>
+            <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
             <div className='flex flex-col items-start justify-between w-full gap-2'>
                 <FormHeader header={`Service ${serviceData.name} Details`} />
                 <div className='w-full flex lg:flex-row md:flex-row flex-col gap-4 mb-2'>
@@ -182,7 +183,7 @@ const SingleService = () => {
                     </tr>
                 </tbody>
             </table>
-
+</div>
         </div>
     )
 }

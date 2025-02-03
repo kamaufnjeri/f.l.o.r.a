@@ -109,11 +109,10 @@ const SingleCustomer = () => {
                 setCustomerData={setCustomerData}
                 customerData={customerData}
             />
-            <div className='grid grid-cols-2 w-full gap-4 items-start '>
+            <div className='grid grid-cols-2 w-full gap-4 items-start  shadow-md rounded-md p-2'>
                 <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
 
                 <div className='grid grid-cols-2 w-full gap-4 items-start '>
-                    <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
                     <div className='absolute  top-5 right-2'>
                         <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
                            border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVisible ? 'show-header-dropdown' : 'hide-header-dropdown'}`}>
@@ -136,6 +135,8 @@ const SingleCustomer = () => {
 
                 </div>
             </div>
+            <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
             <div className='flex flex-col items-start justify-between w-full gap-2'>
                 <FormHeader header={`Customer ${customerData.name} Details`} />
                 <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2 w-full'>
@@ -205,7 +206,7 @@ const SingleCustomer = () => {
                 </tbody>
             </table>
             
-
+</div>
         </div>
     )
 }

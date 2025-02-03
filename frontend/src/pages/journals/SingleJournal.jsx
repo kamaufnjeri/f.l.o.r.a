@@ -71,7 +71,7 @@ const SingleJournal = () => {
         navigateUrl={`/dashboard/${orgId}/journals`}
       />
       {isLoading && <Loading />}
-      <div className='w-full flex flex-col gap-2'>
+      <div className='w-full flex flex-col gap-2 shadow-md rounded-md p-2'>
         <div className='grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2'>
           <div className='grid grid-cols-2 w-full lg:col-span-1 md:col-span-1 col-span-2'>
             <h5 className='text-lg font-bold'>
@@ -114,6 +114,8 @@ const SingleJournal = () => {
           </div>
         </div>
       </div>
+      <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
       <table className='min-w-full border-collapse border border-gray-800'>
         <thead>
           <tr className='text-left bg-gray-400'>
@@ -162,6 +164,7 @@ const SingleJournal = () => {
           </tr>
         </tbody>
       </table>
+      </div>
     </div >
   )
 }

@@ -9,7 +9,7 @@ const SalesEntriesFields = ({ formData, handleChange, stocks, isSubmitted = fals
     const { currentOrg } = useAuth();
 
     return (
-        <table className='table-auto min-w-full border-collapse'>
+        <table className='table-auto min-w-full border-collapse rounded-md shadow-md p-1'>
             <thead>
                 <tr className='text-left'>
                     <th className='p-1' colSpan={2}>Item</th>

@@ -83,7 +83,7 @@ const RecordJournal = () => {
       <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
         <SubHeader account={true} />
         <FormHeader header="Record journal" />
-        <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-2 shadow-md rounded-md p-2" onSubmit={handleSubmit}>
           <div className="flex flex-row justify-between text-gray-800 mr-2">
             <span className='font-semibold text-xl'>Journal No : {serialNumbers.journal}</span>
           </div>

@@ -21,7 +21,7 @@ const SubHeader = ({ customer = false, supplier = false, service = false, item =
     
 
     return (
-        <div className='flex flex-row flex-wrap gap-2 items-center justify-between p-1 w-full'>
+        <div className='flex flex-row flex-wrap gap-2 items-center justify-between p-1 w-full shadow-md rounded-md'>
             {supplier && <>
                 <button onClick={() => setOpenAddSupplierModal(true)} className='p-1 h-10 self-end cursor-pointer hover:text-purple-800 hover:border-purple-800 font-bold rounded-md border-2 border-gray-800'>
                     Add Supplier

@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 
 
 const Header = ({ setShowSideBar, showSideBar }) => {
-  const { currentOrg, user } = useAuth();
+  const { currentOrg, user, changeCurrentOrg } = useAuth();
 
 
   const showSideBarFunc = () => {
@@ -15,14 +15,14 @@ const Header = ({ setShowSideBar, showSideBar }) => {
     <div className={`font-bold h-[60px] text-gray-800 flex flex-row absolute top-0 right-0 left-0
     items-center justify-between bg-gray-100 border-b-2 border-gray-300 w-full p-2 z-20
      `}>
-      <div className={`p-2 flex w-[220px] items-center justify-between duration-300 transform ease-in-out transition-all ${showSideBar ? 'flex-row-reverse ' : 'flex-row'}`}>
+     
         <FaBars className='text-2xl hover:text-purple-700 ml-2 cursor-pointer z-20' onClick={() => showSideBarFunc()} />
 
 
         <Link to='/'>
           <img src="/assets/logo.png" className='h-[60px] w-auto' alt="Logo image" />
         </Link>
-      </div>
+     
       <Link to={`/dashboard/${currentOrg.id}/accounts`} className='md:flex lg:flex hover:border-purple-600 hover:text-purple-700 hidden'>
         Accounts
       </Link>
@@ -36,20 +36,33 @@ const Header = ({ setShowSideBar, showSideBar }) => {
         Service Income
       </Link>
       <Link to={`/dashboard/${currentOrg.id}/journals`} className='md:flex lg:flex hover:border-purple-600 hover:text-purple-700 hidden'>Journals</Link>
-      <div className='flex group relative'>
-        <span className='md:flex lg:flex hover:border-purple-600 hover:text-purple-700'>
-          Organisations
-        </span>
-        <div className='text-lg hidden group-hover:flex flex-col gap-2 absolute right-2 top-[40px] bg-gray-200 rounded-sm duration-300 transition-all ease-in-out w-[150px]' >
-          {user && user?.user_organisations.map((organisation, index) => (
-            <div key={index} className={`flex flex-row gap-2 items-start justify-start ${currentOrg.id === organisation.org_id ? 'text-purple-800 border-purple-800' : 'border-purple-800'}`}>
-              <span onClick={() => changeCurrentOrg(organisation.org_id)} className=''>
-                {organisation.org_name[0]}
-              </span>
-              <i className='text-xs font-light bg-gray-300 p-1'>{organisation.org_name}</i>
-            </div>
-
+      <div className='flex group relative cursor-pointer'>
+        <div
+          className={`flex flex-row gap-2 p-2 text-purple-600 items-start  `}>
+          <span className={`ring-purple-800 h-6 w-6 rounded-full ring-4 flex items-center justify-center font-extrabold`}>
+            {currentOrg.org_name[0]}
+          </span>
+          <p className='text-xs p-1'>{currentOrg.org_name}</p>
+        </div>
+        <div className='text-lg hidden group-hover:flex flex-col gap-1 absolute left-0 top-[40px] bg-gray-200 rounded-sm duration-300 transition-all ease-in-out w-[150px]'>
+          {user && user.user_organisations.map((organisation) => (
+            organisation.org_id !== currentOrg.id && (
+              <div
+                onClick={() => changeCurrentOrg(organisation.org_id)}
+                key={organisation.org_id}
+                className="flex flex-row gap-2 p-2 hover:text-purple-600 items-start"
+              >
+                <span className="ring-gray-600 h-6 w-6 rounded-full ring-4 flex items-center justify-center font-extrabold">
+                  {organisation.org_name[0]}
+                </span>
+                <p className="text-xs p-1">{organisation.org_name}</p>
+              </div>
+            )
           ))}
+          <Link to='/organisation-create' className={`flex flex-row gap-2 p-2 items-start hover:text-purple-600`}>
+            <FaPlus className='h-6 w-6 rounded-full ring-4 flex items-center justify-center font-extrabold ring-gray-600' />
+            <p className='text-xs p-1'>Add Organisation</p>
+          </Link>
         </div>
 
       </div>

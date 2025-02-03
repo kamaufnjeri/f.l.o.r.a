@@ -107,7 +107,7 @@ const Suppliers = () => {
       <SubHeader supplier={true} getData={getData} />
 
 
-      <div className='grid lg:grid-cols-2 grid-cols-1  w-full gap-4 items-center'>
+      <div className='grid lg:grid-cols-2 grid-cols-1  w-full gap-4 items-center shadow-md rounded-md p-2'>
         <form onSubmit={handleSubmit} className='flex h-10 flex-row gap-2 self-start rounded-md text-black relative'>
           <input type='name' className='w-[70%] rounded-md border border-gray-800 outline-none focus:border-none focus:ring-2 focus:ring-blue-500 p-2' placeholder='Search suppliers by name' value={searchItem.name} onChange={e => handleChange(e)} />
           <button className='w-[30%] border-2 bg-gray-800 rounded-md text-4xl flex items-center text-white  justify-center p-2 hover:bg-purple-800'> <MdSearch /> </button>
@@ -138,6 +138,7 @@ const Suppliers = () => {
           </div>
         </div>
       </div>
+      <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
 
       <div className='flex flex-row items-center justify-between w-full'>
         <FormHeader header={header} />
@@ -184,7 +185,7 @@ const Suppliers = () => {
             </tr>}
         </tbody>
       </table>
-
+</div>
     </div>
   )
 }

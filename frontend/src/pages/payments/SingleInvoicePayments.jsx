@@ -127,7 +127,7 @@ const SingleInvoicePayments = () => {
 
             <div className='w-full flex flex-col gap-2 items-start justify-between'>
 
-                <div className='flex flex-row items-start justify-between w-[90%] '>
+                <div className='flex flex-row items-start justify-between w-full shadow-md rounded-md p-2'>
                     <FormHeader header={title} />
                     <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
@@ -148,6 +148,8 @@ border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVis
                     </div>
                 </div>
             </div>
+            <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
             <table className='min-w-full border-collapse border border-gray-800'>
                 <thead>
                     <tr className='text-left bg-gray-400'>
@@ -253,6 +255,7 @@ border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVis
                 </tbody>
 
             </table>
+            </div>
         </div>
     )
 }

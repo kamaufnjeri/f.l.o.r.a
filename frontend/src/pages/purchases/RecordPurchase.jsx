@@ -128,10 +128,10 @@ const RecordPurchase = () => {
     useEffect(() => {
 
         scrollBottom(scrollRef);
-    }, [formData.journal_entries, formData.purchase_entries]);    
+    }, [formData.journal_entries, formData.purchase_entries]);
 
 
-   
+
 
     const addBill = () => {
         const updatedEntries = [...formData.journal_entries, { account: '', debit_credit: 'credit', amount: 0.0, type: 'bill' }];
@@ -150,16 +150,19 @@ const RecordPurchase = () => {
 
     return (
         <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
-            <SubHeader supplier={true} item={true} account={true}/>
+            <SubHeader supplier={true} item={true} account={true} />
             <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
                 <FormHeader header="Record Purchase" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
                     <div className="flex gap-4 flex-col lg:flex-row">
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
-                            <span className='font-semibold text-xl'>Purchase No: {serialNumbers.purchase}</span>
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
+                            <div className='space-y-2'>
+                                <span className='font-semibold text-xl'>Purchase No: {serialNumbers.purchase}</span>
 
-                            <FormInitialField formData={formData} handleChange={handleChange} />
+                                <FormInitialField formData={formData} handleChange={handleChange} />
+                            </div>
+
                             <div className='w-full flex flex-row gap-2 items-center justify-center'>
                                 <div className='w-[40%]'>
                                     <PurchaseSalesAccountField
@@ -190,7 +193,7 @@ const RecordPurchase = () => {
                             </div>
 
                         </div>
-                        <div className="lg:w-[50%] w-full flex flex-col gap-2">
+                        <div className="lg:w-[50%] w-full flex flex-col gap-2 shadow-md rounded-md p-2">
                             <AccountsField
                                 formData={formData}
                                 isSubmitted={isSubmitted}

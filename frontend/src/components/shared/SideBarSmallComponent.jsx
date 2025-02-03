@@ -1,8 +1,7 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { useAuth } from '../../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { sidebarIcons } from '../../lib/constants';
-import { FaChevronDown } from 'react-icons/fa';
 import { MdLogout } from 'react-icons/md';
 import { GoArrowRight } from 'react-icons/go';
 
@@ -12,8 +11,7 @@ const SideBarSmallComponent = () => {
    
 
     return (
-        <div className='flex-1 flex flex-col h-full w-full gap-[3px] p-2'>
-
+        <div className='flex-1 flex flex-col h-full w-full gap-[3px] p-2 relative'>
             {
                 (currentOrg && currentOrg.name !== '') ? (
                     <>
@@ -27,7 +25,7 @@ const SideBarSmallComponent = () => {
                                                 className='flex flex-row items-center gap-5 cursor-pointer rounded-sm p-1 text- hover:bg-neutral-200 hover:text-purple-600 relative group'
                                             >
                                                 {iconItem.icon}
-                                                <div className='absolute top-0 left-[30px]  z-30 hidden group-hover:flex items-start flex-col gap-1 pt-1 p-2 w-[200px] h-auto bg-neutral-200 rounded-sm shadow'>
+                                                <div className='absolute top-0 left-[30px]  z-40 hidden group-hover:flex items-start flex-col gap-1 pt-1 p-2 w-[200px] h-auto bg-neutral-200 rounded-sm shadow'>
                                                     <span className='font-medium text-base flex-1'>{iconItem.name}</span>
                                                     
                                                         {iconItem.lists.map((listItem, listIndex) => (

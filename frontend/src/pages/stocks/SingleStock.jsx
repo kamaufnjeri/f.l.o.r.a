@@ -106,7 +106,7 @@ const SingleStock = () => {
                 setStockData={setStockData}
                 stockData={stockData}
             />
-            <div className='grid grid-cols-2 w-full gap-4 items-start'>
+            <div className='grid grid-cols-2 w-full gap-4 items-start shadow-md rounded-md p-2'>
                 <DateFilter searchItem={searchItem} handleDatesChange={handleDatesChange} />
                 <div className='absolute  top-5 right-2'>
                     <div className={`rounded-md p-1 bg-neutral-200 absolute -top-3 right-5
@@ -129,6 +129,8 @@ const SingleStock = () => {
                         }
                 </div>
             </div>
+            <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+
             <div className='flex flex-col items-start justify-between w-full gap-2'>
                 <FormHeader header={`Stock Summary for ${stockData.name}`} />
                 <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2 w-full'>
@@ -214,7 +216,7 @@ const SingleStock = () => {
 
                 </tbody>
             </table>
-           
+           </div>
 
         </div>
 
