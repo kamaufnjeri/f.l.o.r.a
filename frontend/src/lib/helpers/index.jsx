@@ -2,7 +2,8 @@ import api from "../api"
 import { toast } from "react-toastify";
 
 export const scrollBottom = (scrollRef) => {
-  if (scrollRef.current) {
+  
+  if (scrollRef && scrollRef.current) {
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }
 }

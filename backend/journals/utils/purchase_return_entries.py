@@ -238,7 +238,6 @@ class PurchaseReturnEntriesManager:
                                     account_data.append(journal_entry_manager.create_journal_entry(payment_account, payment_amount_to_use, "debit", payment_entry_type))
                                     payment_remaining_amount -= payment_amount_to_use
                                     
-                                    
                     if payment_remaining_amount > 0:
                         amount_to_use = payment_remaining_amount
                         total_amount = 0
@@ -254,9 +253,14 @@ class PurchaseReturnEntriesManager:
                         
                         entry_type = entry.get('type')
                         account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))
+
+                        remaining_amount -= amount_to_use
+
+                        if remaining_amount > 0: 
+                            raise serializers.ValidationError('Total price of returned stocks is more than amount received')                   
+
                     else:
-                        raise serializers.ValidationError('Total price of returned stocks is more than amount received')
-        
+                        pass
                 else:
                     entry_type = entry.get('type')
                     account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))

@@ -125,9 +125,9 @@ const SingleInvoicePayments = () => {
                 getData={getData}
             />
 
-            <div className='w-full flex flex-col gap-2 items-start justify-between'>
+            <div className='w-full flex flex-col gap-2 items-start justify-between shadow-md rounded-md p-2'>
 
-                <div className='flex flex-row items-start justify-between w-full shadow-md rounded-md p-2'>
+                <div className='flex flex-row items-start justify-between w-[90%] '>
                     <FormHeader header={title} />
                     <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 

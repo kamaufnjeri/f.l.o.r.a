@@ -2,7 +2,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
 from django.db import models
-from journals.models import  Sales, Invoice, Payment, ServiceIncome
+from journals.models import Organisation, Invoice, Payment
 from journals.serializers import InvoiceDetailSerializer, PaymentsDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -47,8 +47,8 @@ class InvoiceFilter(DjangoFilterBackend, SearchFilter):
         return queryset
 
 def get_invoices_totals(data):
-    amount_due = sum(float(bill.get('amount_due')) for bill in data)
-    amount_paid = sum(float(bill.get('amount_paid')) for bill in data)
+    amount_due = sum(float(invoice.get('amount_due')) for invoice in data)
+    amount_paid = sum(float(invoice.get('amount_paid')) for invoice in data)
 
     return {
         "invoices": data,
@@ -185,8 +185,11 @@ class InvoicePaymentsApiView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             pk = kwargs.get('pk')
+            organisation_id = kwargs.get('organisation_id')
+            invoice = get_object_or_404(Invoice, pk=pk)
+            organisation = get_object_or_404(Organisation, pk=organisation_id)
             queryset = self.get_queryset()
-            queryset = queryset.filter(invoice_id=pk).order_by('-date')
+            queryset = queryset.filter(invoice=invoice, organisation=organisation).order_by('-date')  
 
             paginate = request.query_params.get('paginate')
 
@@ -232,8 +235,11 @@ class DownloadInvoicePaymentsApiView(generics.ListAPIView):
     def post(self, request, *args, **kwargs):
         try:
             pk = kwargs.get('pk')
+            organisation_id = kwargs.get('organisation_id')
+            invoice = get_object_or_404(Invoice, pk=pk)
+            organisation = get_object_or_404(Organisation, pk=organisation_id)
             queryset = self.get_queryset()
-            data = queryset.filter(invoice_id=pk).order_by('-date')
+            queryset = queryset.filter(invoice=invoice, organisation=organisation).order_by('-date')  
            
             title = request.data.get('title')
           

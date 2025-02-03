@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useRef } from "react";
 import { getItems } from "../lib/helpers";
 import Loading from "../components/shared/Loading";
 import { useAuth } from "./AuthContext";
@@ -25,6 +25,7 @@ export const SelectOptionsProvider = ({ children }) => {
     const[serviceIncomeAccounts, setServiceIcomeAccounts] = useState([]);
     const { currentOrg } = useAuth();
     const [ isLoading, setIsLoading ] = useState(true);
+    const mainContainerRef = useRef();
 
     const getSelectOptions = async () => {
         if (currentOrg && currentOrg.id) {
@@ -96,6 +97,7 @@ export const SelectOptionsProvider = ({ children }) => {
         serviceIncomeAccounts,
         getSelectOptions,
         clearData,
+        mainContainerRef,
     };
     if (isLoading) {
         return <Loading/>

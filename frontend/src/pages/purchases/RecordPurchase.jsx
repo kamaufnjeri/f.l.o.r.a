@@ -16,7 +16,7 @@ import SubHeader from '../../components/shared/SubHeader';
 
 
 const RecordPurchase = () => {
-    const scrollRef = useRef(null);
+    const { mainContainerRef } = useSelectOptions();
     const { orgId } = useParams();
     const { stocks, serialNumbers, paymentAccounts, purchaseAccounts, getSelectOptions, suppliersAccounts, incomeDiscountAccounts } = useSelectOptions();
     const [showBill, setShowBill] = useState(false);
@@ -127,7 +127,7 @@ const RecordPurchase = () => {
 
     useEffect(() => {
 
-        scrollBottom(scrollRef);
+        scrollBottom(mainContainerRef);
     }, [formData.journal_entries, formData.purchase_entries]);
 
 
@@ -151,7 +151,7 @@ const RecordPurchase = () => {
     return (
         <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
             <SubHeader supplier={true} item={true} account={true} />
-            <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
+            <div className="flex flex-col font-medium gap-2 w-full">
                 <FormHeader header="Record Purchase" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 

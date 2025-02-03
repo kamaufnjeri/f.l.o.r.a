@@ -2,25 +2,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import { Outlet } from 'react-router-dom'
+import { useSelectOptions } from '../../context/SelectOptionsContext';
 
 
 const Layout = () => {
   const [showSideBar, setShowSideBar] = useState(true);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-
-    if (container) {
-      const observer = new MutationObserver(() => {
-        container.scrollTop = container.scrollHeight;
-      });
-
-      observer.observe(container, { childList: true, subtree: true });
-
-      return () => observer.disconnect();
-    }
-  }, []);
+  const { mainContainerRef  } = useSelectOptions();
+  
 
 
   return (
@@ -32,7 +20,7 @@ const Layout = () => {
 
 
       <div 
-      ref={containerRef}
+      ref={mainContainerRef}
       className={`flex flex-col h-[calc(100vh-80px)] absolute 
       md:p-2 lg:p-2 p-4
       overflow-y-auto custom-scrollbar overflow-x-hidden gap-4 top-[70px] right-0 bottom-0

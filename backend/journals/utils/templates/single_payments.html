@@ -59,11 +59,12 @@
                     <th>No.</th>
                     <th>Date</th>
                     <th>Type</th>
-                    <th>Amount Paid ({{ organisation.currency }})</th>
 
                     <th colspan="2">Account</th>
                     <th>Debit ({{ organisation.currency }})</th>
                     <th>Credit ({{ organisation.currency }})</th>
+                    <th>Amount Paid ({{ organisation.currency }})</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -103,7 +104,7 @@
                     </td>
                     {% if loop.index == 1 %}
 
-                    <td rowspan="{{ row_span }}">{{ payment.get('amount_paid' )}}</td>
+                    <td rowspan="{{ row_span }}" style="text-align: right;">{{ payment.get('amount_paid' )}}</td>
 
                     {% endif %}
                 </tr>

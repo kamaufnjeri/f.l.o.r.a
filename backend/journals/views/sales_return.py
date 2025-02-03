@@ -231,7 +231,7 @@ class DownloadSalesSalesReturnsApiView(generics.ListAPIView):
         try:
             pk = kwargs.get('pk')
             queryset = self.get_queryset()
-            data = queryset.filter(sales_id=pk).order_by('-date')
+            queryset = queryset.filter(sales_id=pk).order_by('-date')
 
             title = request.data.get('title')
           

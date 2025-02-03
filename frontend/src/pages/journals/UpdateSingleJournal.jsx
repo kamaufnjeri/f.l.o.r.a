@@ -13,9 +13,9 @@ import SubHeader from '../../components/shared/SubHeader';
 
 
 const UpdateSingleJournal = () => {
-  const scrollRef = useRef(null);
+  const { mainContainerRef } = useSelectOptions();
   const { orgId, id } = useParams();
-  const { accounts, serialNumbers, getSelectOptions } = useSelectOptions();
+  const { accounts, getSelectOptions } = useSelectOptions();
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -68,7 +68,7 @@ const UpdateSingleJournal = () => {
 
   useEffect(() => {
     
-    scrollBottom(scrollRef);
+    scrollBottom(mainContainerRef);
   }, [formData?.journal_entries]);
 
 
@@ -76,7 +76,7 @@ const UpdateSingleJournal = () => {
 
   return (
     <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
-      <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">
+      <div className="flex flex-col font-medium gap-2 w-full">
         <SubHeader account={true} />
         <FormHeader header="Edit journal" />
        {formData ?  <form className="flex flex-col gap-2 shadow-md rounded-md p-2" onSubmit={handleSubmit}>

@@ -23,15 +23,14 @@ const DeleteModal = ({ openModal, setOpenModal, deleteUrl, setDeleteUrl, title, 
         if (response.success) {
             if (navigateUrl) {
                 navigate(navigateUrl);
+            } else {
+                getData();
+
             }
             toast.success(`${title} deleted successfully`);
-            getData();
             setDeleteUrl('')
             setTitle('')
-            setOpenModal(false);
-            
-           
-            
+            setOpenModal(false);  
         } else {
             toast.error(`${response.error}`)
 

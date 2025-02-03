@@ -2,7 +2,7 @@ from rest_framework import generics, status, serializers
 from django.db import models
 from rest_framework.response import Response
 from journals.utils import flatten_errors, due_days_filtering, status_filtering
-from journals.models import Bill, Payment
+from journals.models import Bill, Payment, Organisation
 from journals.serializers import BillDetailSerializer, PaymentsDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -136,13 +136,12 @@ class DownloadBillApiView(generics.ListAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-def get_payments_totals(data, pk=None):
+def get_payments_totals(data, bill=None):
     amount_paid = sum(float(payment.get('amount_paid')) for payment in data)
 
     title = ''
 
-    if pk:
-        bill = get_object_or_404(Bill, pk=pk)
+    if bill:
         title = f"Payments for purchase # {bill.purchase.serial_number}"
 
     return {
@@ -163,18 +162,21 @@ class BillPaymentsApiView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             pk = kwargs.get('pk')
+            organisation_id = kwargs.get('organisation_id')
+            bill = get_object_or_404(Bill, pk=pk)
+            organisation = get_object_or_404(Organisation, pk=organisation_id)
             
+
             queryset = self.get_queryset()
-            queryset = queryset.filter(bill_id=pk).order_by('-date')
-
+            queryset = queryset.filter(bill=bill, organisation=organisation).order_by('-date')
             paginate = request.query_params.get('paginate')
-
             if paginate:
                 paginator = self.pagination_class()
                 paginated_queryset = paginator.paginate_queryset(queryset, request)
                 if paginated_queryset is not None:
                     serialized_data = self.get_serializer(paginated_queryset, many=True).data
-                    data = get_payments_totals(serialized_data, pk)
+                    data = get_payments_totals(serialized_data, bill)
+
                     return paginator.get_paginated_response({
                     "status": "success",
                     "message": "Payments retrieved successfully with pagination",
@@ -210,13 +212,13 @@ class DownloadBillPaymentsApiView(generics.ListAPIView):
     def post(self, request, *args, **kwargs):
         try:
             pk = kwargs.get('pk')
+            organisation_id = kwargs.get('organisation_id')
+            bill = get_object_or_404(Bill, pk=pk)
+            organisation = get_object_or_404(Organisation, pk=organisation_id)
             queryset = self.get_queryset()
-            data = queryset.filter(bill_id=pk).order_by('-date')
-           
+            queryset = queryset.filter(bill=bill, organisation=organisation).order_by('-date')  
             title = request.data.get('title')
-          
             serialized_data = self.get_serializer(queryset, many=True).data
-            print('download', serialized_data)
             data = get_payments_totals(serialized_data)
 
             pdf_generator = GenerateListsPDF(title, request.user, data, None, filename='single_payments.html')

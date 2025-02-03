@@ -16,7 +16,7 @@ import SubHeader from '../../components/shared/SubHeader';
 
 
 const UpdateServiceIncome = () => {
-    const scrollRef = useRef(null);
+    const { mainContainerRef}  = useSelectOptions();
     const { orgId, id } = useParams();
     const { services, serialNumbers, paymentAccounts, serviceIncomeAccounts, expenseDiscountAccounts, getSelectOptions, customersAccounts } = useSelectOptions();
     const [showInvoice, setShowInvoice] = useState(false);
@@ -136,7 +136,7 @@ const UpdateServiceIncome = () => {
 
 
     useEffect(() => {
-        scrollBottom(scrollRef);
+        scrollBottom(mainContainerRef);
     }, [formData.journal_entries, formData.service_income_entries]);
 
 
@@ -160,7 +160,7 @@ const UpdateServiceIncome = () => {
     return (
         <div className="flex flex-col items-start justify-start h-full gap-2 w-full text-gray-800">
             <SubHeader customer={true} service={true} account={true} />
-            <div ref={scrollRef} className="flex flex-col font-medium gap-2 w-full">                <FormHeader header="Record Service Income" />
+            <div className="flex flex-col font-medium gap-2 w-full">                <FormHeader header="Record Service Income" />
                 <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
 
                     <div className="flex gap-4 flex-col lg:flex-row">
