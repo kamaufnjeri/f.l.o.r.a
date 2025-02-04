@@ -161,7 +161,7 @@ const Accounts = () => {
                onClick={() => handleRowClick(account.id)}
             >
               <td className='p-1 border-b border-r border-gray-800'>
-               {index + 1}.
+               {(index + 1) * pageNo}.
               </td>
               <td className='p-1 border-b border-r border-gray-800'>
                {account.name}

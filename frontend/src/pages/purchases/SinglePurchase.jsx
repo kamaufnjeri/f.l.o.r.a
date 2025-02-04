@@ -23,6 +23,12 @@ const SinglePurchase = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState('');
   const [deleteUrl, setDeleteUrl] = useState('');
   const [deleteModalTitle, setDeleteModalTitle] = useState('');
+  const navigate = useNavigate();
+
+
+  const handleRowClick = (url) => {
+    navigate(url);
+  };
 
   const [isVisible, setIsVisible] = useState(false);
   const openDropDown = () => {
@@ -251,7 +257,15 @@ const SinglePurchase = () => {
             {purchase?.details?.footer_data && Object.entries(purchase?.details?.footer_data).map(([key, value]) => (
               <tr
                 key={`${value} - ${key}`}
-                className={`${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'bg-gray-300' : ''} font-bold`}
+                onClick={() => {
+                  if (key === 'Returns') {
+                    handleRowClick('purchase_returns')
+                  }
+                  if (key === 'Amount Paid') {
+                    handleRowClick(`/dashboard/${orgId}/bills/${purchase.bill.id}/payments`)
+                  }
+                }}
+                className={`${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'bg-gray-300' : ''} font-bold ${(key === 'Returns' || key == 'Amount Paid')  ? 'cursor-pointer' : ''}`}
               >
                 <td className='border-gray-800 border-r border-b p-1 text-right' colSpan={4}>{key}</td>
                 <td className='border-gray-800 border-r border-b p-1 text-right'>{value}</td>

@@ -112,6 +112,7 @@ class PurchaseDetailSerializer(PurchaseSerializer):
 
 
         has_returns = False
+        returns_total = 0
 
         if hasattr(obj, 'purchase_returns'):
             purchase_returns = obj.purchase_returns.all()
@@ -121,19 +122,22 @@ class PurchaseDetailSerializer(PurchaseSerializer):
 
                 if returns_total > 0:
                     footer_data['Returns'] = returns_total
-                    amount_paid -= returns_total
                     has_returns = True
 
         for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
             if entry.get('debit_credit') == 'credit':
                 if entry.get('type') == 'discount':
                     footer_data['Discount'] = entry.get('amount') 
-                    amount_paid -= float(entry.get('amount'))
+                if entry.get('type') == 'payment':
+                    amount_paid += float(entry.get('amount'))
 
         if hasattr(obj, 'bill') and obj.bill is not None:
             amount_due += float(obj.bill.amount_due)
-            amount_paid -= float(obj.bill.amount_due)
+            amount_paid += float(obj.bill.amount_paid)
             purchase_type = 'bill'
+
+            
+        amount_paid -= returns_total
 
         if amount_paid > 0:
             footer_data['Amount Paid'] = round(amount_paid, 2)

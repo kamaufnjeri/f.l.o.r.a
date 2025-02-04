@@ -23,6 +23,12 @@ const SingleSales = () => {
   const [deleteUrl, setDeleteUrl] = useState('');
   const [deleteModalTitle, setDeleteModalTitle] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
+
+
+  const handleRowClick = (url) => {
+    navigate(url);
+  };
 
   const openDropDown = () => {
     setIsVisible(true);
@@ -211,7 +217,7 @@ const SingleSales = () => {
           </>}
         </div>
       </div>
-      <div className='min-h-[400px] w-full p-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
+      <div className='min-h-[400px] w-full p-2 space-y-2 shadow-md rounded-md custom-scrollbar overflow-x-auto'>
 
         <table className='min-w-full border-collapse border border-gray-800'>
           <thead>
@@ -249,7 +255,16 @@ const SingleSales = () => {
             {sales?.details?.footer_data && Object.entries(sales?.details?.footer_data).map(([key, value]) => (
               <tr
                 key={`${value} - ${key}`}
-                className={`${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'bg-gray-300' : ''} font-bold`}
+                onClick={() => {
+                  if (key === 'Returns') {
+                    handleRowClick('sales_returns')
+                  }
+                  if (key === 'Amount Paid') {
+                    handleRowClick(`/dashboard/${orgId}/invoices/${sales.invoice.id}/payments`)
+                  }
+                }}
+                className={`${key === 'Amount Due' ? 'text-red-500' : ''} ${key === 'Total' ? 'bg-gray-300' : ''} font-bold ${(key === 'Returns' || key == 'Amount Paid')  ? 'cursor-pointer' : ''}`}
+              
               >
                 <td className='border-gray-800 border-r border-b p-1 text-right' colSpan={4}>{key}</td>
                 <td className='border-gray-800 border-r border-b p-1 text-right'>{value}</td>

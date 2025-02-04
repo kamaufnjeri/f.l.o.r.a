@@ -112,13 +112,13 @@ class SalesDetailSerializer(SalesSerializer):
         sales_type = 'regular'
         total_amount = sum((float(entry['sales_price']) * float(entry['sold_quantity'])) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
         total_quantity = sum(int(entry['sold_quantity'] ) for entry in SalesEntriesSerializer(obj.sales_entries.all(), many=True).data)
-        amount_paid = total_amount
+        amount_paid = 0
         amount_due = 0
 
         footer_data = {}
 
         has_returns = False
-        
+        returns_total = 0
 
         if hasattr(obj, 'sales_returns'):
             sales_returns = obj.sales_returns.all()
@@ -128,21 +128,21 @@ class SalesDetailSerializer(SalesSerializer):
 
                 if returns_total > 0:
                     footer_data['Returns'] = returns_total
-                    amount_paid -= returns_total
                     has_returns = True
 
         for entry in JournalEntrySerializer(obj.journal_entries.all(), many=True).data:
             if entry.get('debit_credit') == 'debit':
                 if entry.get('type') == 'discount':
                     footer_data['Discount'] = entry.get('amount') 
-                    amount_paid -= float(entry.get('amount'))
+                if entry.get('type') == 'payment':
+                    amount_paid += float(entry.get('amount'))
 
         if hasattr(obj, 'invoice') and obj.invoice is not None:
             amount_due += float(obj.invoice.amount_due)
-            amount_paid -= float(obj.invoice.amount_due)
+            amount_paid += float(obj.invoice.amount_paid)
             
             sales_type = 'invoice'
-
+        amount_paid -= returns_total
         if amount_paid > 0:
             footer_data['Amount Paid'] = round(amount_paid, 2)
 

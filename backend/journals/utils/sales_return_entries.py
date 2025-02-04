@@ -229,7 +229,8 @@ class SalesReturnEntriesManager:
                         for payment in payments:
                             for payment_entry in payment.get('journal_entries'):
                                 payment_account = self.get_account(payment_entry)
-                                if str(payment_account.belongs_to).strip().lower() in ("cash and cash equivalents") and payment_entry.get('debit_credit') == 'credit' and payment_entry.get('type') == 'payment':
+                                print(payment_account.belongs_to)
+                                if str(payment_account.belongs_to).strip().lower() in ("cash and cash equivalents") and payment_entry.get('debit_credit') == 'debit' and payment_entry.get('type') == 'payment':
                                     payment_amount_to_use = min(decimal.Decimal(payment_entry.get('amount')), payment_remaining_amount)
                                     if payment_remaining_amount <= 0:
                                         break
@@ -253,9 +254,13 @@ class SalesReturnEntriesManager:
                         entry_type = entry.get('type')
                         account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))
 
+                        remaining_amount -= amount_to_use
+
+                        if remaining_amount > 0: 
+                            raise serializers.ValidationError('Total price of returned stocks is more than amount received')                   
+
                     else:
-                        raise serializers.ValidationError('Total price of returned stocks is more than amount received')
-        
+                        pass
                 else:
                     entry_type = entry.get('type')
                     account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))
