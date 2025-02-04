@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../../components/forms/FormHeader'
-import { getItems } from '../../lib/helpers';
+import { getItems, getNumber } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
@@ -195,7 +195,7 @@ const SinglePurchaseReturns = () => {
                             rowSpan={purchase_return.return_entries.length + 1}
                           >
 
-                            {index + 1}
+                            {getNumber(pageNo, index)}
 
                           </td>
                           <td

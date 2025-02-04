@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
-import { capitalizeFirstLetter, getItems, paymentsQueryParams } from '../../lib/helpers';
+import { capitalizeFirstLetter, getItems, getNumber, paymentsQueryParams } from '../../lib/helpers';
 import { FaTimes, FaEllipsisV } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
@@ -273,7 +273,7 @@ const Payments = () => {
                         >
                             <td className="border-gray-800 border-r border-b p-1">
 
-                                {index + 1}
+                                {getNumber(pageNo, index)}
 
                             </td>
                             <td className="border-gray-800 border-r border-b p-1">

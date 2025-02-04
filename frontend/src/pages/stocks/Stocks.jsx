@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../../components/forms/FormHeader'
 import { MdSearch } from "react-icons/md";
-import { getItems } from '../../lib/helpers';
+import { getItems, getNumber } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -153,7 +153,7 @@ const Stocks = () => {
               onClick={() => handleRowClick(stock.id)}
             >
               <td className='p-1 border-b border-r border-gray-800'>
-                {index + 1}.
+                {getNumber(pageNo, index)}.
               </td>
               <td className='p-1 border-b border-r border-gray-800'>
                 {stock.name}

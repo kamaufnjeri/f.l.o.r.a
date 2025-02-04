@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../../components/forms/FormHeader'
-import { capitalizeFirstLetter, deleteRequest, getItems, replaceDash } from '../../lib/helpers';
+import { capitalizeFirstLetter, deleteRequest, getItems, getNumber, replaceDash } from '../../lib/helpers';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -174,13 +174,13 @@ const SingleBillPayments = () => {
                                     key={`${payment.id}-${entryIndex}`}
                                     onClick={() => handleRowClick(payment?.details?.url)}
 
-                                    className="hover:bg-gray-200 cursor-pointer"
+                                    className="cursor-pointer"
                                 >
 
                                     {entryIndex === 0 && <>
                                         <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
 
-                                            {index + 1}
+                                            {getNumber(pageNo, index)}
                                         </td>
                                         <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import FormHeader from '../../components/forms/FormHeader'
-import { capitalizeFirstLetter, getItems } from '../../lib/helpers';
+import { capitalizeFirstLetter, getItems, getNumber } from '../../lib/helpers';
 import { FaEllipsisV, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -174,13 +174,13 @@ border-2 border-gray-300 shadow-sm flex flex-col items-start font-normal ${isVis
                                     key={`${payment.id}-${entryIndex}`}
                                     onClick={() => handleRowClick(payment?.details?.url)}
 
-                                    className="hover:bg-gray-200 cursor-pointer"
+                                    className="cursor-pointer"
                                 >
 
                                     {entryIndex === 0 && <>
                                         <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
 
-                                            {index + 1}
+                                            {getNumber(pageNo, index)}
                                         </td>
                                         <td className="border-gray-800 border-r border-b p-1" rowSpan={payment.journal_entries.length + 1}>
 

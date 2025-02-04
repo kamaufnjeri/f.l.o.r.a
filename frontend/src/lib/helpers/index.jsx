@@ -1,6 +1,11 @@
 import api from "../api"
 import { toast } from "react-toastify";
 
+
+export const getNumber = (pageNo, currentIndex) => {
+  return (pageNo - 1) * 10 + currentIndex + 1;
+} 
+
 export const scrollBottom = (scrollRef) => {
   
   if (scrollRef && scrollRef.current) {
