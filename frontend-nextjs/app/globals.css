@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  /* PRIMARY BRAND */
+  /* PRIMARY BRAND */
+  --color-primary: #6D28D9;
+  --color-primary-dark: #4C1D95;
+  --color-primary-light: #EDE9FE;
+
+  /* SECONDARY */
+  --color-secondary: #2563EB;
+  --color-secondary-light: #DBEAFE;
+
+  /* BACKGROUNDS */
+  --color-bg: #FFFFFF;
+  --color-bg-soft: #F8FAFC;
+  --color-bg-dark: #0F172A;
+
+  /* TEXT */
+  --color-text: #0F172A;
+  --color-muted: #64748B;
+
+  /* BORDER */
+  --color-border: #E5E7EB;
+
+  /* STATUS */
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}
+
+@theme {
+  /* PRIMARY BRAND */
+  --color-primary: #6D28D9;
+  --color-primary-dark: #4C1D95;
+  --color-primary-light: #EDE9FE;
+
+  /* SECONDARY */
+  --color-secondary: #2563EB;
+  --color-secondary-light: #DBEAFE;
+
+  /* BACKGROUNDS */
+  --color-bg: #FFFFFF;
+  --color-bg-soft: #F8FAFC;
+  --color-bg-dark: #0F172A;
+
+  /* TEXT */
+  --color-text: #0F172A;
+  --color-muted: #64748B;
+
+  /* BORDER */
+  --color-border: #E5E7EB;
+
+  /* STATUS */
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}
+
+/* Base styles */
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
