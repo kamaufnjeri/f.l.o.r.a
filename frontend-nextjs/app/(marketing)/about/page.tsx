@@ -1,10 +1,10 @@
-import AboutHero from "@/app/components/about/AboutHero";
-import Impact from "@/app/components/about/Impact";
-import Mission from "@/app/components/about/Mission";
-import Story from "@/app/components/about/Story";
-import Values from "@/app/components/about/Values";
-import WhatWeDo from "@/app/components/about/WhatWeDo";
-import CTA from "@/app/components/home/CTA";
+import AboutHero from "@/components/about/AboutHero";
+import Impact from "@/components/about/Impact";
+import Mission from "@/components/about/Mission";
+import Story from "@/components/about/Story";
+import Values from "@/components/about/Values";
+import WhatWeDo from "@/components/about/WhatWeDo";
+import CTA from "@/components/home/CTA";
 
 export const metadata = {
   title: "About Flora | Modern Accounting Software",

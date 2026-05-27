@@ -6,29 +6,85 @@ from journals.serializers import RegisterSerializer, LoginSerializer, ForgotPass
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from django.db import transaction
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 import os
-from balance_buddy.settings import frontend_url
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 load_dotenv()
 
 
+
+class CookieTokenRefreshView(generics.GenericAPIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refreshToken")
+
+        if not refresh_token:
+            return Response(
+                {"error": "No refresh token found"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            refresh = RefreshToken(refresh_token)
+
+            access = str(refresh.access_token)
+
+            res = Response({"detail": "Token refreshed"}, status=status.HTTP_200_OK)
+
+            # 🔥 update access cookie
+            res.set_cookie(
+                key="accessToken",
+                value=str(access),
+                httponly=True,
+                secure=False,  # set True in production (HTTPS)
+                samesite="None",
+                max_age=60 * 60 * 24,  # 1 day
+            )
+            return res
+
+        except TokenError:
+            res = Response(
+                {"error": "refresh_expired"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+            # clear cookies
+            res.delete_cookie("accessToken")
+            res.delete_cookie("refreshToken")
+
+            return res
+        
 class LogoutView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            refresh_token = request.COOKIES.get("refresh")
 
-            return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
+            res = Response(
+                {"detail": "Logout successful."},
+                status=status.HTTP_200_OK
+            )
+
+            # always clear cookies
+            res.delete_cookie("accessToken")
+            res.delete_cookie("refreshToken")
+
+            if not refresh_token:
+                return res
+
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                pass
+
+            return res
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -91,38 +147,68 @@ class ResetPasswordAPIView(generics.UpdateAPIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomLoginAPIView(generics.GenericAPIView):
-    queryset = FloraUser.objects.all()
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user = serializer.validated_data['user']
+        serializer.is_valid(raise_exception=True)
 
-            if not user.is_verified:
-                try:
-                    send_email.sent_email_confirmation_message(user)
-                    return Response({ "error": "Unverified user", "details": "Check email to verify your account"}, status=status.HTTP_403_FORBIDDEN)
-                except Exception as email_exception:
-                    print(f"Email Sending Error: {email_exception}") 
-                    return Response({
-                        'error': 'Email sending failed',
-                        'details': str(email_exception)
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-               
-            refresh = RefreshToken.for_user(user)
-            access = refresh.access_token
+        user = serializer.validated_data["user"]
 
-            user_serializer = FloraUserSerializer(user)
-            data = user_serializer.data
+        # ❌ Not verified
+        if not user.is_verified:
+            try:
+                send_email.sent_email_confirmation_message(user)
+            except Exception as e:
+                return Response(
+                    {"error": "Email sending failed", "details": str(e)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
+            return Response(
+                {
+                    "error": "Unverified user",
+                    "details": "Check email to verify your account",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-            return Response({
-                'refresh': str(refresh),
-                'access': str(access),
-                'user': data
-            }, status=status.HTTP_200_OK)
+        # 🔐 Generate tokens
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+
+        user_serializer = FloraUserSerializer(user)
+
+        # 🔥 CREATE RESPONSE FIRST
+        response = Response(
+            {
+                
+                "user": user_serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        # 🍪 SET HTTP-ONLY COOKIES
+        response.set_cookie(
+            key="accessToken",
+            value=str(access),
+            httponly=True,
+            secure=False,  # set True in production (HTTPS)
+            samesite="None",
+            max_age=60 * 60 * 24,  # 1 day
+        )
+
+        response.set_cookie(
+            key="refreshToken",
+            value=str(refresh),
+            httponly=True,
+            secure=False,
+            samesite="None",
+            max_age=60 * 60 * 24 * 7,  # 7 days
+        )
+
+        return response
 
 class RegisterAPIVew(generics.CreateAPIView):
     queryset = FloraUser.objects.all()
@@ -184,3 +270,4 @@ class VerifyEmailView(generics.GenericAPIView):
                     'error': 'Bad Request',
                     'details': "Invalid or expired token."
                 }, status=status.HTTP_400_BAD_REQUEST)
+        

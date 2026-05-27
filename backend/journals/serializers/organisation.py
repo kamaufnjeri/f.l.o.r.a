@@ -27,15 +27,13 @@ class OrganisationSerializer(serializers.ModelSerializer):
                 try:
                     group = FixedGroup.objects.get(name=group_name)
                 except FixedGroup.DoesNotExist:
-                    raise serializers.ValidationError(f"Group {group_name} not found")
+                    group, created = FixedGroup.objects.get_or_create(name=group_name)
 
                 category_data.update({"user": user.id, "organisation": organisation.id, "group": group.id})
                 category_serializer = CategorySerializer(data=category_data)
                 if category_serializer.is_valid():
-                    print(category_data)
                     category = category_serializer.save()
                 else:
-                    print('category errors', category_serializer.errors)
                     raise serializers.ValidationError(category_serializer.errors)
 
                 for sub_category_data in data["sub_categories"]:

@@ -1,8 +1,8 @@
 // app/(marketing)/contact/page.tsx
 
-import ContactHero from "@/app/components/contact/ContactHero";
-import ContactForm from "@/app/components/contact/ContactForm";
-import ContactInfo from "@/app/components/contact/ContactInfo";
+import ContactHero from "@/components/contact/ContactHero";
+import ContactForm from "@/components/contact/ContactForm";
+import ContactInfo from "@/components/contact/ContactInfo";
 
 export const metadata = {
   title: "Contact Flora | Support & Partnerships",

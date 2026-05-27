@@ -92,13 +92,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise Exception(str(e))
         
 
-class FloraUserSerializer(RegisterSerializer):
+class FloraUserSerializer(serializers.ModelSerializer):
     user_organisations = serializers.SerializerMethodField(read_only=True)
     current_organisation = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FloraUser
-        fields = RegisterSerializer.Meta.fields + ['user_organisations', 'current_organisation']
+        fields = ["id", "first_name", "last_name", "phone_number", "email", 'user_organisations', 'current_organisation']
 
     def get_user_organisations(self, obj):
         orgs = []

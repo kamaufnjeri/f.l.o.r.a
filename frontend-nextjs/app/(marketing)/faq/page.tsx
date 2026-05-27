@@ -1,6 +1,6 @@
-import FAQHero from "@/app/components/faq/FAQHero";
-import FAQList from "@/app/components/faq/FaqList";
-import CTA from "@/app/components/home/CTA";
+import FAQHero from "@/components/faq/FAQHero";
+import FAQList from "@/components/faq/FaqList";
+import CTA from "@/components/home/CTA";
 
 export const metadata = {
   title: "FAQ | Flora Accounting System",

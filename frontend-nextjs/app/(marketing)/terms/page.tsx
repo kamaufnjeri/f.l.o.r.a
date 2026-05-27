@@ -1,7 +1,7 @@
 // app/(marketing)/terms/page.tsx
 
-import TermsHero from "@/app/components/terms/TermsHero";
-import TermsSection from "@/app/components/terms/TermsSection";
+import TermsHero from "@/components/terms/TermsHero";
+import TermsSection from "@/components/terms/TermsSection";
 
 export const metadata = {
   title: "Terms of Service | Flora Accounting System",

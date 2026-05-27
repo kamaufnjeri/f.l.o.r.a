@@ -13,7 +13,7 @@ from .sales_return import DownloadSalesSalesReturnsApiView, SalesReturnDetailApi
 from .stock import StockAPIView, StockDetailAPIView, DownloadStockAPIView, DownloadStockDetailAPIView
 from .supplier import SupplierAPIVew, SupplierDetailsAPIView, DownloadSupplierAPIVew, DownloadSupplierDetailAPIView
 from .custom_404 import Custom404APIView
-from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView, MeAPIView, LogoutView
+from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView, MeAPIView, LogoutView, CookieTokenRefreshView
 from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView, ChangeCurrentOrgApiView
 from .select_options import SelectOptionsAPIView
 from .generate_pdf import GeneratePDFAPIView

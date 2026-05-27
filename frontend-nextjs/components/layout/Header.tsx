@@ -54,14 +54,14 @@ export default function Header() {
         {/* CTA */}
         <div className="hidden md:flex gap-3">
           <Link
-            href="/login"
+            href="/sign-in"
             className="px-4 py-2 rounded-xl border border-border hover:border-primary transition"
           >
-            Login
+            Sign In
           </Link>
 
           <Link
-            href="/login"
+            href="/sign-up"
             className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition"
           >
             Get Started
@@ -101,13 +101,13 @@ export default function Header() {
 
           <div className="pt-3 flex gap-2">
             <Link
-              href="/login"
+              href="/sign-in"
               className="flex-1 text-center px-3 py-2 border rounded-lg"
             >
-              Login
+              Sign In
             </Link>
             <Link
-              href="/login"
+              href="/sign-up"
               className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-lg"
             >
               Start

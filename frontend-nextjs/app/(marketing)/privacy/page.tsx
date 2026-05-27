@@ -1,7 +1,7 @@
 // app/(marketing)/privacy/page.tsx
 
-import PrivacyHero from "@/app/components/privacy/PrivacyHero";
-import PrivacySection from "@/app/components/privacy/PrivacySection";
+import PrivacyHero from "@/components/privacy/PrivacyHero";
+import PrivacySection from "@/components/privacy/PrivacySection";
 
 
 export const metadata = {

@@ -71,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    'journals.middleware.RefreshCookieMiddleware',
 
 ]
 
@@ -152,6 +152,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'journals.authentication.CookieJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -165,8 +166,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Set access token lifetime
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Set refresh token lifetime
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Set access token lifetime
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Set refresh token lifetime
     'ROTATE_REFRESH_TOKENS': True,  # Rotate refresh tokens
     'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
     'ALGORITHM': 'HS256',  # Algorithm for signing tokens
@@ -183,4 +184,8 @@ CORS_ALLOWED_ORIGINS = [
    frontend_url,
 ]
 
+CORS_ALLOW_CREDENTIALS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+]
