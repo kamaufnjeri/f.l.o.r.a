@@ -1,0 +1,13 @@
+Django==6.0.5 
+asgiref==3.11.1 
+django-filter==25.2
+django-rest-framework==0.1.0
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+PyJWT==2.8.0
+python-dotenv==1.0.1
+sqlparse==0.5.1
+typing_extensions==4.12.2
+django-cors-headers==4.9.0
+Jinja2==3.1.6
+xhtml2pdf==0.2.17

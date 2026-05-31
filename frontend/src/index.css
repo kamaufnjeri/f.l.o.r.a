@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+.increase-width {
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.decrease-width {
+  opacity: 1;
+  transition: all .3s ease;
+}
+
+.hide-header-dropdown {
+  width: 0px;
+  visibility: hidden; 
+  pointer-events: none; 
+  overflow: hidden;
+  z-index: 0;
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+.show-header-dropdown {
+  width: 250px;
+  visibility: visible;
+  pointer-events: all; 
+  overflow: visible;
+  opacity: 1;
+  z-index: 10;
+  transition: all 0.5s ease;
+}
+
+.rotate {
+  width: 200px;
+  height: 200px;
+  border-radius: 100%;
+  border: 20px solid #ccc;
+  border-top: 20px solid #2196f3;
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.unauthorized-height {
+  height: calc(100vh - 60px);
+}
+
+
+.rotate-chevron-0 {
+  transform: rotate(360deg);
+  transition: transform 0.5s ease;
+}
+
+.rotate-chevron {
+  transform: rotate(180deg);
+  transition: transform 0.5s ease;
+}
+.drop-items-hidden {
+  max-height: 0; 
+  opacity: 0;
+  overflow: hidden; 
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+}
+.organisation {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  position: relative;
+  font-size: 20px;
+  font-weight: 700;
+  border: 4px solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.organisation:hover {
+  border: 4px solid #9CA3AF;
+  color: #7C3AED;
+}
+
+
+.organisation:hover i {
+  display: block;
+}
+.drop-items-display {
+  max-height: 500px; 
+  opacity: 1;
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #e0e0e0; 
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #757575;
+  border-radius: 10px; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #616161; 
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin; /* Thin scrollbar */
+  scrollbar-color: #757575 #e0e0e0; 
+}
