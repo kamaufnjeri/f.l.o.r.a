@@ -52,7 +52,6 @@ class OrganisationSerializer(serializers.ModelSerializer):
                             "organisation": organisation.id,
                             "belongs_to": sub_category.id
                         })
-                        print(account_data)
                         account_serializer = AccountSerializer(data=account_data)
                         if account_serializer.is_valid():
                             account_serializer.save()

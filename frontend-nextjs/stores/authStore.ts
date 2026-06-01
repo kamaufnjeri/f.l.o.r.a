@@ -1,16 +1,16 @@
 // stores/auth-store.ts
 
-import { Organisation, User } from "@/types";
+import { Organisation, User, UserOrganisation } from "@/types";
 import { create } from "zustand";
 
 type AuthState = {
   user: User | null;
   currentOrg: Organisation | null;
-  userOrgs: Organisation[];
+  userOrgs: UserOrganisation[];
 
   setUser: (user: User | null) => void;
   setCurrentOrg: (org: Organisation | null) => void;
-  setUserOrgs: (orgs: Organisation[]) => void;
+  setUserOrgs: (orgs: UserOrganisation[]) => void;
 
   setAuth: (user: User) => void;
   logout: () => void;

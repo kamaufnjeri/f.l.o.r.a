@@ -39,13 +39,18 @@ export type Organisation = {
   currency?: string;
 };
 
+export type UserOrganisation = {
+  org_id: string;
+  org_name: string;
+};
+
 export type User = {
   id: number;
   email: string;
   first_name: string;
   last_name: string;
   phone_number?: string;
-  user_organisations?: Organisation[];
+  user_organisations?: UserOrganisation[];
   current_organisation?: Organisation | null;
 };
 
@@ -68,4 +73,21 @@ export interface SidebarShellProps {
   user: User;
   handleLogout: () => void;
   isLoggingOut: boolean;
+}
+
+// lib/types/journal.ts
+export type DebitCredit = 'debit' | 'credit';
+
+export interface JournalEntry {
+  account: string | null;
+  debit_credit: DebitCredit | null;
+  amount: number;
+  type: 'journal';
+}
+
+export interface JournalFormData {
+  date: string | null;
+  description: string;
+  serial_number: string;
+  journal_entries: JournalEntry[];
 }

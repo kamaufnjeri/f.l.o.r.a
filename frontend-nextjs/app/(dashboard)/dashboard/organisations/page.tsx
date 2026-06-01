@@ -7,11 +7,7 @@ export default async function OrganisationsPage() {
       <div className="space-y-4">
         <OrganisationClient />
 
-        {Array.from({ length: 60 }).map((_, i) => (
-          <div key={i} className="p-3 border rounded-lg">
-            Dummy content {i + 1}
-          </div>
-        ))}
+        
       </div>
 
     </div>

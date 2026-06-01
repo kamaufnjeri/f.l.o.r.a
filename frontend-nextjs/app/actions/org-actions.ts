@@ -97,3 +97,45 @@ export async function sendInvites(formData: FormData, orgId?:  string | null) {
     };
   }
 }
+
+export async function changeOrganisation(orgId?:  string | null) {
+  try {
+    if (!orgId) {
+      return { success: false, error: "Missing organisation Id" };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(`${backendURL}/organisations/change-current-organisation/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookieStore.toString(),
+      },
+      body: JSON.stringify({ org_id: orgId }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      return {
+        success: false,
+        error: formatApiError(errorData),
+      };
+    }
+
+    const data = await res.json();
+
+    return {
+      success: true,
+      message: data?.message || "Organisation changed successfully",
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
