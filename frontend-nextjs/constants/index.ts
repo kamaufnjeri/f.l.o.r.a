@@ -84,7 +84,7 @@ export const sidebarIcons = [
   {
     name: "Dashboard",
     icon: FaHome,
-    url: "/dashboard",
+    url: "",
     lists: null,
   },
 
@@ -93,9 +93,9 @@ export const sidebarIcons = [
     icon: FaShoppingCart,
     url: null,
     lists: [
-      { name: "Record Purchase", url: "/dashboard/purchases/record" },
-      { name: "All Purchases", url: "/dashboard/purchases" },
-      { name: "Purchase Returns", url: "/dashboard/purchases/returns" },
+      { name: "Record Purchase", url: "/purchases/record" },
+      { name: "All Purchases", url: "/purchases" },
+      { name: "Purchase Returns", url: "/purchases/returns" },
     ],
   },
 
@@ -104,9 +104,9 @@ export const sidebarIcons = [
     icon: FaFileInvoiceDollar,
     url: null,
     lists: [
-      { name: "Record Sale", url: "/dashboard/sales/record" },
-      { name: "All Sales", url: "/dashboard/sales" },
-      { name: "Sales Returns", url: "/dashboard/sales/returns" },
+      { name: "Record Sale", url: "/sales/record" },
+      { name: "All Sales", url: "/sales" },
+      { name: "Sales Returns", url: "/sales/returns" },
     ],
   },
 
@@ -115,8 +115,8 @@ export const sidebarIcons = [
     icon: FaBook,
     url: null,
     lists: [
-      { name: "Record Journal", url: "/dashboard/journals/record" },
-      { name: "All Journals", url: "/dashboard/journals" },
+      { name: "Record Journal", url: "/journals/record" },
+      { name: "All Journals", url: "/journals" },
     ],
   },
 
@@ -125,37 +125,37 @@ export const sidebarIcons = [
     icon: MdWork,
     url: null,
     lists: [
-      { name: "Record Service Income", url: "/dashboard/services/record" },
-      { name: "All Services", url: "/dashboard/services" },
-      { name: "All Services Income", url: "/dashboard/services/income" },
+      { name: "Record Service Income", url: "/services/record" },
+      { name: "All Services", url: "/services" },
+      { name: "All Services Income", url: "/services/income" },
     ],
   },
 
   {
     name: "Accounts",
     icon: FaClipboardList,
-    url: "/dashboard/accounts",
+    url: "/accounts",
     lists: null,
   },
 
   {
     name: "Stocks",
     icon: FaBox,
-    url: "/dashboard/stocks",
+    url: "/stocks",
     lists: null,
   },
 
   {
     name: "Customers",
     icon: FaUsers,
-    url: "/dashboard/customers",
+    url: "/customers",
     lists: null,
   },
 
   {
     name: "Suppliers",
     icon: FaTruck,
-    url: "/dashboard/suppliers",
+    url: "/suppliers",
     lists: null,
   },
 
@@ -164,9 +164,9 @@ export const sidebarIcons = [
     icon: FaTh,
     url: null,
     lists: [
-      { name: "Bills", url: "/dashboard/bills" },
-      { name: "Invoices", url: "/dashboard/invoices" },
-      { name: "Payments", url: "/dashboard/payments" },
+      { name: "Bills", url: "/bills" },
+      { name: "Invoices", url: "/invoices" },
+      { name: "Payments", url: "/payments" },
     ],
   },
 
@@ -175,23 +175,23 @@ export const sidebarIcons = [
     icon: FaChartPie,
     url: null,
     lists: [
-      { name: "Trial Balance", url: "/dashboard/reports/trial-balance" },
-      { name: "Income Statement", url: "/dashboard/reports/income-statement" },
-      { name: "Balance Sheet", url: "/dashboard/reports/balance-sheet" },
+      { name: "Trial Balance", url: "/reports/trial-balance" },
+      { name: "Income Statement", url: "/reports/income-statement" },
+      { name: "Balance Sheet", url: "/reports/balance-sheet" },
     ],
   },
 
   {
     name: "Settings",
     icon: IoMdSettings,
-    url: "/dashboard/settings",
+    url: "/settings",
     lists: null,
   },
 
   {
     name: "Help & Support",
     icon: MdHelp,
-    url: "/dashboard/help",
+    url: "/help",
     lists: null,
   },
 ];

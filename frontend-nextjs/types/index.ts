@@ -79,8 +79,8 @@ export interface SidebarShellProps {
 export type DebitCredit = 'debit' | 'credit';
 
 export interface JournalEntry {
-  account: string | null;
-  debit_credit: DebitCredit | null;
+  account: string | "";
+  debit_credit: DebitCredit;
   amount: number;
   type: 'journal';
 }
@@ -91,3 +91,73 @@ export interface JournalFormData {
   serial_number: string;
   journal_entries: JournalEntry[];
 }
+
+export type ID = string;
+
+export interface Account {
+  id: ID;
+  name: string;
+  sub_category: string;
+}
+
+export interface Customer {
+  id: ID;
+  name: string;
+}
+
+export interface Supplier {
+  id: ID;
+  name: string;
+}
+
+export interface Stock {
+  id: ID;
+  name: string;
+}
+
+export interface Service {
+  id: ID;
+  name: string;
+}
+
+export interface Category {
+  id: ID;
+  name: string;
+}
+
+export interface SubCategory {
+  id: ID;
+  name: string;
+}
+
+export interface SerialNumbers {
+  journal: string;
+  sale: string;
+  service: string;
+  purchase: string;
+  payment: string;
+  bill: string;
+  invoice: string;
+}
+
+export interface FixedGroup {
+  id: string;
+  name: string;
+  value: string;
+}
+
+export interface SelectOptions {
+  suppliers_accounts: Supplier[];
+  customers_accounts: Customer[];
+
+  stocks: Stock[];
+  accounts: Account[];
+
+  serial_numbers: SerialNumbers;
+
+  fixed_groups: FixedGroup[];
+  categories: Category[];
+  sub_categories: SubCategory[];
+  services: Service[];
+}
+

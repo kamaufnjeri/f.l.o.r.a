@@ -8,8 +8,10 @@ import { FiMail, FiLock } from "react-icons/fi";
 import Input from "../forms/Input";
 import Button from "../forms/Button";
 import { signIn } from "@/app/actions/auth";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function SignInForm() {
+  const { setUser, setCurrentOrg, setUserOrgs } = useAuthStore();
   const [pending, startTransition] = useTransition();
   const [resetKey, setResetKey] = useState(0);
   const router = useRouter();
@@ -21,15 +23,20 @@ export default function SignInForm() {
       try {
         const res = await signIn(formData);
         if (res.success) {
+          const user = res.user;
+
+          if (!user.current_organisation?.id) {
+            router.push("/organisation-create");
+          }
+          router.push(`/dashboard/${user.current_organisation?.id}`);
+          setUser(user);
+          setCurrentOrg(user.current_organisation);
+          setUserOrgs(user.user_organisations);
           
-      
-        router.push('dashboard');
+          toast.success("Login successful");
         
 
-        toast.success("Login successful");
-       
-
-        setResetKey((k) => k + 1);
+          setResetKey((k) => k + 1);
         } else {
           toast.error(res.error || "Invalid credentials");
           return;

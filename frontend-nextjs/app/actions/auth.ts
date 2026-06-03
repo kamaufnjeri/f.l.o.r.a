@@ -13,11 +13,13 @@ export async function signIn(formData: FormData) {
     };
 
     const res = await api.post("/auth/login/", payload);
+    const data = res.data;
 
 
     return {
       success: true,
-      message: res.data.message || 'Login Successful!'
+      message: res.data.message || 'Login Successful!',
+      user: data.user,
     };
   } catch (error) {
     return {

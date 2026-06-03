@@ -6,7 +6,7 @@ import InviteModal from "./InviteModal";
 import { useAuthStore } from "@/stores/authStore";
 import { changeOrganisation } from "@/app/actions/org-actions";
 import toast from "react-hot-toast";
-
+import { useRouter } from "next/navigation";
 import {
   FiPlus,
   FiUsers,
@@ -26,7 +26,7 @@ export default function OrganisationClient() {
   const [openInvite, setOpenInvite] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState(false);
-
+  const router = useRouter();
   const { currentOrg, userOrgs, setCurrentOrg } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +54,7 @@ export default function OrganisationClient() {
 
       if (res.success) {
         toast.success("Workspace switched");
+        router.push(`/dashboard/${orgId}/organisations`);
 
         setCurrentOrg(res.data || null);
 
@@ -94,7 +95,7 @@ export default function OrganisationClient() {
 
           <button
             onClick={() => setOpenCreate(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl shadow-md transition"
+            className="flex cursor-pointer items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl shadow-md transition"
           >
             <FiPlus />
             Create Organisation
@@ -141,7 +142,7 @@ export default function OrganisationClient() {
 
                 <button
                   onClick={() => setEditing(!editing)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
+                  className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
                 >
                   <FiEdit3 />
                   {editing ? "Cancel" : "Edit"}
@@ -149,7 +150,7 @@ export default function OrganisationClient() {
 
                 <button
                   onClick={() => setOpenInvite(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
+                  className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
                 >
                   <FiUsers />
                   Invite
@@ -239,7 +240,7 @@ export default function OrganisationClient() {
                 key={org.org_id}
                 onClick={() => switchOrg(org.org_id)}
                 className={`
-                  group text-left rounded-2xl p-6 border transition-all duration-300
+                  group cursor-pointer text-left rounded-2xl p-6 border transition-all duration-300
                   hover:-translate-y-1 hover:shadow-lg
                   ${
                     isActive

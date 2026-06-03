@@ -49,7 +49,7 @@ export default function SidebarContent({
             return (
               <Link
                 key={item.name}
-                href={item.url}
+                href={`/dashboard/${currentOrg?.id}/${item.url}`}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
                   transition-all duration-200 relative
@@ -114,7 +114,7 @@ export default function SidebarContent({
                   {item.lists?.map((sub) => (
                     <Link
                       key={sub.name}
-                      href={sub.url}
+                      href={`/dashboard/${currentOrg?.id}/${sub.url}`}
                       className="block text-sm text-gray-500 hover:text-indigo-600 transition hover:translate-x-0.5"
                     >
                       {sub.name}

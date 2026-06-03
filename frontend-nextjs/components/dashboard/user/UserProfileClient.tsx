@@ -143,7 +143,7 @@ export default function UserProfileClient() {
 
             <button
               onClick={() => console.log("Delete account clicked")}
-              className="bg-red-600 cursor-pointer hover:bg-red-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md transition"
+              className="cursor-pointer bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md transition"
             >
               Delete Account
             </button>

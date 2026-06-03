@@ -91,7 +91,7 @@ export default function SidebarShell({
         <div className="border-t p-2 space-y-2 bg-gray-50/50">
           {/* Profile */}
           <Link
-            href="/dashboard/profile"
+            href={`/dashboard/${user.current_organisation?.id}/profile`}
             className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition"
           >
             <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
@@ -112,7 +112,7 @@ export default function SidebarShell({
 
           {/* Organisations */}
           <Link
-            href="/dashboard/organisations"
+            href={`/dashboard/${user.current_organisation?.id}/organisations`}
             className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition"
           >
             <FaBuilding className="text-gray-600" />

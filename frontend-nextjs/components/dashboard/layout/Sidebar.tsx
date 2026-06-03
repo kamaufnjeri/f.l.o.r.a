@@ -9,10 +9,13 @@ import SidebarContent from "./SidebarContent";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { logoutAction } from "@/app/actions/auth-actions";
+import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { currentOrg, user, logout } = useAuthStore();
+  const { clear } = useSelectOptionsStore();
+  
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter()
 
@@ -25,6 +28,7 @@ export default function Sidebar() {
 
     router.push('/sign-in');
     logout()
+    clear(); // Clear select options store on logout
 
     toast.success(res.message || "Login successful");
     
