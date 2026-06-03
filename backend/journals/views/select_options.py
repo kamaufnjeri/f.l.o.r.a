@@ -28,15 +28,15 @@ class SelectOptionsAPIView(generics.ListAPIView):
             fixed_groups_data = FixedGroupSerializer(fixed_groups, many=True).data
             services_data = ServiceSerializer(services, many=True).data
 
-            payments_accounts = []
-            purchase_accounts = []
+            # payments_accounts = []
+            # purchase_accounts = []
             accounts_new_data = []
             suppliers_accounts = []
             customers_accounts = []
-            income_discount_accounts = []
-            expense_discount_accounts = []
-            sales_accounts = []
-            service_income_accounts = []
+            # income_discount_accounts = []
+            # expense_discount_accounts = []
+            # sales_accounts = []
+            # service_income_accounts = []
             
             for account in accounts_data:
                 bal_type = ''
@@ -45,27 +45,10 @@ class SelectOptionsAPIView(generics.ListAPIView):
                 else:
                     bal_type = 'Cr'
                 account_name = f"{account.get('name')} ({bal_type}-{account.get('account_balance')})"
-                account_data = {"id": account.get("id"), "name": account_name}
                 sub_category = account.get("sub_category")
+
+                account_data = {"id": account.get("id"), "name": account_name, "sub_category": sub_category}
                 
-                if sub_category == 'Cash and Cash Equivalents':
-                    payments_accounts.append(account_data)
-                elif sub_category == 'Cost of Goods Sold':
-                    purchase_accounts.append(account_data)
-
-                elif sub_category == 'Accounts Receivable':
-                    customers_accounts.append(account_data)
-                elif sub_category == 'Accounts Payable':
-                    suppliers_accounts.append(account_data)
-                elif sub_category == 'Income from Discounts':
-                    income_discount_accounts.append(account_data)
-                elif sub_category == "Product Sales":
-                    sales_accounts.append(account_data)
-                elif sub_category == "Expense from Discounts":
-                    expense_discount_accounts.append(account_data)
-
-                elif sub_category == "Service Income":
-                    service_income_accounts.append(account_data)
                 
                 accounts_new_data.append(account_data)
 
@@ -81,17 +64,11 @@ class SelectOptionsAPIView(generics.ListAPIView):
                 "customers_accounts": customers_accounts,
                 "stocks": stocks_new_data,
                 "accounts": accounts_new_data,
-                "payment_accounts": payments_accounts,
-                "purchase_accounts": purchase_accounts,
                 "serial_numbers": serial_numbers_data,
                 "fixed_groups": fixed_groups_data,
                 "categories": categories_data,
                 "sub_categories": sub_categories_data,
-                "services": services_data,
-                "income_discount_accounts": income_discount_accounts,
-                "expense_discount_accounts": expense_discount_accounts,
-                "sales_accounts": sales_accounts,
-                "service_income_accounts": service_income_accounts
+                "services": services_data
             }
 
 

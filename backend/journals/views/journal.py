@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from django.db import models
 from datetime import datetime
-from journals.utils import date_filtering, sort_filtering
+from journals.utils import date_filtering, sort_filtering, serial_numbers
 from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -77,10 +77,10 @@ class JournalAPIView(generics.ListCreateAPIView):
                         }
                     }
                     return paginator.get_paginated_response({
-                    "status": "success",
-                    "message": "Journals retrieved successfully with pagination",
-                    "data": data
-                }) 
+                        "status": "success",
+                        "message": "Journals retrieved successfully with pagination",
+                        "data": data
+                    }) 
 
             else:
                 serializer = self.get_serializer(queryset, many=True)
@@ -108,7 +108,11 @@ class JournalAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serial_numbers_data = serial_numbers.get_serial_numbers(request.user.current_org)
+            return Response({
+                'message': 'Journal created successfully',
+                'serial_numbers':   serial_numbers_data
+            }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
