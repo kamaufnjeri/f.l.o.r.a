@@ -7,13 +7,8 @@ type Props = {
   onChange: (value: string) => void;
 };
 
-export default function DateFilter({
-  value,
-  onChange,
-}: Props) {
-  const [showModal, setShowModal] =
-    useState(false);
-
+export default function DateFilter({ value, onChange }: Props) {
+  const [open, setOpen] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
@@ -21,101 +16,90 @@ export default function DateFilter({
     if (!from || !to) return;
 
     onChange(`${from}to${to}`);
-    setShowModal(false);
+    setOpen(false);
   };
+
+  const isCustom = value.includes("to");
 
   return (
     <>
-      <select
-        value={
-          value.includes("to")
-            ? "custom"
-            : value
-        }
-        onChange={(e) => {
-          const val = e.target.value;
+      <div className="relative w-full">
+        <select
+          value={isCustom ? "custom" : value}
+          onChange={(e) => {
+            if (e.target.value === "custom") {
+              setOpen(true);
+              return;
+            }
+            onChange(e.target.value);
+          }}
+          className="
+            h-10
+            w-full
+            rounded-xl
+            border
+            border-gray-200
+            bg-white
+            px-4
+            text-sm
+            shadow-sm
+            transition
+            focus:outline-none
+            focus:ring-2
+            focus:ring-black/10
+            focus:border-black
+            cursor-pointer
+          "
+        >
+          <option value="">Date range</option>
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="this_week">This week</option>
+          <option value="this_month">This month</option>
+          <option value="custom">Custom range</option>
+        </select>
 
-          if (val === "custom") {
-            setShowModal(true);
-            return;
-          }
+        <input type="hidden" name="date" value={value} />
+      </div>
 
-          onChange(val);
-        }}
-        className="
-          h-11
-          w-full
-          rounded-xl
-          border
-          border-gray-200
-          bg-white
-          px-4
-          text-sm
-          shadow-sm
-          focus:border-black
-          focus:outline-none
-        "
-      >
-        <option value="">Date Range</option>
-        <option value="today">Today</option>
-        <option value="yesterday">Yesterday</option>
-        <option value="this_week">This Week</option>
-        <option value="this_month">This Month</option>
-        <option value="custom">Custom Range</option>
-      </select>
-
-      <input
-        type="hidden"
-        name="date"
-        value={value}
-      />
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold">
-              Custom Date Range
+      {/* MODAL */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Custom date range
             </h3>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Select a reporting period.
+            <p className="text-sm text-gray-500 mt-1">
+              Choose a start and end date.
             </p>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 space-y-3">
               <input
                 type="date"
                 value={from}
-                onChange={(e) =>
-                  setFrom(e.target.value)
-                }
-                className="w-full rounded-xl border px-3 py-2"
+                onChange={(e) => setFrom(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-black/10"
               />
 
               <input
                 type="date"
                 value={to}
-                onChange={(e) =>
-                  setTo(e.target.value)
-                }
-                className="w-full rounded-xl border px-3 py-2"
+                onChange={(e) => setTo(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-black/10"
               />
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
               <button
-                type="button"
-                onClick={() =>
-                  setShowModal(false)
-                }
-                className="rounded-xl border px-4 py-2"
+                onClick={() => setOpen(false)}
+                className="px-4 py-2 rounded-xl border text-sm hover:bg-gray-50"
               >
                 Cancel
               </button>
 
               <button
-                type="button"
                 onClick={applyRange}
-                className="rounded-xl bg-black px-4 py-2 text-white"
+                className="px-4 py-2 rounded-xl bg-black text-white text-sm hover:bg-black/80"
               >
                 Apply
               </button>

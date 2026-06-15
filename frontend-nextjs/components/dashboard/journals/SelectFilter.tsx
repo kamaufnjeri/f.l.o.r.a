@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 export type Option = {
   label: string;
   value: string;
@@ -20,22 +18,47 @@ export default function SelectFilter({
   onChange,
   options,
   placeholder = "Select",
-  name
+  name,
 }: Props) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border border-gray-300 p-2 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-      name={name}
-    >
-      <option value="">{placeholder}</option>
+    <div className="relative w-full">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        name={name}
+        className="
+          h-10
+          w-full
+          appearance-none
+          rounded-xl
+          border
+          border-gray-200
+          bg-white
+          px-4
+          text-sm
+          font-medium
+          shadow-sm
+          transition
+          focus:outline-none
+          focus:ring-2
+          focus:ring-black/10
+          focus:border-black
+          cursor-pointer
+        "
+      >
+        <option value="">{placeholder}</option>
 
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+
+      {/* dropdown icon */}
+      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+        ▾
+      </div>
+    </div>
   );
 }

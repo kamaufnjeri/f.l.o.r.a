@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import SelectFilter, { Option } from "./SelectFilter";
 
 type Props = {
@@ -14,14 +13,15 @@ export default function SortFilter({
   value,
   onChange,
   options,
+  name,
 }: Props) {
   return (
     <SelectFilter
       value={value}
       onChange={onChange}
       options={options}
+      name={name}
       placeholder="Sort by"
-      name="sort_by"
     />
   );
 }

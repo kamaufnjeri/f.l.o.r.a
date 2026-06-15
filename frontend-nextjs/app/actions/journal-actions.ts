@@ -134,3 +134,5 @@ export async function getJournals(orgId: string, params: { search?: string; date
     };
   }
 }
+
+

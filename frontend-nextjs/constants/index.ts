@@ -11,7 +11,7 @@ import {
   FaTh,
   FaHome,
 } from "react-icons/fa";
-import { IoMdSettings, IoMdHelp } from "react-icons/io";
+import { IoMdSettings } from "react-icons/io";
 import { MdHelp, MdWork } from "react-icons/md";
 
 /* =========================

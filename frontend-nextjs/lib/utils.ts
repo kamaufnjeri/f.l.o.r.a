@@ -83,3 +83,34 @@ export function formatApiError(error: unknown): string {
 
   return replaceDash(errorMessage);
 }
+
+export const buildQuery = (
+  params: Record<string, string | number | boolean | undefined | null>,
+  paginate: boolean
+): string => {
+  const query = new URLSearchParams();
+
+  query.set("paginate", String(paginate));
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  return query.toString();
+};
+
+export const saveFile = (blob: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

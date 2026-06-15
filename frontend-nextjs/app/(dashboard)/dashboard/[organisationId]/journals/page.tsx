@@ -56,7 +56,7 @@ export default async function JournalsPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <JournalFilters />
+      <JournalFilters filters={{ search, date, sort_by, page }} organisationId={organisationId} />
 
       {/* EMPTY STATE */}
       {journals.length === 0 ? (
@@ -87,6 +87,7 @@ export default async function JournalsPage({
           {/* PAGINATION */}
           {response.pagination && (
             <JournalPagination
+              organisationId={organisationId}
               pagination={response.pagination}
             />
           )}
