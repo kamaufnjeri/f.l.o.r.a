@@ -135,4 +135,147 @@ export async function getJournals(orgId: string, params: { search?: string; date
   }
 }
 
+export async function getJournal(orgId: string, journalId: string) {
+  try {
+    if (!orgId || !journalId) {
+      return {
+        success: false,
+        error: "Organization/Journal ID is required",
+      };
+    }
+    const cookieStore = await cookies();
 
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/journals/${journalId}/`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: "Failed to fetch journal",
+        journal: null,
+      };
+    }
+
+    const data = await res.json();
+
+    return {
+      success: true,
+      journal: data?.data ?? data ?? null,
+    };
+  } catch (error) {
+    console.log("Error fetching journal:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+      journal: null,
+    };
+  }
+}
+
+export async function editJournal(
+  orgId: string,
+  journalId: string,
+  payload: JournalFormData
+) {
+  try {
+    if (!orgId || !journalId) {
+      return {
+        success: false,
+        error: "Organization/Journal ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/journals/${journalId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: data?.message || "Failed to update journal",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Journal updated successfully",
+      journal: data?.data ?? data,
+    };
+  } catch (error) {
+    console.log("Error editing journal:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function deleteJournal(
+  orgId: string,
+  journalId: string
+) {
+  try {
+    if (!orgId || !journalId) {
+      return {
+        success: false,
+        error: "Organization/Journal ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/journals/${journalId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const data = await res.json();
+
+      return {
+        success: false,
+        error: data?.message || "Failed to delete journal",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Journal deleted successfully",
+    };
+  } catch (error) {
+    console.log("Error deleting journal:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

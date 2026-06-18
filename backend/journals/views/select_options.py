@@ -44,7 +44,7 @@ class SelectOptionsAPIView(generics.ListAPIView):
                     bal_type = 'Dr'
                 else:
                     bal_type = 'Cr'
-                account_name = f"{account.get('name')} ({bal_type}-{account.get('account_balance')})"
+                account_name = f"{account.get('name')} ({bal_type})"
                 sub_category = account.get("sub_category")
 
                 account_data = {"id": account.get("id"), "name": account_name, "sub_category": sub_category}
@@ -54,7 +54,7 @@ class SelectOptionsAPIView(generics.ListAPIView):
 
             stocks_new_data = []
             for stock in stocks_data:
-                stock_name = f"{stock.get('name')} (rem-{stock.get('total_quantity')}{stock.get('unit_alias')})"
+                stock_name = f"{stock.get('name')} {stock.get('unit_alias')})"
                 stock_data = {"id": stock.get("id"), "name": stock_name}
                 stocks_new_data.append(stock_data)
 

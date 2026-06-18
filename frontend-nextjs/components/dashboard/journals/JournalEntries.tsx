@@ -8,20 +8,24 @@ import { debitCredit } from "@/constants";
 import { JournalEntry } from "@/types";
 
 
-
 type Props = {
   journalEntries: JournalEntry[];
   setJournalEntries: React.Dispatch<React.SetStateAction<JournalEntry[]>>;
-
+  disabled?: boolean;
   accounts: SelectOption[];
   type?: 'journal';
+  onMarkDirty?: () => void;
+  isDirty?: boolean;
 };
 
 export default function JournalEntries({
   journalEntries,
   setJournalEntries,
   accounts,
-  type = 'journal'
+  type = 'journal',
+  disabled = false,
+  onMarkDirty,
+  isDirty
 }: Props) {
   // 🔁 update single field
   const updateEntry = (
@@ -37,6 +41,7 @@ export default function JournalEntries({
       };
       return updated;
     });
+    onMarkDirty?.(); // ✅ auto mark dirty on change
   };
 
   // ➕ add entry
@@ -50,6 +55,7 @@ export default function JournalEntries({
         type: type
       },
     ]);
+    onMarkDirty?.(); // ✅ auto mark dirty on change
   };
 
   // ❌ remove entry
@@ -57,6 +63,7 @@ export default function JournalEntries({
     setJournalEntries((prev) =>
       prev.filter((_, i) => i !== index)
     );
+    onMarkDirty?.(); // ✅ auto mark dirty on change
   };
 
 
@@ -68,15 +75,18 @@ export default function JournalEntries({
         <h2 className="text-lg font-semibold text-gray-800">
           Journal Entries
         </h2>
+        {isDirty && <span className="text-yellow-500 text-xs">• edited</span>}
 
         <button
           type="button"
           onClick={addEntry}
+          disabled={disabled}
           className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg bg-black text-white text-sm hover:bg-gray-800 transition"
         >
           <FaPlus />
           Add Entry
         </button>
+
       </div>
 
       {/* GRID HEADER (desktop only) */}
@@ -101,6 +111,7 @@ export default function JournalEntries({
                   label="Account"
                   value={entry.account}
                   options={accounts}
+                  disabled={disabled}
                   onChange={(val) =>
                     updateEntry(index, "account", val)
                   }
@@ -111,6 +122,7 @@ export default function JournalEntries({
               <div className="md:col-span-3">
                 <SelectField
                   label="Type"
+                  disabled={disabled}
                   value={entry.debit_credit}
                   options={debitCredit}
                   onChange={(val) =>
@@ -124,6 +136,7 @@ export default function JournalEntries({
                 <InputField
                   label="Amount"
                   type="number"
+                  disabled={disabled}
                   value={entry.amount}
                   onChange={(val) =>
                     updateEntry(index, "amount", val)
@@ -133,9 +146,10 @@ export default function JournalEntries({
 
               {/* REMOVE */}
               <div className="md:col-span-2 flex justify-end">
-                {journalEntries.length > 1 && (
+                {(!disabled && journalEntries.length > 1) && (
                   <button
                     type="button"
+                    disabled={disabled}
                     onClick={() => removeEntry(index)}
                     className="p-2 cursor-pointer text-red-500 hover:bg-red-50 rounded-lg transition"
                   >

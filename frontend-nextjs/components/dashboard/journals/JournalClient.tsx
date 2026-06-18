@@ -1,0 +1,344 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
+
+import InputField from "./InputField";
+import TextAreaField from "./TextAreaField";
+import JournalEntries from "./JournalEntries";
+
+import { useAuthStore } from "@/stores/authStore";
+import { deleteJournal, editJournal } from "@/app/actions/journal-actions";
+import { Journal, JournalEntry } from "@/types";
+import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
+import { downloadPdf } from "@/app/actions/download-actions";
+import { saveFile } from "@/lib/utils";
+import ConfirmModal from "../common/ConfirmationModal";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
+
+type DirtyMap = Record<string, boolean>;
+
+type Props = {
+  journal: Journal;
+};
+
+export default function JournalClient({ journal }: Props) {
+  const { currentOrg } = useAuthStore();
+  const { accounts } = useSelectOptionsStore();
+  const [original, setOriginal] = useState(journal);
+  const [date, setDate] = useState<string>(journal.date);
+  const [description, setDescription] = useState<string>(journal.description);
+  const router = useRouter();
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(
+    journal.journal_entries
+  );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [dirty, setDirty] = useState<DirtyMap>({});
+
+  const markAsDirty = (key: string) => {
+    setDirty((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
+
+  const isDirty = (key: string) => !!dirty[key];
+
+  const hasChanges = Object.keys(dirty).length > 0;
+
+  const saveChanges = async () => {
+    if (!currentOrg?.id) {
+      toast.error("Organisation required");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const payload: Journal = {
+        ...original,
+        date,
+        description,
+        journal_entries: journalEntries,
+      };
+
+      const res = await editJournal(
+        currentOrg.id,
+        original.id,
+        payload
+      );
+
+      if (!res?.success) {
+        toast.error(res.error || "Update failed");
+        return;
+      }
+
+      toast.success("Journal updated");
+
+      setOriginal(res.journal);
+      setDate(res.journal.date);
+      setDescription(res.journal.description);
+      setJournalEntries(res.journal.journal_entries);
+
+      setDirty({});
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Save failed");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const cancelEdit = () => {
+    setDate(original.date);
+    setDescription(original.description);
+    setJournalEntries(original.journal_entries);
+    setDirty({});
+    setIsEditing(false);
+  };
+
+  const difference = useMemo(() => {
+    return journalEntries.reduce((acc, entry) => {
+      const amount = Number(entry.amount || 0);
+
+      return entry.debit_credit === "debit"
+        ? acc + amount
+        : acc - amount;
+    }, 0);
+  }, [journalEntries]);
+
+  const handleDownload = async () => {
+    const toastId = toast.loading("Preparing download...");
+
+    try {
+      if (!currentOrg?.id) {
+        toast.error("Organisation id required", { id: toastId });
+        return;
+      }
+      const title = `Journal ${journal.serial_number}`
+      const res = await downloadPdf(
+        currentOrg.id,
+        journal,
+        title,
+      );
+
+      if (res.success) {
+        saveFile(res.blob, `${title}.pdf`);
+
+        toast.success("Downloaded successfully", {
+          id: toastId,
+        });
+      } else {
+        toast.error("Download failed", { id: toastId });
+      }
+    } catch (error) {
+      console.error('Error', error);
+      toast.error("Download failed", { id: toastId });
+    }
+  };
+
+const handleDelete = async () => {
+  const res = await deleteJournal(currentOrg!.id, original.id);
+
+  if (!res?.success) {
+    throw new Error(res?.error || "Delete failed");
+  }
+
+  toast.success("Journal deleted");
+  // redirect or remove from list here
+  router.push(`/dashboard/${currentOrg!.id}/journals`)
+};
+
+  return (
+    <div className="space-y-5 w-full">
+
+      {/* 🧠 PREMIUM HEADER (DESKTOP + MOBILE RESPONSIVE) */}
+      <div className="bg-white border rounded-xl shadow-sm p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+          {/* LEFT: TITLE */}
+          <div className="flex flex-col">
+            <h1 className="text-lg font-bold text-primary">
+              Journal
+            </h1>
+
+            <p className="text-xs text-gray-500">
+              Serial: {original.serial_number}
+            </p>
+          </div>
+
+          {/* RIGHT: ACTIONS */}
+          <div className="flex flex-wrap gap-2 lg:justify-end">
+
+            {/* EDIT / VIEW TOGGLE */}
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2  cursor-pointer  text-sm bg-black text-white rounded-lg hover:bg-gray-800"
+              >
+                Edit Mode
+              </button>
+            ) : (
+              <button
+                onClick={cancelEdit}
+                className="px-4 py-2 cursor-pointer text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                View Mode
+              </button>
+            )}
+
+            {/* DOWNLOAD */}
+            <button
+              disabled={isEditing}
+              onClick={handleDownload}
+              className="rounded-xl
+                  bg-primary
+                  px-5 py-2.5
+                  text-sm font-semibold
+                  text-white
+                  shadow-sm
+                  transition
+                  cursor-pointer
+                  hover:bg-primary-dark
+                  active:scale-[0.98]"
+            >
+              Download Pdf
+            </button>
+
+            {/* DELETE */}
+            <button
+              disabled={isEditing}
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4  cursor-pointer  py-2 text-sm bg-red-50 text-red-400 rounded-lg cursor-not-allowed"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        {/* UNSAVED STATE */}
+        <div className="mt-3 text-sm">
+          {hasChanges ? (
+            <span className="text-yellow-600 font-medium">
+              ⚠ Unsaved changes
+            </span>
+          ) : (
+            <span className="text-gray-400">No changes</span>
+          )}
+        </div>
+      </div>
+
+      {/* 🧾 FORM SECTION */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <InputField
+          label="Date"
+          type="date"
+          value={date}
+          onChange={(val) => {
+            setDate(val);
+            markAsDirty("date");
+          }}
+          required
+          disabled={!isEditing}
+          isDirty={isDirty("date")}
+        />
+
+        <TextAreaField
+          label="Description"
+          value={description}
+          onChange={(val) => {
+            setDescription(val);
+            markAsDirty("description");
+          }}
+          required
+          disabled={!isEditing}
+          isDirty={isDirty("description")}
+        />
+      </div>
+
+      {/* 📊 ENTRIES (PREMIUM CARD STYLE) */}
+      <div className="bg-white border rounded-xl shadow-sm p-4">
+
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-700">
+            Journal Entries
+          </h2>
+
+          <span className="text-xs text-gray-400">
+            {journalEntries.length} entries
+          </span>
+        </div>
+
+        <JournalEntries
+          journalEntries={journalEntries}
+          setJournalEntries={setJournalEntries}
+          accounts={accounts}
+          type="journal"
+          onMarkDirty={() => markAsDirty("entries")}
+          isDirty={isDirty("entries")}
+          disabled={!isEditing}
+        />
+      </div>
+
+      {/* 📊 TOTALS (PREMIUM SUMMARY BAR) */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border rounded-xl p-4 flex flex-col md:flex-row md:justify-between gap-2 text-sm">
+
+        <span className="text-gray-500">Totals</span>
+
+        <div className="flex gap-6 font-semibold">
+          <span className="text-green-600">
+            Debit: {original.journal_entries_total?.debit_total}
+          </span>
+          <span className="text-red-600">
+            Credit: {original.journal_entries_total?.credit_total}
+          </span>
+        </div>
+      </div>
+
+      {/* ⚖️ FOOTER (ONLY EDIT MODE) */}
+      {isEditing && (
+        <div className="sticky bottom-3 bg-white border rounded-xl shadow-md p-4 flex items-center justify-between">
+
+          <div className="text-sm">
+            {difference === 0 ? (
+              <span className="text-green-600">✓ Balanced</span>
+            ) : (
+              <span className="text-red-600">
+                ✗ Not Balanced ({difference})
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={saveChanges}
+            disabled={difference !== 0 || isSaving || !hasChanges}
+            className={`px-5 py-2 rounded-lg text-white text-sm transition
+              ${difference === 0 && hasChanges && !isSaving
+                ? "bg-black hover:bg-gray-800"
+                : "bg-gray-300 cursor-not-allowed"
+              }
+            `}
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      )}
+     {showDeleteModal &&  <ConfirmModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Journal"
+        description="This will permanently remove this journal entry."
+        confirmText="Delete"
+        tone="danger"
+        onConfirm={handleDelete}
+      />
+     }
+    </div>
+  );
+}

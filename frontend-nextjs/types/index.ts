@@ -161,3 +161,23 @@ export interface SelectOptions {
   services: Service[];
 }
 
+export interface ResJournalEntry extends JournalEntry {
+  account_name: string;
+  id: string;
+}
+
+export interface JournalTotals {
+  debit_total: number;
+  credit_total: number;
+}
+
+export interface Journal {
+  id: string;
+  serial_number: string;
+  date: string;
+  description: string;
+
+  journal_entries: JournalEntry[];
+
+  journal_entries_total?: JournalTotals;
+}

@@ -13,7 +13,7 @@ type TextAreaFieldProps = {
 
   required?: boolean;
   disabled?: boolean;
-
+  isDirty?: boolean;
   rows?: number;
 };
 
@@ -26,10 +26,12 @@ export default function TextAreaField({
   required = false,
   disabled = false,
   rows = 4,
+  isDirty,
 }: TextAreaFieldProps) {
   return (
     <div className="w-full space-y-1">
       {/* LABEL */}
+      <div className="flex justify-between items-center">
       {label && (
         <label
           htmlFor={name}
@@ -39,6 +41,9 @@ export default function TextAreaField({
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
+      {isDirty && <span className="text-yellow-500 text-xs">• edited</span>}
+
+      </div>
 
       {/* TEXTAREA */}
       <textarea
@@ -46,11 +51,12 @@ export default function TextAreaField({
         name={name}
         value={value}
         rows={rows}
+        required
         disabled={disabled}
         placeholder={placeholder}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
           onChange(e.target.value)
-        }
+        }}
         className="
           w-full px-3 py-2 rounded-lg border border-gray-200
           text-sm text-gray-800 bg-white

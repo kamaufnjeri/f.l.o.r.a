@@ -63,3 +63,57 @@ export async function downloadListPdf(
     };
   }
 }
+
+
+export async function downloadPdf(
+  orgId: string,
+  data: unknown,
+  title: string,
+): Promise<DownloadPDFResponse> {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/generate-pdf/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify({ title, data }),
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      return {
+        success: false,
+        error: formatApiError(errorData),
+      };
+    }
+    const blob = await res.blob(); // ✅ fetch-native way
+    // We don't process blob here in server action
+    // just confirm success
+    return {
+      success: true,
+      blob, // ✅ fetch-native way
+      message: "PDF generated successfully",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

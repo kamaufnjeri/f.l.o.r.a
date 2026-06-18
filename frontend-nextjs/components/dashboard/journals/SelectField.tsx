@@ -9,19 +9,27 @@ export type SelectOption = {
 
 type SelectFieldProps = {
   label?: string;
+  name?: string;
+  required?: boolean;
   value: string | number | "";
   onChange: (value: string | number) => void;
   options: SelectOption[];
+  isDirty?: boolean;
 
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export default function SelectField({
   label,
+  name,
   value,
   onChange,
   options,
   placeholder = "Select...",
+  disabled = false,
+  required = false,
+  isDirty,
 }: SelectFieldProps) {
   const [query, setQuery] = useState<string>("");
   const [open, setOpen] = useState<boolean>(false);
@@ -45,17 +53,26 @@ export default function SelectField({
   return (
     <div className="w-full space-y-1 relative">
       {/* LABEL */}
+      <div className="flex justify-between items-center">
       {label && (
-        <label className="text-xs font-medium text-gray-600">
+        <label
+          htmlFor={name}
+          className="text-xs font-medium text-gray-600"
+        >
           {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
+      {isDirty && <span className="text-yellow-500 text-xs">• edited</span>}
+
+      </div>
 
       {/* INPUT */}
       <div className="relative">
         <input
           value={open ? query : selectedLabel}
           placeholder={placeholder}
+          disabled={disabled}
           onFocus={() => {
             setOpen(true);
             setQuery("");
@@ -76,7 +93,7 @@ export default function SelectField({
         />
 
         {/* DROPDOWN */}
-        {open && (
+        {(open && !disabled) && (
           <div className="absolute z-50 mt-2 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
             {filteredOptions.length === 0 ? (
               <div className="p-3 text-sm text-gray-500">
