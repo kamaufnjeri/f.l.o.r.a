@@ -1,4 +1,4 @@
-import { AnyObject, ApiErrorShape } from "@/types";
+import { AnyObject, ApiErrorShape, JournalEntry, JournalType } from "@/types";
 import type { RefObject } from "react";
 
 
@@ -114,3 +114,15 @@ export const saveFile = (blob: Blob, filename: string) => {
   link.remove();
   window.URL.revokeObjectURL(url);
 };
+
+export function findEntriesByType(
+  entries: JournalEntry[],
+  type: JournalType
+) {
+  return entries
+    .map((entry, index) => ({
+      entry,
+      index,
+    }))
+    .filter((item) => item.entry.type === type);
+}

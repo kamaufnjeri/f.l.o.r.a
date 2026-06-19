@@ -2,20 +2,24 @@
 
 import { useState } from "react";
 import CreateAccountModal from "../accounts/CreateAccountModal";
+import CreateStockModal from "../stocks/CreateStockModal";
 
 
 type Props = {
   title?: string;
   description?: string;
   account?: boolean;
+  stock? : boolean;
 };
 
 export default function Header({
   title = "Accounts",
   description = "Manage your data efficiently",
   account = false,
+  stock = false,
 }: Props) {
   const [openAccount, setOpenAccount] = useState(false);
+  const [openStock, setOpenStock] = useState(false);
 
   return (
     <>
@@ -42,7 +46,7 @@ export default function Header({
               className="
                 px-4 py-2
                 rounded-xl cursor-pointer
-                bg-primary
+                bg-gray-500
                 text-white
                 font-medium
                 shadow-sm
@@ -56,6 +60,25 @@ export default function Header({
             >
               + Add Account
             </button>}
+            {stock && <button
+              onClick={() => setOpenStock(true)}
+              className="
+                px-4 py-2
+                rounded-xl cursor-pointer
+                bg-gray-600
+                text-white
+                font-medium
+                shadow-sm
+                transition-all
+                hover:bg-primary-darker
+                hover:shadow-md
+                active:scale-[0.98]
+                focus:outline-none focus:ring-2 focus:ring-primary/30
+                w-full sm:w-auto
+              "
+            >
+              + Add Stock
+            </button>}
 
           </div>
         </div>
@@ -65,6 +88,11 @@ export default function Header({
      {openAccount && (
         <CreateAccountModal
           onClose={() => setOpenAccount(false)}
+        />
+      )}
+      {openStock && (
+        <CreateStockModal
+          onClose={() => setOpenStock(false)}
         />
       )}
     </>

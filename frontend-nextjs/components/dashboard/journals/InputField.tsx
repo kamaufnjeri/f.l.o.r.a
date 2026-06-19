@@ -5,7 +5,8 @@ import React from "react";
 type InputFieldProps = {
   label?: string;
   name?: string;
-
+  min?: number,
+  max?: number,
   value: string | number;
   onChange: (value: string) => void;
 
@@ -21,6 +22,8 @@ export default function InputField({
   label,
   name,
   value,
+  min=0,
+  max=1000000000,
   onChange,
   type = "text",
   placeholder = "",
@@ -53,6 +56,8 @@ export default function InputField({
         value={value}
         disabled={disabled}
         placeholder={placeholder}
+        min={type === "number" ? min : undefined}
+        max={type === "number" ? max : undefined}
         required
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           onChange(e.target.value);

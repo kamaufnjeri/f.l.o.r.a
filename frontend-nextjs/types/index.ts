@@ -76,13 +76,23 @@ export interface SidebarShellProps {
 }
 
 // lib/types/journal.ts
-export type DebitCredit = 'debit' | 'credit';
+export type DebitCredit = "debit" | "credit";
+
+export type JournalType =
+  | "journal"
+  | "purchase"
+  | "sale"
+  | "bill"
+  | "invoice"
+  | "discount"
+  | "payment";
+
 
 export interface JournalEntry {
   account: string | "";
   debit_credit: DebitCredit;
   amount: number;
-  type: 'journal';
+  type: JournalType;
 }
 
 export interface JournalFormData {
@@ -147,11 +157,20 @@ export interface FixedGroup {
 }
 
 export interface SelectOptions {
-  suppliers_accounts: Supplier[];
-  customers_accounts: Customer[];
+  accounts: Account[];
+
+  suppliersAccounts: Account[];
+  customersAccounts: Account[];
+
+  paymentAccounts: Account[];
+  purchaseAccounts: Account[];
+  salesAccounts: Account[];
+  serviceIncomeAccounts: Account[];
+
+  incomeDiscountAccounts: Account[];
+  expenseDiscountAccounts: Account[];
 
   stocks: Stock[];
-  accounts: Account[];
 
   serial_numbers: SerialNumbers;
 
@@ -180,4 +199,41 @@ export interface Journal {
   journal_entries: JournalEntry[];
 
   journal_entries_total?: JournalTotals;
+}
+
+
+
+export interface PurchaseEntry {
+  stock: string | number | null;
+  purchased_quantity: number;
+  purchase_price: number;
+}
+
+
+export interface PurchaseFormData {
+  date: string | null;
+  description: string;
+  due_date: string | null;
+  serial_number: string;
+  purchase_entries: PurchaseEntry[];
+  journal_entries: JournalEntry[];
+}
+
+export type AccountingState = {
+  purchase: JournalEntry | null;
+  sale: JournalEntry | null;
+  bill: JournalEntry | null;
+  invoice: JournalEntry | null;
+  discount: JournalEntry | null;
+
+  payment: JournalEntry[]; // ONLY multi
+};
+
+export interface StockForm {
+  name: string;
+  unit_name: string;
+  unit_alias: string;
+
+  opening_stock_quantity: number;
+  opening_stock_rate: number;
 }

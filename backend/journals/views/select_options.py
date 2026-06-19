@@ -54,7 +54,7 @@ class SelectOptionsAPIView(generics.ListAPIView):
 
             stocks_new_data = []
             for stock in stocks_data:
-                stock_name = f"{stock.get('name')} {stock.get('unit_alias')})"
+                stock_name = f"{stock.get('name')} ({stock.get('unit_alias')})"
                 stock_data = {"id": stock.get("id"), "name": stock_name}
                 stocks_new_data.append(stock_data)
 
