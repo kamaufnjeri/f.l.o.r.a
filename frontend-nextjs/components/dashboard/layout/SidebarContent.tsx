@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { SidebarContentProps } from "@/types";
+import { ModalName, SidebarContentProps } from "@/types";
 import { SidebarItemType } from "@/constants";
+import { useModalStore } from "@/stores/modalStore";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 export default function SidebarContent({
   sidebarIcons,
@@ -12,6 +14,7 @@ export default function SidebarContent({
   setActiveDropdown,
   currentOrg,
 }: SidebarContentProps) {
+    const openModal = useModalStore((s) => s.openModal);
   return (
     <>
       {/* ================= ORG HEADER ================= */}
@@ -111,15 +114,29 @@ export default function SidebarContent({
                 `}
               >
                 <div className="ml-10 mt-2 space-y-1 border-l pl-3 border-gray-200">
-                  {item.lists?.map((sub) => (
-                    <Link
-                      key={sub.name}
-                      href={`/dashboard/${currentOrg?.id}/${sub.url}`}
-                      className="block text-sm text-gray-500 hover:text-indigo-600 transition hover:translate-x-0.5"
-                    >
-                      {sub.name}
-                    </Link>
-                  ))}
+                  {item.lists?.map((sub) => {
+                    if (sub.showModal === true && !sub.url) {
+                      return (
+                        <button
+                          key={sub.name}
+                          onClick={() => openModal(sub.name! as ModalName)}
+                          className="block text-sm text-gray-500 hover:text-indigo-600 transition hover:translate-x-0.5 cursor-pointer border border-gray-500 hover:border-indigo-600 rounded p-1"
+                        >
+                          Add {capitalizeFirstLetter(sub.name)}
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={sub.name}
+                        href={`/dashboard/${currentOrg?.id}/${sub.url}`}
+                        className="block text-sm text-gray-500 hover:text-indigo-600 transition hover:translate-x-0.5"
+                      >
+                        {sub.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </div>

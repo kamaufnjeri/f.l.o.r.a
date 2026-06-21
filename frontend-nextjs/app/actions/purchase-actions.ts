@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
-import { JournalFormData, PurchaseFormData } from "@/types";
+import { PurchaseFormData } from "@/types";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -28,21 +28,19 @@ export async function recordPurchase(orgId: string, payload: PurchaseFormData) {
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-
-      return {
-        success: false,
-        error: formatApiError(errorData),
-      };
-    }
-
     const data = await res.json();
 
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
     return {
       success: true,
-      message: data.message || "Purchase entry created successfully",
-      serial_numbers: data.serial_numbers|| null,
+      message: data.message || "Purchase created successfully",
+      select_options: data.select_options|| null,
     };
   } catch (error) {
     return {
@@ -135,19 +133,19 @@ export async function getJournals(orgId: string, params: { search?: string; date
   }
 }
 
-export async function getJournal(orgId: string, journalId: string) {
+export async function getPurchase(orgId: string, purchaseId: string) {
   try {
-    if (!orgId || !journalId) {
+    if (!orgId || !purchaseId) {
       return {
         success: false,
-        error: "Organization/Journal ID is required",
+        error: "Organization/Purchase ID is required",
       };
     }
     const cookieStore = await cookies();
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/journals/${journalId}/`,
+      `${backendURL}/${orgId}/purchases/${purchaseId}/`,
       {
         method: "GET",
         headers: {
@@ -157,48 +155,49 @@ export async function getJournal(orgId: string, journalId: string) {
       }
     );
 
+  
+    const data = await res.json();
+
     if (!res.ok) {
+      
       return {
         success: false,
-        error: "Failed to fetch journal",
-        journal: null,
+        error: formatApiError(data),
       };
     }
 
-    const data = await res.json();
 
     return {
       success: true,
-      journal: data?.data ?? data ?? null,
+      purchase: data?.data ?? data ?? null,
     };
   } catch (error) {
-    console.log("Error fetching journal:", error);
+    console.log("Error fetching purchase:", error);
 
     return {
       success: false,
       error: formatApiError(error),
-      journal: null,
     };
   }
 }
 
-export async function editJournal(
+export async function editPurchase(
   orgId: string,
-  journalId: string,
-  payload: JournalFormData
+  purchaseId: string,
+  payload: PurchaseFormData
 ) {
   try {
-    if (!orgId || !journalId) {
+    if (!orgId || !purchaseId) {
       return {
         success: false,
-        error: "Organization/Journal ID is required",
+        error: "Organization/Purchase ID is required",
       };
     }
     const cookieStore = await cookies();
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/journals/${journalId}/`,
+      `${backendURL}/${orgId}/purchases/${purchaseId}/`,
       {
         method: "PATCH",
         headers: {
@@ -209,22 +208,25 @@ export async function editJournal(
       }
     );
 
+   
     const data = await res.json();
 
     if (!res.ok) {
+      
       return {
         success: false,
-        error: data?.message || "Failed to update journal",
+        error: formatApiError(data),
       };
     }
 
-    return {
-      success: true,
-      message: "Journal updated successfully",
-      journal: data?.data ?? data,
-    };
+      return {
+        success: true,
+        message: data.message || "Purchase updated successfully",
+        purchase: data?.journal,
+        select_options: data?.select_options
+      };
   } catch (error) {
-    console.log("Error editing journal:", error);
+    console.log("Error editing purchase:", error);
 
     return {
       success: false,
@@ -233,22 +235,22 @@ export async function editJournal(
   }
 }
 
-export async function deleteJournal(
+export async function deletePurchase(
   orgId: string,
-  journalId: string
+  purchaseId: string
 ) {
   try {
-    if (!orgId || !journalId) {
+    if (!orgId || !purchaseId) {
       return {
         success: false,
-        error: "Organization/Journal ID is required",
+        error: "Organization/Purchase ID is required",
       };
     }
     const cookieStore = await cookies();
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/journals/${journalId}/`,
+      `${backendURL}/${orgId}/purchases/${purchaseId}/`,
       {
         method: "DELETE",
         headers: {
@@ -257,21 +259,23 @@ export async function deleteJournal(
       }
     );
 
-    if (!res.ok) {
-      const data = await res.json();
+   
+    const data = await res.json();
 
+    if (!res.ok) {
+      
       return {
         success: false,
-        error: data?.message || "Failed to delete journal",
+        error: formatApiError(data),
       };
     }
-
     return {
+      message: data.message || "Purchase deleted successfully",
       success: true,
-      message: "Journal deleted successfully",
+      select_options: data?.select_options,
     };
   } catch (error) {
-    console.log("Error deleting journal:", error);
+    console.log("Error deleting purchase:", error);
 
     return {
       success: false,

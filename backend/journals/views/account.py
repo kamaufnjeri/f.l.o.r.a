@@ -2,6 +2,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.serializers import AccountSerializer, AccountDetailsSerializer, CategorySerializer, SubCategorySerializer
 from journals.utils import flatten_errors
+from journals.utils.select_options_utils import select_options
 from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES, PERMANENT_ACCOUNTS
 from django.db.models import Q
 from journals.models import Account, SubCategory, Category
@@ -23,12 +24,18 @@ class CategoryAPIView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             serializer_data = request.data.copy()
+
             serializer_data['organisation'] = kwargs.get('organisation_id')
             serializer_data['user'] = request.user.id
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_categories=True)
+
+            return Response({
+                'message': 'Account group created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)      
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -37,6 +44,7 @@ class CategoryAPIView(generics.CreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -56,7 +64,11 @@ class SubCategoryAPIView(generics.CreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_sub_categories=True)
+            return Response({
+                'message': 'Account belongs to created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -134,7 +146,6 @@ class AccountAPIView(generics.ListCreateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -150,7 +161,11 @@ class AccountAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            return Response({
+                'message': 'Account created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -201,7 +216,6 @@ class DownloadAccountsAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -243,7 +257,6 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -261,7 +274,13 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(instance, data=data, partial=partial)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+
+                return Response({
+                    "message": "Account updated successfully.",
+                    "account": serializer.data,
+                    "select_options": select_options_data
+                } , status=status.HTTP_200_OK)
             else:
                 raise serializers.ValidationError("Cannot update account, it's a permanent account") 
 
@@ -279,7 +298,6 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -305,7 +323,9 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
                 if instance.name.strip().lower() not in map(str.lower, PERMANENT_ACCOUNTS) and \
                 instance.belongs_to.name.strip().lower() not in ('accounts receivable', 'accounts payable'):
                     instance.delete() 
-                    return Response({"detail": "Account item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                    select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            
+                    return Response({"message": "Account deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
                 else:
                     raise serializers.ValidationError("Cannot delete account, it's a permanent account")
             else:

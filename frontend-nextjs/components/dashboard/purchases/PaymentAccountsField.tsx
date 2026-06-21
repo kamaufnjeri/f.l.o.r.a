@@ -1,29 +1,28 @@
-import { AccountingState, DebitCredit, JournalEntry } from "@/types";
+import { DebitCredit, JournalEntry, JournalType } from "@/types";
 import InputField from "../journals/InputField";
 import SelectField, { SelectOption } from "../journals/SelectField";
 import { FaTrash } from "react-icons/fa";
+import { Entry } from "./PurchaseSalesAccountField";
 
 type Props = {
   debitCredit: DebitCredit;
-  entries: JournalEntry[];
+  entriesData: Entry[];
   accounts: SelectOption[];
   disabled?: boolean;
-  updateEntry: (
-    section: keyof AccountingState,
-    field: keyof JournalEntry,
-    value: string | number,
-    index: number
-  ) => void;
-  addEntry: (
-    section: keyof AccountingState,
-    debitCredit: DebitCredit
-  ) => void;
-  removeEntry: (section: keyof AccountingState, index?: number) => void;
+  updateEntry: <
+  K extends keyof JournalEntry
+>(
+  index: number,
+  field: K,
+  value: JournalEntry[K]
+) => void;
+  addEntry: (type: JournalType, debitCredit: DebitCredit) => void;
+  removeEntry: (index: number) => void;
 };
 
 export default function PaymentAccountsField({
   debitCredit,
-  entries,
+  entriesData,
   accounts,
   disabled = false,
   updateEntry,
@@ -31,7 +30,7 @@ export default function PaymentAccountsField({
   removeEntry,
 }: Props) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-3xl border shadow-sm p-6 space-y-5">
 
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900">
@@ -49,18 +48,18 @@ export default function PaymentAccountsField({
 
       <div className="space-y-3">
 
-        {entries.map((item, i) => (
+        {entriesData.map(({entry, index}) => (
           <div
-            key={i}
+            key={index}
             className="grid grid-cols-1 md:grid-cols-[2fr_1fr_auto] gap-4 items-end bg-gray-50 border border-gray-200 rounded-2xl p-4"
           >
 
             <SelectField
               label="Account"
-              value={item.account || ""}
+              value={entry?.account || ""}
               options={accounts}
               onChange={(val) =>
-                updateEntry("payment", "account", val, i)
+                updateEntry(index, "account", val as string)
               }
               disabled={disabled}
             />
@@ -68,9 +67,9 @@ export default function PaymentAccountsField({
             <InputField
               label="Amount"
               type="number"
-              value={item.amount}
+              value={entry?.amount}
               onChange={(val) =>
-                updateEntry("payment", "amount", val, i)
+                updateEntry(index, "amount", Number(val))
               }
               disabled={disabled}
             />
@@ -78,7 +77,7 @@ export default function PaymentAccountsField({
             {!disabled && (
               <button
                 type="button"
-                onClick={() => removeEntry("payment", i)}
+                onClick={() => removeEntry(index)}
                 className="cursor-pointer text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl transition"
               >
                 <FaTrash/>

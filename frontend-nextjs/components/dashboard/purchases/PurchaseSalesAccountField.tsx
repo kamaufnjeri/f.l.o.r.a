@@ -1,29 +1,35 @@
-import { AccountingState, JournalEntry } from "@/types";
+import { JournalEntry } from "@/types";
 import SelectField, { SelectOption } from "../journals/SelectField";
 
+export type Entry = {
+  entry: JournalEntry,
+  index: number,
+}
 type Props = {
   title: string;
-  type: 'sale' | 'purchase',
-  entry: JournalEntry | null,
+  entryData: Entry,
   isDirty?: boolean;
   accounts: SelectOption[];
   disabled?: boolean;
-  updateEntry: (
-    section: keyof AccountingState,
-    field: keyof JournalEntry,
-    value: string | number) => void;
+  updateEntry: <K extends keyof JournalEntry
+  >(
+    index: number,
+    field: K,
+    value: JournalEntry[K]
+  ) => void;
 }
 
 
 export default function PurchaseSalesAccountField({
   title,
-  type = "purchase",
-  entry,
+  entryData,
+
   accounts,
   isDirty = false,
   disabled = false,
   updateEntry
 }: Props) {
+  const { entry, index } = entryData;
   return (
     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-5">
       {/* HEADER */}
@@ -37,10 +43,10 @@ export default function PurchaseSalesAccountField({
         <div className="grid grid-cols-1 gap-2 p-2 rounded-md">
           <SelectField
             options={accounts}
-            placeholder="Choose purchase account"
+            placeholder={`Choose ${title}`}
             value={entry?.account ?? "" }
             onChange={(val) =>
-              updateEntry(type, "account", val)
+              updateEntry(index, "account", val as string)
             }
             disabled={disabled}
           />

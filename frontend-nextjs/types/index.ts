@@ -81,10 +81,11 @@ export type DebitCredit = "debit" | "credit";
 export type JournalType =
   | "journal"
   | "purchase"
-  | "sale"
+  | "sales"
   | "bill"
   | "invoice"
   | "discount"
+  | "service_income"
   | "payment";
 
 
@@ -96,7 +97,7 @@ export interface JournalEntry {
 }
 
 export interface JournalFormData {
-  date: string | null;
+  date: string;
   description: string;
   serial_number: string;
   journal_entries: JournalEntry[];
@@ -142,18 +143,14 @@ export interface SubCategory {
 
 export interface SerialNumbers {
   journal: string;
-  sale: string;
-  service: string;
+  sales: string;
+  service_income: string;
   purchase: string;
-  payment: string;
-  bill: string;
-  invoice: string;
 }
 
 export interface FixedGroup {
   id: string;
   name: string;
-  value: string;
 }
 
 export interface SelectOptions {
@@ -211,23 +208,27 @@ export interface PurchaseEntry {
 
 
 export interface PurchaseFormData {
-  date: string | null;
+  date: string;
   description: string;
-  due_date: string | null;
+  due_date: string;
   serial_number: string;
   purchase_entries: PurchaseEntry[];
   journal_entries: JournalEntry[];
 }
 
-export type AccountingState = {
-  purchase: JournalEntry | null;
-  sale: JournalEntry | null;
-  bill: JournalEntry | null;
-  invoice: JournalEntry | null;
-  discount: JournalEntry | null;
 
-  payment: JournalEntry[]; // ONLY multi
-};
+export interface Purchase {
+  id: string;
+  date: string;
+  description: string;
+  due_date: string | null;
+  serial_number: string;
+  purchase_entries: PurchaseEntry[];
+  journal_entries: JournalEntry[];
+  journal_entries_total?: JournalTotals;
+
+}
+
 
 export interface StockForm {
   name: string;
@@ -237,3 +238,90 @@ export interface StockForm {
   opening_stock_quantity: number;
   opening_stock_rate: number;
 }
+
+export interface SaleEntry {
+  stock: string | number | null;
+  sold_quantity: number;
+  sales_price: number;
+}
+
+
+export interface SaleFormData {
+  date: string;
+  description: string;
+  due_date: string;
+  serial_number: string;
+  sales_entries: SaleEntry[];
+  journal_entries: JournalEntry[];
+}
+
+
+export interface Sale {
+  id: string;
+  date: string;
+  description: string;
+  due_date: string | null;
+  serial_number: string;
+  sales_entries: SaleEntry[];
+  journal_entries: JournalEntry[];
+  journal_entries_total?: JournalTotals;
+
+}
+
+export type ServiceFormData = {
+  name: string;
+  description: string;
+};
+
+
+export interface ServiceIncomeEntry {
+  service: string | null;
+  quantity: number;
+  price: number;
+}
+
+
+export interface ServiceIncomeFormData {
+  date: string;
+  description: string;
+  due_date: string;
+  serial_number: string;
+  service_income_entries: ServiceIncomeEntry[];
+  journal_entries: JournalEntry[];
+}
+
+
+export interface ServiceIncome {
+  id: string;
+  date: string;
+  description: string;
+  due_date: string | null;
+  serial_number: string;
+  service_income_entries: ServiceIncomeEntry[];
+  journal_entries: JournalEntry[];
+  journal_entries_total?: JournalTotals;
+}
+
+
+export type SupplierCustomerFormData = {
+  name: string;
+  email: string;
+  phone_number: string;
+};
+
+
+export type ModalName = "account" | "stock" | "service" | "customer" | "supplier";
+
+export type OptionItem = {
+  id: string | number;
+  label: string;
+  value?: unknown;
+};
+
+export type UISection = {
+  key: string;
+  label: string;
+  modal?: ModalName;
+  showAdd?: boolean;
+  items: OptionItem[];
+};

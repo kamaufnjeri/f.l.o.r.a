@@ -16,7 +16,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     purchase_entries = PurchaseEntriesSerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
     details = serializers.SerializerMethodField(read_only=True)
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, default=None) 
+    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None) 
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
@@ -182,6 +182,8 @@ class PurchaseDetailSerializer(PurchaseSerializer):
             purchase = instance
      
             cogs, purchase_entries_id = purchase_entries_manager.update_purchase_entries(purchase_entries_data, purchase)
+            purchase.serial_number = validated_data.get('serial_number', purchase.serial_number)
+
             purchase.date = validated_data.get('date', purchase.date)
             purchase.description = validated_data.get('description', purchase.description)
             entries_id = journal_entries_manager.update_journal_entries(

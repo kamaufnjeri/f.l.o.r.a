@@ -3,6 +3,7 @@ from journals.models import Stock
 from journals.serializers import StockSerializer, StockDetailsSerializer
 from rest_framework.response import Response
 from journals.utils import flatten_errors
+from journals.utils.select_options_utils import select_options
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -80,7 +81,12 @@ class StockAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_stocks=True)
+            return Response({
+                'message': 'Stock created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)           
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -89,7 +95,6 @@ class StockAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -173,7 +178,6 @@ class StockDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -189,7 +193,13 @@ class StockDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_stocks=True)
+
+            return Response({
+                "message": "Stock updated successfully.",
+                "stock": serializer.data,
+                "select_options": select_options_data
+            } , status=status.HTTP_200_OK)
 
         except Stock.DoesNotExist:
             return Response({
@@ -205,7 +215,6 @@ class StockDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -229,7 +238,9 @@ class StockDetailAPIView(generics.RetrieveAPIView):
 
             if not has_entries:
                 instance.delete() 
-                return Response({"detail": "Stock item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_stocks=True)
+
+                return Response({"message": "Stock deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)            
             else:
                 raise serializers.ValidationError("Cannot delete stock with associated entries or non-zero closing stock.")
 

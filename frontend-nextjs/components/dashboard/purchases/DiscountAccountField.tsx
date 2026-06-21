@@ -1,30 +1,30 @@
 import { useState } from "react";
-import { AccountingState, DebitCredit, JournalEntry } from "@/types";
+import { DebitCredit, JournalEntry, JournalType } from "@/types";
 import InputField from "../journals/InputField";
 import SelectField, { SelectOption } from "../journals/SelectField";
 import { FaTrash } from "react-icons/fa";
+import { Entry } from "./PurchaseSalesAccountField";
 
 type Props = {
   debitCredit: DebitCredit;
-  entry: JournalEntry | null;
+  entryData: Entry,
   purchaseTotal: number;
   accounts: SelectOption[];
   disabled?: boolean;
-  updateEntry: (
-    section: keyof AccountingState,
-    field: keyof JournalEntry,
-    value: string | number
-  ) => void;
-  addEntry: (
-    section: keyof AccountingState,
-    debitCredit: DebitCredit
-  ) => void;
-  removeEntry: (section: keyof AccountingState) => void;
+   updateEntry: <
+      K extends keyof JournalEntry
+    >(
+      index: number,
+      field: K,
+      value: JournalEntry[K]
+    ) => void;
+      addEntry: (type: JournalType, debitCredit: DebitCredit) => void;
+      removeEntry: (index: number) => void;
 };
 
 export default function DiscountAccountField({
   debitCredit,
-  entry,
+  entryData,
   purchaseTotal,
   accounts,
   disabled = false,
@@ -33,9 +33,11 @@ export default function DiscountAccountField({
   removeEntry,
 }: Props) {
   const [showDiscount, setShowDiscount] = useState(false);
-
-  return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-5">
+const { entry, index } = entryData ?? {
+  entry: null,
+  index: -1,
+};  return (
+    <div className="bg-white rounded-3xl border shadow-sm p-6 space-y-5">
       
 
       {!showDiscount || !entry ? (
@@ -64,7 +66,7 @@ export default function DiscountAccountField({
            <button
             type="button"
             onClick={() => {
-              removeEntry("discount");
+              removeEntry(index);
               setShowDiscount(false);
             }}
             className="cursor-pointer text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl transition"
@@ -76,8 +78,9 @@ export default function DiscountAccountField({
             label="Account"
             value={entry.account || ""}
             options={accounts}
-            onChange={(val) => updateEntry("discount", "account", val)}
-            disabled={disabled}
+onChange={(val) =>
+              updateEntry(index, "account", val as string)
+            }            disabled={disabled}
           />
   <InputField
             label="Percentage %"
@@ -85,7 +88,7 @@ export default function DiscountAccountField({
             value={(Number(entry.amount) * 100) / purchaseTotal}
             onChange={(val) => {
               const amount = (Number(val) * purchaseTotal) / 100;
-              updateEntry("discount", "amount", amount);
+              updateEntry(index, "amount", amount)
             }}
           />
           
@@ -95,7 +98,7 @@ export default function DiscountAccountField({
             type="number"
             value={entry.amount}
             onChange={(val) =>
-              updateEntry("discount", "amount", val)
+              updateEntry(index, "amount", Number(val))
             }
           />
            

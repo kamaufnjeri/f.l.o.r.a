@@ -1,116 +1,34 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 
 import InputField from "./InputField";
 import TextAreaField from "./TextAreaField";
 import JournalEntries from "./JournalEntries";
 
-import { useAuthStore } from "@/stores/authStore";
-import { deleteJournal, editJournal } from "@/app/actions/journal-actions";
-import { Journal, JournalEntry } from "@/types";
-import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
+import { deleteJournal } from "@/app/actions/journal-actions";
+import { Journal } from "@/types";
 import { downloadPdf } from "@/app/actions/download-actions";
 import { saveFile } from "@/lib/utils";
 import ConfirmModal from "../common/ConfirmationModal";
-import { Router } from "next/router";
 import { useRouter } from "next/navigation";
+import { useJournal } from "@/hooks/useJournal";
 
-type DirtyMap = Record<string, boolean>;
 
 type Props = {
   journal: Journal;
 };
 
 export default function JournalClient({ journal }: Props) {
-  const { currentOrg } = useAuthStore();
-  const { accounts } = useSelectOptionsStore();
-  const [original, setOriginal] = useState(journal);
-  const [date, setDate] = useState<string>(journal.date);
-  const [description, setDescription] = useState<string>(journal.description);
-  const router = useRouter();
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(
-    journal.journal_entries
-  );
+  const { currentOrg, original, difference, accounts, journal: editingJournal, handleChange, updateEntry, addEntry, removeEntry, handleUpdate, posting,
+    isDirty, hasChanges, isEditing, cancelEdit, enableEditing
+    } = useJournal(journal);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
+  
 
-  const [dirty, setDirty] = useState<DirtyMap>({});
 
-  const markAsDirty = (key: string) => {
-    setDirty((prev) => ({
-      ...prev,
-      [key]: true,
-    }));
-  };
-
-  const isDirty = (key: string) => !!dirty[key];
-
-  const hasChanges = Object.keys(dirty).length > 0;
-
-  const saveChanges = async () => {
-    if (!currentOrg?.id) {
-      toast.error("Organisation required");
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const payload: Journal = {
-        ...original,
-        date,
-        description,
-        journal_entries: journalEntries,
-      };
-
-      const res = await editJournal(
-        currentOrg.id,
-        original.id,
-        payload
-      );
-
-      if (!res?.success) {
-        toast.error(res.error || "Update failed");
-        return;
-      }
-
-      toast.success("Journal updated");
-
-      setOriginal(res.journal);
-      setDate(res.journal.date);
-      setDescription(res.journal.description);
-      setJournalEntries(res.journal.journal_entries);
-
-      setDirty({});
-      setIsEditing(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Save failed");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const cancelEdit = () => {
-    setDate(original.date);
-    setDescription(original.description);
-    setJournalEntries(original.journal_entries);
-    setDirty({});
-    setIsEditing(false);
-  };
-
-  const difference = useMemo(() => {
-    return journalEntries.reduce((acc, entry) => {
-      const amount = Number(entry.amount || 0);
-
-      return entry.debit_credit === "debit"
-        ? acc + amount
-        : acc - amount;
-    }, 0);
-  }, [journalEntries]);
 
   const handleDownload = async () => {
     const toastId = toast.loading("Preparing download...");
@@ -143,7 +61,7 @@ export default function JournalClient({ journal }: Props) {
   };
 
 const handleDelete = async () => {
-  const res = await deleteJournal(currentOrg!.id, original.id);
+  const res = await deleteJournal(currentOrg!.id, journal.id);
 
   if (!res?.success) {
     throw new Error(res?.error || "Delete failed");
@@ -167,9 +85,7 @@ const handleDelete = async () => {
               Journal
             </h1>
 
-            <p className="text-xs text-gray-500">
-              Serial: {original.serial_number}
-            </p>
+           
           </div>
 
           {/* RIGHT: ACTIONS */}
@@ -178,7 +94,7 @@ const handleDelete = async () => {
             {/* EDIT / VIEW TOGGLE */}
             {!isEditing ? (
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => enableEditing()}
                 className="px-4 py-2  cursor-pointer  text-sm bg-black text-white rounded-lg hover:bg-gray-800"
               >
                 Edit Mode
@@ -214,7 +130,7 @@ const handleDelete = async () => {
             <button
               disabled={isEditing}
               onClick={() => setShowDeleteModal(true)}
-              className="px-4  cursor-pointer  py-2 text-sm bg-red-50 text-red-400 rounded-lg cursor-not-allowed"
+              className="px-4  py-2 text-sm bg-red-50 text-red-400 rounded-lg cursor-pointer"
             >
               Delete
             </button>
@@ -234,15 +150,25 @@ const handleDelete = async () => {
       </div>
 
       {/* 🧾 FORM SECTION */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+      <form onSubmit={handleUpdate} >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-2xl p-4 mb-4">
+         <InputField
+          label="Serial Number"
+          type="text"
+          value={editingJournal.serial_number}
+          onChange={(val) => {
+            handleChange('serial_number', val);
+          }}
+          required
+          disabled={!isEditing}
+          isDirty={isDirty("serial_number")}
+        />
         <InputField
           label="Date"
           type="date"
-          value={date}
+          value={editingJournal.date}
           onChange={(val) => {
-            setDate(val);
-            markAsDirty("date");
+            handleChange('date', val);
           }}
           required
           disabled={!isEditing}
@@ -251,10 +177,9 @@ const handleDelete = async () => {
 
         <TextAreaField
           label="Description"
-          value={description}
+          value={editingJournal.description}
           onChange={(val) => {
-            setDescription(val);
-            markAsDirty("description");
+            handleChange('description', val);
           }}
           required
           disabled={!isEditing}
@@ -271,37 +196,21 @@ const handleDelete = async () => {
           </h2>
 
           <span className="text-xs text-gray-400">
-            {journalEntries.length} entries
+            {editingJournal.journal_entries.length} entries
           </span>
         </div>
 
         <JournalEntries
-          journalEntries={journalEntries}
-          setJournalEntries={setJournalEntries}
+          entries={editingJournal.journal_entries}
+          updateEntry={updateEntry}
+          addEntry={addEntry}
+          removeEntry={removeEntry}
           accounts={accounts}
-          type="journal"
-          onMarkDirty={() => markAsDirty("entries")}
-          isDirty={isDirty("entries")}
+          isDirty={isDirty("journal_entries")}
           disabled={!isEditing}
         />
       </div>
-
-      {/* 📊 TOTALS (PREMIUM SUMMARY BAR) */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border rounded-xl p-4 flex flex-col md:flex-row md:justify-between gap-2 text-sm">
-
-        <span className="text-gray-500">Totals</span>
-
-        <div className="flex gap-6 font-semibold">
-          <span className="text-green-600">
-            Debit: {original.journal_entries_total?.debit_total}
-          </span>
-          <span className="text-red-600">
-            Credit: {original.journal_entries_total?.credit_total}
-          </span>
-        </div>
-      </div>
-
-      {/* ⚖️ FOOTER (ONLY EDIT MODE) */}
+       {/* ⚖️ FOOTER (ONLY EDIT MODE) */}
       {isEditing && (
         <div className="sticky bottom-3 bg-white border rounded-xl shadow-md p-4 flex items-center justify-between">
 
@@ -314,21 +223,45 @@ const handleDelete = async () => {
               </span>
             )}
           </div>
+           <button
+            onClick={cancelEdit}
+            className="px-4 py-2 cursor-pointer text-sm bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400"
+          >
+            Cancel
+          </button>
 
           <button
-            onClick={saveChanges}
-            disabled={difference !== 0 || isSaving || !hasChanges}
-            className={`px-5 py-2 rounded-lg text-white text-sm transition
-              ${difference === 0 && hasChanges && !isSaving
+            type='submit'
+            disabled={difference !== 0 || posting || !hasChanges}
+            className={`px-5 py-2 rounded-lg text-white text-sm transition cursor-pointer
+              ${difference === 0 && hasChanges && !posting
                 ? "bg-black hover:bg-gray-800"
                 : "bg-gray-300 cursor-not-allowed"
               }
             `}
           >
-            {isSaving ? "Saving..." : "Save Changes"}
+            {posting ? "Saving..." : "Save Changes"}
           </button>
         </div>
       )}
+      </form>
+
+      {/* 📊 TOTALS (PREMIUM SUMMARY BAR) */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border rounded-xl p-4 flex flex-col md:flex-row md:justify-between gap-2 text-sm">
+
+        <span className="text-gray-500">Totals</span>
+
+        <div className="flex gap-6 font-semibold">
+          <span className="text-green-600">
+            Debit: {original?.journal_entries_total?.debit_total}
+          </span>
+          <span className="text-red-600">
+            Credit: {original?.journal_entries_total?.credit_total}
+          </span>
+        </div>
+      </div>
+
+     
      {showDeleteModal &&  <ConfirmModal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

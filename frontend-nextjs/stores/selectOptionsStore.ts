@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { SelectOptions, Stock } from "@/types";
+import { SelectOptions, Service, Stock } from "@/types";
 import { Account } from "@/types";
 
 const norm = (v?: string) => (v ?? "").trim().toLowerCase();
@@ -23,6 +23,7 @@ type SelectOptionsStore = SelectOptions & {
   setOptions: (data: SelectOptions) => void;
   addAccount: (account: Account) => void;
   addStock: (stock: Stock) => void;
+  addService: (service: Service) => void;
 
   setSerialNumbers: (sn: SelectOptions["serial_numbers"]) => void;
   clear: () => void;
@@ -43,12 +44,9 @@ const initialState: SelectOptions = {
   stocks: [],
   serial_numbers: {
     journal: "",
-    sale: "",
-    service: "",
+    sales: "",
+    service_income: "",
     purchase: "",
-    payment: "",
-    bill: "",
-    invoice: "",
   },
   fixed_groups: [],
   categories: [],
@@ -61,13 +59,28 @@ export const useSelectOptionsStore = create<SelectOptionsStore>(
     ...initialState,
 
     setOptions: (data) => {
-      const accounts = data.accounts ?? [];
+      const state = get();
+
+      const accounts = data.accounts ?? state.accounts;
+      const stocks = data.stocks ?? state.stocks;
+      const services = data.services ?? state.services;
+      const serial_numbers = data.serial_numbers ?? state.serial_numbers;
+      const categories = data.categories ?? state.categories;
+      const sub_categories = data.sub_categories ?? state.sub_categories;
 
       const buckets = getAccountBuckets(accounts);
 
       set({
+        ...state,
         ...data,
+
         accounts,
+        stocks,
+        services,
+        serial_numbers,
+        categories,
+        sub_categories,
+        
         ...buckets,
       });
     },
@@ -86,6 +99,13 @@ export const useSelectOptionsStore = create<SelectOptionsStore>(
 
       set({
         stocks,
+      });
+    },
+    addService: (service) => {
+      const services = [service, ...get().services];
+
+      set({
+        services,
       });
     },
 

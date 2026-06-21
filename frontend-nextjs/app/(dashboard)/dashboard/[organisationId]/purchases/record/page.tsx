@@ -6,7 +6,7 @@ export default async function PurchaseRecordPage() {
     <div className="relative min-h-full space-y-8">
       
       <div className="space-y-4">
-        <Header account={true} stock={true} title="Purchase Record"  description="Record new purchase entries" />
+        <Header account={true} stock={true} supplier={true} title="Purchase Record"  description="Record new purchase" />
         <RecordPurchase />
         
       </div>

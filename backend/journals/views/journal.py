@@ -8,7 +8,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from django.db import models
 from datetime import datetime
-from journals.utils import date_filtering, sort_filtering, serial_numbers
+from journals.utils import date_filtering, sort_filtering
+from journals.utils.select_options_utils import select_options
 from journals.permissions import IsUserInOrganisation
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -16,7 +17,7 @@ from django.http import HttpResponse
 
 
 class JournalPagination(PageNumberPagination):
-    page_size = 2
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -93,7 +94,7 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
+            
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -108,10 +109,10 @@ class JournalAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            serial_numbers_data = serial_numbers.get_serial_numbers(request.user.current_org)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_serial_no=True)
             return Response({
                 'message': 'Journal created successfully',
-                'serial_numbers':   serial_numbers_data
+                'select_options': select_options_data
             }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
@@ -121,7 +122,7 @@ class JournalAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
+            
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -170,7 +171,7 @@ class DownloadJournalAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
+            
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -224,13 +225,20 @@ class JournalDetailAPIView(generics.RetrieveAPIView):
         try:
             partial = kwargs.pop('partial', True)
             data = request.data.copy()
+
             instance = self.get_object()
             if request.user != instance.user:
                 raise serializers.ValidationError(f"Journal {journal_id} can only be edited by user who recorded it")
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+
+            return Response({
+                "message": "Journal updated successfully.",
+                "journal": serializer.data,
+                "select_options": select_options_data
+            } , status=status.HTTP_200_OK)
 
         except Journal.DoesNotExist:
             return Response({
@@ -246,7 +254,7 @@ class JournalDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
+            
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -262,7 +270,9 @@ class JournalDetailAPIView(generics.RetrieveAPIView):
                 raise serializers.ValidationError(f"Journal {journal_id} can only be deleted by user who recorded it")
         
             instance.delete() 
-            return Response({"detail": "Journal item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            
+            return Response({"message": "Journal deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
             
         except Journal.DoesNotExist:
             return Response({

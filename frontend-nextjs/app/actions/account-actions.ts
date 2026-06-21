@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -32,27 +33,20 @@ export async function createAccount(orgId: string, formData: FormData) {
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
+    const data = await res.json();
 
+    if (!res.ok) {
+      
       return {
         success: false,
-        error: formatApiError(errorData),
+        error: formatApiError(data),
       };
     }
-
-    const account = await res.json();
-
+    revalidatePath(`/dashboard/${orgId}/accounts`)
     return {
       success: true,
-      message: "Account created successfully",
-      account: account
-        ? {
-            name: account.name,
-            id: account.id,
-            sub_category: account.sub_category,
-            }
-        : null
+      message: data.message || "Account created successfully",
+      select_options: data.select_options|| null,
     };
   } catch (error) {
     return {
@@ -62,3 +56,171 @@ export async function createAccount(orgId: string, formData: FormData) {
   }
 }
 
+export async function createAccountSubCategory(orgId: string, formData: FormData) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    const payload = {
+      name: formData.get("name"),
+      category: formData.get("category"),
+      
+    };
+
+    const res = await fetch(`${backendURL}/${orgId}/accounts/sub_categories/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookieStore.toString(),
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Account belongs to created successfully",
+      select_options: data.select_options|| null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+
+export async function createAccountCategory(orgId: string, formData: FormData) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    const payload = {
+      name: formData.get("name"),
+      group: formData.get("group"),
+      
+    };
+
+    const res = await fetch(`${backendURL}/${orgId}/accounts/categories/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookieStore.toString(),
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Account category successfully",
+      select_options: data.select_options|| null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function getAccounts(orgId: string, params: { search?: string; name?: string; page?: string }) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+    query.set("paginate", "true");
+
+    if (params.search) query.set("search", params.search);
+    if (params.name) query.set("date", params.name);
+  
+    // 📊 FETCH JOURNALS
+    const accountRes = await fetch(
+      `${backendURL}/${orgId}/accounts/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    const data = await accountRes.json();
+
+    if (!accountRes.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    const resultsData = data.results.data || {}
+
+    // 🧾 EXPECTED BACKEND SHAPE:
+    // data = {
+    //   accounts: [],
+    //   totals: {},
+    //   next: "",
+    //   previous: ""
+    // }
+
+    return {
+      success: true,
+      accounts: resultsData.accounts ?? [],
+      totals: resultsData.totals ?? null,
+      pagination: {
+        next: data?.next,
+        previous: data?.previous,
+        page: params.page || 1,
+      },
+    };
+  } catch (error) {
+    console.log("Error fetching accounts:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

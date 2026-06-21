@@ -47,7 +47,7 @@ class ServiceIncomeSerializer(serializers.ModelSerializer):
     service_income_entries = ServiceIncomeEntrySerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
     details = serializers.SerializerMethodField(read_only=True)
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, default=None)
+    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
@@ -199,6 +199,8 @@ class ServiceIncomeDetailSerializer(ServiceIncomeSerializer):
             service_income = instance
      
             service_income_total, service_income_entries_id = service_income_entries_manager.update_service_income_entries(service_income_entries_data, service_income)
+            service_income.serial_number = validated_data.get('serial_number', service_income.serial_number)
+
             service_income.date = validated_data.get('date', service_income.date)
             service_income.description = validated_data.get('description', service_income.description)
             entries_id = journal_entries_manager.update_journal_entries(

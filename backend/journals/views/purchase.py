@@ -1,6 +1,7 @@
 from journals.models import Purchase, PurchaseReturn
 from rest_framework.response import Response
 from journals.utils import flatten_errors, date_filtering, sort_filtering
+from journals.utils.select_options_utils import select_options
 from rest_framework import generics, status, serializers
 from journals.serializers import PurchaseSerializer, PurchaseDetailSerializer, PurchaseReturnSerializer
 from rest_framework.filters import SearchFilter
@@ -116,7 +117,11 @@ class PurchaseAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True, add_serial_no=True)
+            return Response({
+                'message': 'Purchase created successfully',
+                'select_options':   select_options_data
+            }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -222,7 +227,9 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            
+            return Response({"purchase": serializer.data, "message": "Purchase updated successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
 
         except Purchase.DoesNotExist:
             return Response({
@@ -262,7 +269,9 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
                     raise serializers.ValidationError(f"Cannot delete purchase since {entry.get('stock_name')} will have negative remaining quantity")
 
             instance.delete() 
-            return Response({"detail": "Purchase item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            
+            return Response({"message": "Purchase deleted successfully.", 'select_options': select_options_data}, status=status.HTTP_204_NO_CONTENT)
             
         except Purchase.DoesNotExist:
             return Response({

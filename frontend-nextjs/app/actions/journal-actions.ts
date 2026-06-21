@@ -16,8 +16,6 @@ export async function recordJournal(orgId: string, payload: JournalFormData) {
     }
     const cookieStore = await cookies();
 
-    
-
     const res = await fetch(`${backendURL}/${orgId}/journals/`, {
       method: "POST",
       headers: {
@@ -28,21 +26,20 @@ export async function recordJournal(orgId: string, payload: JournalFormData) {
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
+    const data = await res.json();
 
+    if (!res.ok) {
+      
       return {
         success: false,
-        error: formatApiError(errorData),
+        error: formatApiError(data),
       };
     }
-
-    const data = await res.json();
 
     return {
       success: true,
       message: data.message || "Journal entry created successfully",
-      serial_numbers: data.serial_numbers|| null,
+      select_options: data.select_options|| null,
     };
   } catch (error) {
     return {
@@ -58,9 +55,6 @@ export async function getJournals(orgId: string, params: { search?: string; date
       return {
         success: false,
         error: "Organization ID is required",
-        journals: [],
-        totals: null,
-        pagination: null,
       };
     }
     const cookieStore = await cookies();
@@ -89,16 +83,16 @@ export async function getJournals(orgId: string, params: { search?: string; date
       }
     );
 
+    const data = await journalRes.json();
+
     if (!journalRes.ok) {
+      
       return {
-        success: true,
-        journals: [],
-        pagination: null,
-        totals: null,
+        success: false,
+        error: formatApiError(data),
       };
     }
 
-    const data = await journalRes.json();
     const resultsData = data.results.data || {}
 
     // 🧾 EXPECTED BACKEND SHAPE:
@@ -127,10 +121,7 @@ export async function getJournals(orgId: string, params: { search?: string; date
 
     return {
       success: false,
-      user: null,
-      journals: [],
-      totals: null,
-      pagination: null,
+      error: formatApiError(error),
     };
   }
 }
@@ -157,15 +148,16 @@ export async function getJournal(orgId: string, journalId: string) {
       }
     );
 
+   
+    const data = await res.json();
+
     if (!res.ok) {
+      
       return {
         success: false,
-        error: "Failed to fetch journal",
-        journal: null,
+        error: formatApiError(data),
       };
     }
-
-    const data = await res.json();
 
     return {
       success: true,
@@ -177,7 +169,6 @@ export async function getJournal(orgId: string, journalId: string) {
     return {
       success: false,
       error: formatApiError(error),
-      journal: null,
     };
   }
 }
@@ -212,16 +203,18 @@ export async function editJournal(
     const data = await res.json();
 
     if (!res.ok) {
+      
       return {
         success: false,
-        error: data?.message || "Failed to update journal",
+        error: formatApiError(data),
       };
     }
-
+   
     return {
       success: true,
-      message: "Journal updated successfully",
-      journal: data?.data ?? data,
+      message: data.message || "Journal entry updated successfully",
+      journal: data?.journal,
+      select_options: data?.select_options
     };
   } catch (error) {
     console.log("Error editing journal:", error);
@@ -257,18 +250,22 @@ export async function deleteJournal(
       }
     );
 
-    if (!res.ok) {
-      const data = await res.json();
+    
+    const data = await res.json();
 
+    if (!res.ok) {
+      
       return {
         success: false,
-        error: data?.message || "Failed to delete journal",
+        error: formatApiError(data),
       };
     }
 
     return {
+      message: data.message || "Journal entry deleted successfully",
+      
       success: true,
-      message: "Journal deleted successfully",
+      select_options: data?.select_options,
     };
   } catch (error) {
     console.log("Error deleting journal:", error);

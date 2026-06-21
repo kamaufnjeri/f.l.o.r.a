@@ -1,36 +1,36 @@
 import { useState } from "react";
-import { AccountingState, DebitCredit, JournalEntry } from "@/types";
+import { DebitCredit, JournalEntry, JournalType } from "@/types";
 import InputField from "../journals/InputField";
 import SelectField, { SelectOption } from "../journals/SelectField";
 import { FaTrash } from "react-icons/fa";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { Entry } from "./PurchaseSalesAccountField";
 
 type Props = {
   debitCredit: DebitCredit;
   type: "bill" | "invoice";
-  entry: JournalEntry | null;
+  entryData: Entry,
   dueDate: string;
-  setDueDate: React.Dispatch<React.SetStateAction<string>>;
+  changeDueDate: (field: "due_date", value: string) => void;
   accounts: SelectOption[];
   disabled?: boolean;
-  updateEntry: (
-    section: keyof AccountingState,
-    field: keyof JournalEntry,
-    value: string | number
+    updateEntry: <
+    K extends keyof JournalEntry
+  >(
+    index: number,
+    field: K,
+    value: JournalEntry[K]
   ) => void;
-  addEntry: (
-    section: keyof AccountingState,
-    debitCredit: DebitCredit
-  ) => void;
-  removeEntry: (section: keyof AccountingState) => void;
+    addEntry: (type: JournalType, debitCredit: DebitCredit) => void;
+    removeEntry: (index: number) => void;
 };
 
 export default function BillInvoiveAccountField({
   debitCredit,
   type,
-  entry,
+  entryData,
   dueDate,
-  setDueDate,
+  changeDueDate,
   accounts,
   disabled = false,
   updateEntry,
@@ -38,9 +38,12 @@ export default function BillInvoiveAccountField({
   removeEntry,
 }: Props) {
   const [showBill, setShowBill] = useState(false);
-
+const { entry, index } = entryData ?? {
+  entry: null,
+  index: -1,
+};
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-3xl border shadow-sm p-6 space-y-5">
 
 
       {!showBill || !entry ? (
@@ -70,9 +73,9 @@ export default function BillInvoiveAccountField({
  <button
             type="button"
             onClick={() => {
-              removeEntry(type);
+              removeEntry(index);
               setShowBill(false);
-              setDueDate("");
+              changeDueDate("due_date", "");
             }}
             className="cursor-pointer text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl transition"
           >
@@ -85,7 +88,10 @@ export default function BillInvoiveAccountField({
             label="Due Date"
             type="date"
             value={dueDate}
-            onChange={setDueDate}
+            onChange={(val) => {
+              changeDueDate("due_date", val);
+
+            }}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -94,16 +100,18 @@ export default function BillInvoiveAccountField({
               label="Account"
               value={entry.account || ""}
               options={accounts}
-              onChange={(val) => updateEntry(type, "account", val)}
-              disabled={disabled}
+onChange={(val) =>
+              updateEntry(index, "account", val as string)
+            }              disabled={disabled}
             />
 
             <InputField
               label="Amount"
               type="number"
               value={entry.amount}
-              onChange={(val) => updateEntry(type, "amount", val)}
-              disabled={disabled}
+onChange={(val) =>
+              updateEntry(index, "amount", Number(val))
+            }              disabled={disabled}
             />
 
           </div>

@@ -25,6 +25,7 @@ class JournalDetailSerializer(JournalSerializer):
             
             journal_entries_data = validated_data.pop('journal_entries')
             journal = instance
+            journal.serial_number = validated_data.get('serial_number', journal.serial_number)
 
             journal.date = validated_data.get('date', journal.date)
             journal.description = validated_data.get('description', journal.description)

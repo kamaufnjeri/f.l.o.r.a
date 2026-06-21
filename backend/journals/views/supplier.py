@@ -1,6 +1,7 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors
+from journals.utils.select_options_utils import select_options
 from journals.models import Supplier
 from journals.serializers import SupplierSerializer, SupplierDetailSerializer
 from rest_framework.filters import SearchFilter
@@ -79,7 +80,11 @@ class SupplierAPIVew(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            return Response({
+                'message': 'Supplier created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -168,7 +173,6 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -184,8 +188,13 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
 
+            return Response({
+                "message": "Supplier updated successfully.",
+                "supplier": serializer.data,
+                "select_options": select_options_data
+            } , status=status.HTTP_200_OK)
         except Supplier.DoesNotExist:
             return Response({
                 'error': 'Not Found',
@@ -219,7 +228,6 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
             amount_paid = totals.get('amount_paid')
             amount_due = totals.get('amount_due')
 
-            print(totals)
 
             if amount_paid > 0 or amount_due > 0:
                 has_entries = True
@@ -229,7 +237,9 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
                 if account:
                     account.delete()
                 instance.delete() 
-                return Response({"detail": "Supplier item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            
+                return Response({"message": "Supplier deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
             else:
                 raise serializers.ValidationError("Cannot delete supplier with associated bills.")
 

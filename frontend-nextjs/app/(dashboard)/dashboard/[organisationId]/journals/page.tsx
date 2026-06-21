@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { getJournals } from "@/app/actions/journal-actions";
-import JournalFilters from "@/components/dashboard/journals/JournalFilters";
-import JournalPagination from "@/components/dashboard/journals/JournalPagination";
 import JournalTable from "@/components/dashboard/journals/JournalTable";
+import FiltersSection from "@/components/dashboard/journals/FiltersSection";
+import Pagination from "@/components/dashboard/journals/Pagination";
 
 type SearchParams = {
   search?: string;
@@ -54,9 +54,9 @@ export default async function JournalsPage({
   const journals = response.journals || [];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
+    <div className="w-full max-w-7xl mx-auto space-y-4 px-4">
       {/* FILTERS */}
-      <JournalFilters filters={{ search, date, sort_by, page }} organisationId={organisationId} />
+      <FiltersSection title='Journal Entries' goToUrl={'journals'} filters={{ search, sort_by, date, page }} organisationId={organisationId} />
 
       {/* EMPTY STATE */}
       {journals.length === 0 ? (
@@ -86,7 +86,8 @@ export default async function JournalsPage({
 
           {/* PAGINATION */}
           {response.pagination && (
-            <JournalPagination
+            <Pagination
+            goToUrl={'journals'}
               organisationId={organisationId}
               pagination={response.pagination}
             />

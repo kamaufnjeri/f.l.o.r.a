@@ -30,13 +30,15 @@ export type DebitCreditType = {
 
 export type SidebarChild = {
   name: string;
-  url: string;
+  url?: string | null;
+  showModal?: boolean;
 };
 
 export type SidebarItemType = {
   name: string;
   icon: React.ComponentType<{ className?: string }>;
   url: string | null;
+
   lists: SidebarChild[] | null;
 };
 
@@ -93,9 +95,9 @@ export const sidebarIcons = [
     icon: FaShoppingCart,
     url: null,
     lists: [
-      { name: "Record Purchase", url: "/purchases/record" },
-      { name: "All Purchases", url: "/purchases" },
-      { name: "Purchase Returns", url: "/purchases/returns" },
+      { name: "Record Purchase", url: "purchases/record" },
+      { name: "All Purchases", url: "purchases" },
+      { name: "Purchase Returns", url: "purchases/returns" },
     ],
   },
 
@@ -104,9 +106,9 @@ export const sidebarIcons = [
     icon: FaFileInvoiceDollar,
     url: null,
     lists: [
-      { name: "Record Sale", url: "/sales/record" },
-      { name: "All Sales", url: "/sales" },
-      { name: "Sales Returns", url: "/sales/returns" },
+      { name: "Record Sale", url: "sales/record" },
+      { name: "All Sales", url: "sales" },
+      { name: "Sales Returns", url: "sales/returns" },
     ],
   },
 
@@ -115,8 +117,8 @@ export const sidebarIcons = [
     icon: FaBook,
     url: null,
     lists: [
-      { name: "Record Journal", url: "/journals/record" },
-      { name: "All Journals", url: "/journals" },
+      { name: "Record Journal", url: "journals/record" },
+      { name: "All Journals", url: "journals" },
     ],
   },
 
@@ -125,38 +127,51 @@ export const sidebarIcons = [
     icon: MdWork,
     url: null,
     lists: [
-      { name: "Record Service Income", url: "/services/record" },
-      { name: "All Services", url: "/services" },
-      { name: "All Services Income", url: "/services/income" },
+      { name: "Record Service Income", url: "service-income/record" },
+      { name: "All Services Income", url: "service-income" },
+      { name: "All Services", url: "services" },
+      { name: "service", showModal: true, url: null },
     ],
   },
 
   {
     name: "Accounts",
     icon: FaClipboardList,
-    url: "/accounts",
-    lists: null,
+    url: null,
+    lists: [
+      { name: "All Accounts", url: "accounts" },
+      { name: "account", showModal: true, url: null }
+    ],
   },
 
   {
     name: "Stocks",
     icon: FaBox,
-    url: "/stocks",
-    lists: null,
+    url: null,
+    lists: [
+      { name: "All Stocks", url: "stocks" },
+      { name: "stock", showModal: true, url: null }
+    ],
   },
 
   {
     name: "Customers",
     icon: FaUsers,
-    url: "/customers",
-    lists: null,
+    url: null,
+    lists: [
+      { name: "All Customers", url: "customers" },
+      { name: "customer", showModal: true, url: null }
+    ],
   },
 
   {
     name: "Suppliers",
     icon: FaTruck,
-    url: "/suppliers",
-    lists: null,
+    url: null,
+    lists: [
+      { name: "All Suppliers", url: "suppliers" },
+      { name: "supplier", showModal: true, url: null }
+    ],
   },
 
   {
@@ -164,9 +179,9 @@ export const sidebarIcons = [
     icon: FaTh,
     url: null,
     lists: [
-      { name: "Bills", url: "/bills" },
-      { name: "Invoices", url: "/invoices" },
-      { name: "Payments", url: "/payments" },
+      { name: "Bills", url: "bills" },
+      { name: "Invoices", url: "invoices" },
+      { name: "Payments", url: "payments" },
     ],
   },
 
@@ -175,23 +190,23 @@ export const sidebarIcons = [
     icon: FaChartPie,
     url: null,
     lists: [
-      { name: "Trial Balance", url: "/reports/trial-balance" },
-      { name: "Income Statement", url: "/reports/income-statement" },
-      { name: "Balance Sheet", url: "/reports/balance-sheet" },
+      { name: "Trial Balance", url: "reports/trial-balance" },
+      { name: "Income Statement", url: "reports/income-statement" },
+      { name: "Balance Sheet", url: "reports/balance-sheet" },
     ],
   },
 
   {
     name: "Settings",
     icon: IoMdSettings,
-    url: "/settings",
+    url: "settings",
     lists: null,
   },
 
   {
     name: "Help & Support",
     icon: MdHelp,
-    url: "/help",
+    url: "help",
     lists: null,
   },
 ];

@@ -3,6 +3,7 @@ from journals.serializers import CustomerSerializer, CustomerDetailSerializer
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors
+from journals.utils.select_options_utils import select_options
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -79,7 +80,11 @@ class CustomerAPIVew(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            return Response({
+                'message': 'Customer created successfully',
+                'select_options': select_options_data
+            }, status=status.HTTP_201_CREATED)        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -168,7 +173,6 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -184,8 +188,13 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
 
+            return Response({
+                "message": "Customer updated successfully.",
+                "customer": serializer.data,
+                "select_options": select_options_data
+            } , status=status.HTTP_200_OK)
         except Customer.DoesNotExist:
             return Response({
                 'error': 'Not Found',
@@ -226,7 +235,9 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
                 if account:
                     account.delete()
                 instance.delete() 
-                return Response({"detail": "Customer item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            
+                return Response({"message": "Customer deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
             else:
                 raise serializers.ValidationError("Cannot delete customer with associated invoices.")
 

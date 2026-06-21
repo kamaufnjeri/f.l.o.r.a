@@ -1,94 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
 
 import InputField from "./InputField";
 import JournalEntries from "./JournalEntries";
-import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
-import { useAuthStore } from "@/stores/authStore";
+
+import { useJournal } from "@/hooks/useJournal";
 import TextAreaField from "./TextAreaField";
-import { JournalEntry } from "@/types";
-import { recordJournal } from "@/app/actions/journal-actions";
-import { toast } from "react-hot-toast";
 
 
 export default function RecordJournal() {
-  const { serial_numbers, setSerialNumbers, accounts } = useSelectOptionsStore();
-  const { currentOrg } = useAuthStore();
-
-  // 🧠 header state
-  const [date, setDate] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [posting, setPosting] = useState(false);
-
-  // 🧾 entries state
-  const [journalEntries, setJournalEntries] = useState<
-    JournalEntry[]
-  >([
-    {
-      account: "",
-      debit_credit: "debit",
-      amount: 0,
-      type: "journal",
-    },
-  ]);
-
-  // 🧮 balance check
-  const difference = useMemo(() => {
-    return journalEntries.reduce((acc, entry) => {
-      const amount = Number(entry.amount || 0);
-
-      return entry.debit_credit === "debit"
-        ? acc + amount
-        : acc - amount;
-    }, 0);
-  }, [journalEntries]);
-
-  // 🚀 submit handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPosting(true);
-
-    const payload = {
-      serial_number: serial_numbers.journal,
-      date,
-      description,
-      journal_entries: journalEntries,
-    };
-
-    try {
-    const res = await recordJournal(currentOrg?.id || "", payload);
-
-    if (!res.success) {
-        toast.error(res.error || "Something went wrong");
-        return;
-    }
-
-    toast.success(res.message || "Journal entry created");
-    setDate("");
-    setDescription("");
-    setJournalEntries([
-        {
-        account: "",
-        debit_credit: "debit",
-        amount: 0,
-        type: "journal",
-        },
-    ]);
-
-    // OPTIONAL: update store if backend returns updated accounts
-    if (res.serial_numbers) {
-        setSerialNumbers(res.serial_numbers);
-    }
-
-    
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong. Please try again");
-    } finally {
-      setPosting(false);
-    }
-  };
+  const { currentOrg, difference, accounts, journal, serialNumber, handleChange, updateEntry, addEntry, removeEntry, handleSubmit, posting
+  } = useJournal();
 
   return (
     <form
@@ -102,29 +24,36 @@ export default function RecordJournal() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* SERIAL */}
-          <div>
-            <label className="text-xs text-gray-500">
-              Serial Number
-            </label>
-            <div className="px-3 py-2 border rounded-lg bg-gray-50 text-sm text-gray-700">
-              {serial_numbers.journal}
-            </div>
-          </div>
+          <InputField
+                          required
+                                    label="Serial Number"
+                                    type="text"
+                                    
+                           value={journal.serial_number === "" ? serialNumber : journal.serial_number}
+                                    onChange={(val) => {
+                                      handleChange('serial_number', val);
+                                    }}
+                                  />
 
           {/* DATE */}
           <InputField
+          required
             label="Date"
             type="date"
-            value={date}
-            onChange={setDate}
+            value={journal.date}
+            onChange={(val) => {
+              handleChange('date', val);
+            }}
           />
 
           {/* DESCRIPTION */}
           <TextAreaField
+          required
             label="Description"
-            value={description}
-            onChange={setDescription}
+            value={journal.description}
+            onChange={(val) => {
+              handleChange('description', val);
+            }}
             placeholder="Enter journal description"
           />
         </div>
@@ -133,10 +62,11 @@ export default function RecordJournal() {
       {/* JOURNAL ENTRIES */}
       <div className="bg-white border rounded-xl p-5 shadow-sm">
         <JournalEntries
-          journalEntries={journalEntries}
-          setJournalEntries={setJournalEntries}
+          entries={journal.journal_entries}
+          updateEntry={updateEntry}
+          addEntry={addEntry}
+          removeEntry={removeEntry}
           accounts={accounts}
-          type="journal"
         />
       </div>
 

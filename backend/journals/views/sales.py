@@ -1,7 +1,8 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, date_filtering, sort_filtering
-from journals.models import Sales, SalesReturn
+from journals.utils.select_options_utils import select_options
+from journals.models import Sales
 from journals.serializers import SalesSerializer, SalesDetailSerializer, SalesReturnSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -115,7 +116,11 @@ class SalesAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True, add_serial_no=True)
+            return Response({
+                'message': 'Sales created successfully',
+                'select_options':   select_options_data
+            }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {errors}") 
@@ -222,7 +227,9 @@ class SalesDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            
+            return Response({"sales": serializer.data, "message": "Sales updated successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
 
         except Sales.DoesNotExist:
             return Response({
@@ -254,8 +261,10 @@ class SalesDetailAPIView(generics.RetrieveAPIView):
                 raise serializers.ValidationError(f"Sales {sale_id} can only be deleted by user who recorded it")
             
             instance.delete() 
-            return Response({"detail": "Sales item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
             
+            return Response({"message": "Sales deleted successfully.", 'select_options': select_options_data}, status=status.HTTP_204_NO_CONTENT)
+                        
         except Sales.DoesNotExist:
             return Response({
                 'error': 'Not Found',

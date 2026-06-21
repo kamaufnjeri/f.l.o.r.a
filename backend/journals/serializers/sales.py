@@ -21,7 +21,7 @@ class SalesSerializer(serializers.ModelSerializer):
     details = serializers.SerializerMethodField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, default=None) 
+    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None) 
 
     class Meta:
         model = Sales
@@ -190,6 +190,8 @@ class SalesDetailSerializer(SalesSerializer):
      
             cogs, sales_entries_id = sales_entries_manager.update_sales_entries(sales_entries_data, sales)
             sales.date = validated_data.get('date', sales.date)
+            sales.serial_number = validated_data.get('serial_number', sales.serial_number)
+
             sales.description = validated_data.get('description', sales.description)
             entries_id = journal_entries_manager.update_journal_entries(
                 journal_entries_data=journal_entries_data,

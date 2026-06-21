@@ -31,7 +31,6 @@ export default function Button({
         "rounded-xl font-medium",
         "transition-all duration-200",
         "outline-none",
-
         // Sizing
         "px-5 py-3 text-sm sm:text-base",
 

@@ -1,39 +1,43 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import { useMemo, useState, ReactNode } from "react";
 
-type Option = {
-  name: string;
+export type SelectOption = {
   id: string | number;
+  name: string;
 };
 
-type Props = {
-  label: string;
-  name: string;
-  options: Option[];
+type SelectFieldProps = {
+  label?: string;
+  name?: string;
+  required?: boolean;
+  defaultValue?: string | number | null;
+  options: SelectOption[];
+  isDirty?: boolean;
 
   placeholder?: string;
-  required?: boolean;
-
+  disabled?: boolean;
   icon?: ReactNode;
-
-  defaultValue?: string | number;
 };
 
 export default function Select({
   label,
   name,
-  options,
-  placeholder = "Select option",
-  required,
-  icon,
   defaultValue,
-}: Props) {
+  options,
+  placeholder = "Select...",
+  disabled = false,
+  required = false,
+  isDirty,
+  icon,
+}: SelectFieldProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option | null>(
+
+  const [selected, setSelected] = useState<SelectOption | null>(
     options.find((o) => o.id === defaultValue) || null
   );
+
 
   const filteredOptions = useMemo(() => {
     return options.filter((opt) =>
@@ -41,53 +45,100 @@ export default function Select({
     );
   }, [query, options]);
 
-  const handleSelect = (opt: Option) => {
+  const handleSelect = (opt: SelectOption | null) => {
     setSelected(opt);
-    setQuery(opt.name);
+    setQuery("");
     setOpen(false);
   };
 
   return (
     <div className="w-full space-y-2 relative">
-      {/* Label */}
-      <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-        {label}
-        {required && <span className="text-red-500">*</span>}
-      </label>
+      {/* LABEL */}
+      {(label || isDirty) && (
+        <div className="flex justify-between items-center">
+          {label && (
+            <label
+              htmlFor={name}
+              className="text-sm font-medium text-gray-700 flex items-center gap-1"
+            >
+              {label}
+              {required && (
+                <span className="text-red-500">*</span>
+              )}
+            </label>
+          )}
 
-      {/* Input wrapper */}
+          {isDirty && (
+            <span className="text-xs text-amber-500 font-medium">
+              • edited
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* INPUT */}
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div
+            className="
+              absolute left-3 top-1/2 -translate-y-1/2
+              text-gray-400 pointer-events-none
+            "
+          >
             {icon}
           </div>
         )}
 
-        {/* Input */}
         <input
-          name={name}
-          value={query}
+          id={name}
+          value={open ? query : selected?.name ?? ""}
           placeholder={placeholder}
+          disabled={disabled}
           required={required}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            if (disabled) return;
+            setOpen(true);
+            setQuery("");
+          }}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
           }}
+          onBlur={() => {
+            setTimeout(() => setOpen(false), 150);
+          }}
           className={`
             w-full rounded-xl border border-gray-200 bg-white text-gray-900
-            focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-            transition
-            ${icon ? "pl-10 pr-10 py-3" : "px-4 pr-10 py-3"}
+            focus:outline-none focus:ring-2 focus:ring-primary/30
+            focus:border-primary transition
+            disabled:bg-gray-50 disabled:text-gray-400
+            ${
+              icon
+                ? "pl-10 pr-10 py-3"
+                : "px-4 pr-10 py-3"
+            }
           `}
         />
 
-        {/* Hidden real value for form submission */}
-        <input type="hidden" name={name} value={selected?.id ?? ""} />
+        {/* Hidden input for forms */}
+        {name && (
+          <input
+            type="hidden"
+            name={name}
+            value={selected?.id ?? ""}
+          />
+        )}
 
-        {/* Dropdown */}
-        {open && (
-          <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+        {/* DROPDOWN */}
+        {open && !disabled && (
+          <div
+            className="
+              absolute z-50 mt-2 w-full
+              bg-white border border-gray-200
+              rounded-xl shadow-lg
+              max-h-60 overflow-auto
+            "
+          >
             {filteredOptions.length === 0 ? (
               <div className="p-3 text-sm text-gray-500">
                 No results found
@@ -96,8 +147,12 @@ export default function Select({
               filteredOptions.map((opt) => (
                 <div
                   key={opt.id}
-                  onClick={() => handleSelect(opt)}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={() => handleSelect(opt)}
+                  className="
+                    px-4 py-2 cursor-pointer
+                    hover:bg-gray-100
+                    transition
+                  "
                 >
                   {opt.name}
                 </div>
@@ -106,8 +161,13 @@ export default function Select({
           </div>
         )}
 
-        {/* Arrow */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+        {/* ARROW */}
+        <div
+          className="
+            absolute right-3 top-1/2 -translate-y-1/2
+            text-gray-400 pointer-events-none
+          "
+        >
           ▼
         </div>
       </div>

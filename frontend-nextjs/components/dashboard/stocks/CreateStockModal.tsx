@@ -23,7 +23,7 @@ export default function CreateStockModal({
   const [pending, startTransition] = useTransition();
   const [resetKey, setResetKey] = useState(0);
 
-  const { addStock } = useSelectOptionsStore();
+  const { setOptions } = useSelectOptionsStore();
   const { currentOrg } = useAuthStore();
 
   async function handleSubmit(formData: FormData) {
@@ -40,9 +40,7 @@ export default function CreateStockModal({
 
         toast.success(res.message || "Stock created");
 
-        if (res.stock) {
-          addStock(res.stock);
-        }
+        setOptions(res.select_options);
 
         setResetKey((p) => p + 1);
         onClose();
@@ -109,7 +107,6 @@ export default function CreateStockModal({
                   type="number"
                   icon={<FiHash />}
                   placeholder="0"
-                  required
                 />
 
                 {/* OPENING STOCK RATE */}
@@ -119,7 +116,6 @@ export default function CreateStockModal({
                   type="number"
                   icon={<FiDollarSign />}
                   placeholder="0.00"
-                  required
                 />
               </div>
 

@@ -1,159 +1,86 @@
 "use client";
 
-import { useAccountingForm } from "@/hooks/useAccountingForm";
-import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
-import PurchaseSalesAccountField from "./PurchaseSalesAccountField";
+import PurchaseSalesAccountField, { Entry } from "./PurchaseSalesAccountField";
 import PaymentAccountsField from "./PaymentAccountsField";
 import BillInvoiveAccountField from "./BillInvoiceAccount";
 import DiscountAccountField from "./DiscountAccountField";
-import { usePurchaseItem } from "@/hooks/usePurchaseItem";
 import InputField from "../journals/InputField";
 import TextAreaField from "../journals/TextAreaField";
 import PurchaseEntries from "./PurchaseEntries";
-import { useAuthStore } from "@/stores/authStore";
-import { useMemo, useState } from "react";
-import { recordPurchase } from "@/app/actions/purchase-actions";
-import toast from "react-hot-toast";
-import { JournalEntry } from "@/types";
+import { usePurchase } from "@/hooks/usePurchase";
+import { groupEntries } from "@/lib/utils";
 
 export default function RecordPurchase() {
-  const [posting, setPosting] = useState(false);
-  const {
-    serial_numbers,
-    purchaseAccounts,
+ 
+  const { 
+    currentOrg, difference, purchase, handleChange, updateEntry, addEntry, removeEntry, posting,
+    addPurchaseEntry,
+    handleSubmit,
+    updatePurchaseEntry,
+    removePurchaseEntry,
+      purchaseAccounts,
     paymentAccounts,
     suppliersAccounts,
     incomeDiscountAccounts,
     stocks,
-    setSerialNumbers,
-  } = useSelectOptionsStore();
-  const { currentOrg } = useAuthStore();
+    purchaseTotal,
+    serialNumber
+  
+  } = usePurchase();
+  const grouped = groupEntries(purchase.journal_entries);
 
-  const { form, addEntry, updateEntry, removeEntry, setForm } = useAccountingForm();
-
-  const {
-    date,
-    setDate,
-    dueDate,
-    setDueDate,
-    description,
-    setDescription,
-    purchaseEntries,
-    setPurchaseEntries,
-    updatePurchaseEntry,
-    removePurchaseEntry,
-    addPurchaseEntry,
-  } = usePurchaseItem();
+  
 
  
-
-   // 🧮 balance check
-  const purchaseTotal = useMemo(() => {
-  return purchaseEntries.reduce((amount, entry) => {
-    const quantity = Number(entry.purchased_quantity || 0);
-    const price = Number(entry.purchase_price || 0);
-
-    return amount + (quantity * price);
-  }, 0);
-}, [purchaseEntries]);
-
- const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPosting(true);
-    updateEntry('purchase', 'amount', purchaseTotal);
-
-    const payload = {
-      serial_number: serial_numbers.journal,
-      date,
-      description,
-      due_date: dueDate,
-      journal_entries: [
-        form?.bill,
-        form?.discount,
-        form?.purchase,
-        ...form?.payment,
-      ].filter(Boolean) as JournalEntry[],      
-      purchase_entries: purchaseEntries
-    };
-
-    console.log(payload);
-
-    try {
-    const res = await recordPurchase(currentOrg?.id || "", payload);
-
-    if (!res.success) {
-        toast.error(res.error || "Something went wrong");
-        return;
-    }
-
-    toast.success(res.message || "Journal entry created");
-    setDate("");
-    setDescription("");
-    setDueDate("")
-    setForm({
-      purchase: { account: "", debit_credit: 'debit', amount: 0.0, type: 'purchase'},
-      sale: { account: "", debit_credit: 'credit', amount: 0.0, type: 'sale'},
-      bill: null,
-      invoice: null,
-      discount: null,
-      payment: [],
-    })
-    setPurchaseEntries([{ stock: null, purchased_quantity: 0, purchase_price: 0.0 }]
-    );
-
-    // OPTIONAL: update store if backend returns updated accounts
-    if (res.serial_numbers) {
-        setSerialNumbers(res.serial_numbers);
-    }
-
-    
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong. Please try again");
-    } finally {
-      setPosting(false);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto px-4 lg:px-6 py-6 space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6">
 
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-3xl border shadow-sm p-6">
              <h1 className="text-lg font-semibold text-gray-800">
                Record Purchase
              </h1>
      
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {/* SERIAL */}
-               <div>
-                 <label className="text-xs text-gray-500">
-                   Serial Number
-                 </label>
-                 <div className="px-3 py-2 border rounded-lg bg-gray-50 text-sm text-gray-700">
-                   {serial_numbers.purchase}
-                 </div>
-               </div>
+                {/* DATE */}
+                <InputField
+                 required
+                           label="Serial Number"
+                           type="text"
+                           
+                           value={purchase.serial_number === "" ? serialNumber : purchase.serial_number}
+                           onChange={(val) => {
+                             handleChange('serial_number', val);
+                           }}
+                         />
+               
      
                {/* DATE */}
-               <InputField
-                 label="Date"
-                 type="date"
-                 value={date}
-                 onChange={setDate}
-               />
+                <InputField
+                 required
+                           label="Date"
+                           type="date"
+                           value={purchase.date}
+                           onChange={(val) => {
+                             handleChange('date', val);
+                           }}
+                         />
+               
+                         {/* DESCRIPTION */}
+                         <TextAreaField
+                         required
+                           label="Description"
+                           value={purchase.description}
+                           onChange={(val) => {
+                             handleChange('description', val);
+                           }}
+                           placeholder="Enter journal description"
+                         />
      
-               {/* DESCRIPTION */}
-               <TextAreaField
-                 label="Description"
-                 value={description}
-                 onChange={setDescription}
-                 placeholder="Enter purchase description"
-               />
+               
                <PurchaseSalesAccountField
                 title="Purchase Account"
-                entry={form.purchase}
+                entryData={grouped.purchase as Entry}
                 accounts={purchaseAccounts}
-                type="purchase"
                 updateEntry={updateEntry}
               />
              </div>
@@ -162,7 +89,7 @@ export default function RecordPurchase() {
      
        {/* ITEMS */}
       <PurchaseEntries
-        purchaseEntries={purchaseEntries}
+        purchaseEntries={purchase.purchase_entries}
         updatePurchaseEntry={updatePurchaseEntry}
         removePurchaseEntry={removePurchaseEntry}
         addPurchaseEntry={addPurchaseEntry}
@@ -173,7 +100,7 @@ export default function RecordPurchase() {
       {/* BILL + DISCOUNT */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <PaymentAccountsField
-          entries={form.payment}
+          entriesData={grouped.payment as Entry[]}
           accounts={paymentAccounts}
           debitCredit="credit"
           updateEntry={updateEntry}
@@ -182,9 +109,9 @@ export default function RecordPurchase() {
         />
 
         <BillInvoiveAccountField
-          entry={form.bill}
-          dueDate={dueDate}
-          setDueDate={setDueDate}
+          entryData={grouped.bill}
+          dueDate={purchase.due_date}
+          changeDueDate={handleChange}
           type="bill"
           accounts={suppliersAccounts}
           debitCredit="credit"
@@ -195,7 +122,7 @@ export default function RecordPurchase() {
 
       </div>
        <DiscountAccountField
-          entry={form.discount}
+          entryData={grouped.discount}
           purchaseTotal={purchaseTotal}
           accounts={incomeDiscountAccounts}
           debitCredit="credit"
@@ -206,7 +133,7 @@ export default function RecordPurchase() {
 
       
       {/* FOOTER */}
-      <div className="flex w-full justify-between gap-3 sticky bottom-4 bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-4">
+      <div className="flex items-center justify-between bg-white border rounded-xl p-4 shadow-sm sticky bottom-3">
 
         <div className="flex items-center justify-between gap-4 bg-gray-100 p-4 rounded-lg">
           {/* LEFT */}
@@ -222,14 +149,26 @@ export default function RecordPurchase() {
             })}
           </div>
         </div>
+        <div className="text-sm">
+          {difference === 0 ? (
+            <span className="text-green-600 font-medium">
+              ✓ Balanced
+            </span>
+          ) : (
+            <span className="text-red-600 font-medium">
+              ✗ Not Balanced (Difference: {currentOrg?.currency || "Kshs"} {difference.toFixed(2)})
+            </span>
+          )}
+        </div>
 
+        {/* SUBMIT */}
         <button
             type="submit"
-            disabled={posting}
+            disabled={difference !== 0 || posting}
             className={`
                 px-5 py-2 cursor-pointer rounded-lg text-white text-sm transition flex items-center gap-2
                 ${
-                !posting
+                difference === 0 && !posting
                     ? "bg-black hover:bg-gray-800"
                     : "bg-gray-300 cursor-not-allowed"
                 }

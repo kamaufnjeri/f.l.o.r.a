@@ -117,7 +117,6 @@ class AccountSerializer(serializers.ModelSerializer):
         
         debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
         credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')
-
         if obj.opening_balance and obj.opening_balance_type:
             if obj.opening_balance_type == 'debit':
                 debit_total += obj.opening_balance
@@ -125,15 +124,12 @@ class AccountSerializer(serializers.ModelSerializer):
                 credit_total += obj.opening_balance
         
         if obj.belongs_to and obj.belongs_to.category and obj.belongs_to.category.group:
-
-            if obj.belongs_to.category.group.value in ('asset', 'expense'):
+            if obj.belongs_to.category.group.name.lower() in ('asset', 'expense'):
 
                 return debit_total - credit_total
             else:
                 return credit_total - debit_total 
-
-
-       
+   
     def validate(self, data):
         organisation_id = data.get('organisation')
 

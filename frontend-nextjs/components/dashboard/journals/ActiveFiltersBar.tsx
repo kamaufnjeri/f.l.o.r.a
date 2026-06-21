@@ -1,7 +1,7 @@
 "use client";
 
 import { downloadListPdf } from "@/app/actions/download-actions";
-import { saveFile } from "@/lib/utils";
+import { normalizeWord, replaceDash, saveFile } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
 
@@ -45,9 +45,25 @@ export default function ActiveFiltersBar({
     year: "numeric",
   });
 
-  const reportDate = !filters.date
-    ? `As at ${today}`
-    : filters.date;
+  const formatReportDate = (date?: string) => {
+    if (!date) return `As at ${today}`;
+
+    const dateLower = date.toLowerCase();
+    // 1. RANGE (only if NOT today)
+    if (dateLower.includes("to")) {
+      const normalized = date
+      .replace(/\s*to\s*/gi, " to ")
+      .replace(/\s+/g, " ")
+      .trim();
+      return `From ${normalized}`;
+    }
+
+    // 3. SINGLE VALUE
+    return `For ${replaceDash(dateLower)}`;
+  };
+
+
+  const reportDate = formatReportDate(filters.date);
 
   const chips = Object.entries(filters).filter(
     ([key, value]) => key !== "date" && value && value.trim() !== ""
@@ -88,13 +104,13 @@ export default function ActiveFiltersBar({
     <div className="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
       {/* HEADER */}
-      <div className="px-4 sm:px-6 py-6 sm:py-10 text-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="p-4 text-center bg-gradient-to-b from-gray-50 to-white">
         <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
           {currentOrg?.org_name || "Organisation"}
         </p>
 
         <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
-          {title}
+          {title} ({currentOrg?.currency})
         </h2>
 
         <p className="mt-1 sm:mt-2 text-sm text-gray-500">
@@ -127,11 +143,11 @@ export default function ActiveFiltersBar({
                   "
                 >
                   <span className="text-gray-400 capitalize">
-                    {key}:
+                    {normalizeWord(key)}:
                   </span>
 
                   <span className="text-gray-900">
-                    {value}
+                    {normalizeWord(value)}
                   </span>
                 </div>
               ) : null
