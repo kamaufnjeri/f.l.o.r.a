@@ -7,6 +7,7 @@ import { useState } from "react";
 import ItemFiltersModal from "./ItemFiltersModal";
 import { useModalStore } from "@/stores/modalStore";
 import { ModalName } from "@/types";
+import { FaX } from "react-icons/fa6";
 
 type Props = {
   title: string;
@@ -84,9 +85,21 @@ export default function ItemFiltersSection({
           {title} ({currentOrg?.currency})
         </h2>
 
-        <p className="mt-1 sm:mt-2 text-sm text-gray-500">
-          {reportDate}
-        </p>
+        <span className="flex flex-row items-center justify-center gap-2">
+                   <p className="mt-1 sm:mt-2 text-sm text-gray-500">
+                  {reportDate}
+                </p>
+                  {defaultDate && (
+          <button
+            type="button"
+            onClick={() => resetFilters()}
+            aria-label="Remove date filter"
+            className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+          >
+            <FaX className="text-[10px] md:text-xs" />
+          </button>
+        )}
+                </span>
       </div>
 
       

@@ -8,6 +8,7 @@ import FiltersModal from "./FiltersModal";
 import { useModalStore } from "@/stores/modalStore";
 import { ModalName } from "@/types";
 import { baseButton, variants } from "../layout/Header";
+import { buildQuery } from "@/lib/utils";
 
 type Filters = Record<string, string>;
 
@@ -47,6 +48,16 @@ export default function FiltersSection({
     router.push(`/dashboard/${organisationId}/journals`);
     setOpen(false);
   };
+  const removeFilter = (key: string) => {
+    const updatedFilters = Object.fromEntries(
+      Object.entries(filters).filter(([k]) => k !== key)
+    );
+
+    router.push(
+      `/dashboard/${organisationId}/${goToUrl}?${buildQuery(updatedFilters, true)}`
+    );
+
+  };
 
   return (
     <div className="space-y-4">
@@ -55,6 +66,7 @@ export default function FiltersSection({
         title={title}
         onOpen={() => setOpen(true)}
         resetFilters={resetFilters}
+        removeFilter={removeFilter}
         downloadType={goToUrl}
         modalButtons={actions
                     .filter((a) => a.show)

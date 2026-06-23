@@ -1,10 +1,11 @@
 "use client";
 
 import { downloadListPdf } from "@/app/actions/download-actions";
-import { normalizeWord, replaceDash, saveFile } from "@/lib/utils";
+import { buildQuery, normalizeWord, replaceDash, saveFile } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { ReactNode } from "react";
 import toast from "react-hot-toast";
+import { FaX } from "react-icons/fa6";
 
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
   downloadType: string;
   onOpen: () => void;
   resetFilters: () => void;
+  removeFilter: (key: string) => void;
   modalButtons: ReactNode;
 };
 
@@ -35,6 +37,7 @@ type Props = {
 export default function ActiveFiltersBar({
   filters,
   title,
+  removeFilter,
   downloadType,
   onOpen,
   resetFilters,
@@ -103,6 +106,8 @@ export default function ActiveFiltersBar({
     }
   };
 
+  
+
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
@@ -115,10 +120,22 @@ export default function ActiveFiltersBar({
         <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
           {title} ({currentOrg?.currency})
         </h2>
-
-        <p className="mt-1 sm:mt-2 text-sm text-gray-500">
+        <span className="flex flex-row items-center justify-center gap-2">
+           <p className="mt-1 sm:mt-2 text-sm text-gray-500">
           {reportDate}
         </p>
+          {filters.date && (
+  <button
+    type="button"
+    onClick={() => removeFilter("date")}
+    aria-label="Remove date filter"
+    className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+  >
+    <FaX className="text-[10px] md:text-xs" />
+  </button>
+)}
+        </span>
+       
       </div>
 
       {/* CHIPS */}
@@ -152,6 +169,10 @@ export default function ActiveFiltersBar({
                   <span className="text-gray-900">
                     {normalizeWord(value)}
                   </span>
+                  {key !== 'page' && <button   className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+     onClick={() => removeFilter(key)}>
+                   <FaX className="text-[10px] md:text-xs" />
+  </button>}
                 </div>
               ) : null
             )}
