@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 
 type Props = {
   label: string;
+  value?: string;
   name: string;
   placeholder?: string;
   required?: boolean;
@@ -13,6 +14,7 @@ type Props = {
 
 export default function Textarea({
   label,
+  value,
   name,
   placeholder,
   required,
@@ -37,6 +39,7 @@ export default function Textarea({
 
         <textarea
           name={name}
+          defaultValue={value}
           placeholder={placeholder}
           required={required}
           rows={rows}

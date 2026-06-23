@@ -15,6 +15,7 @@ import {
 
 import { useSelectOptionsStore } from "@/stores/selectOptionsStore";
 import { useAuthStore } from "@/stores/authStore";
+import Textarea from "@/components/forms/Textarea";
 
 
 export default function UpdateServiceModal({
@@ -86,16 +87,12 @@ export default function UpdateServiceModal({
             >
 
                 <Input label="Service name" name="name" required value={service.name}/>
-                <Input label="Description" name="description" type="text" required value={service.description}/>
+                <Textarea label="Description" name="description" required value={service.description}/>
                 <div className="flex h-10 self-center">
                    <Button type="submit" disabled={servicePending} className="w-full">
                 {servicePending ? "Saving..." : "Save"}
               </Button>
-                </div>
-              
-              
-
-              
+                </div>  
             </form>
           </div>
       </div>
