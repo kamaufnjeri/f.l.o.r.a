@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { dateOptions } from "@/constants";
+import SelectFilter from "./SelectFilter";
+import InputField from "./InputField";
 
 type Props = {
   value: string;
@@ -49,7 +52,14 @@ export default function DateFilter({ value, onChange }: Props) {
     <div className="w-full space-y-3">
 
       {/* MAIN SELECT */}
-      <select
+      <SelectFilter
+        name='Date '
+        value={showCustom ? "custom" : value}
+        onChange={(val) => handleModeChange(val as string)}
+        placeholder={'Select date range'}
+        options={dateOptions}
+      />
+      {/* <select
         value={showCustom ? "custom" : value}
         onChange={(e) => handleModeChange(e.target.value)}
         className="
@@ -67,40 +77,29 @@ export default function DateFilter({ value, onChange }: Props) {
         <option value="this_week">This week</option>
         <option value="this_month">This month</option>
         <option value="custom">Custom range</option>
-      </select>
+      </select> */}
 
       {/* INLINE CUSTOM RANGE */}
       {showCustom && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
 
-          <div className="space-y-1">
-            <label className="text-xs text-gray-500">From</label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => handleFrom(e.target.value)}
-              className="
-                w-full rounded-lg border border-gray-200
-                px-3 py-2 text-sm
-                focus:outline-none focus:ring-2 focus:ring-black/10
-              "
-            />
-          </div>
+          <InputField
+            type='date'
+            value={from}
+            onChange={(v) => handleFrom(v)}
+            name={'from'}
+            placeholder={`Enter from}`}
 
-          <div className="space-y-1">
-            <label className="text-xs text-gray-500">To</label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => handleTo(e.target.value)}
-              className="
-                w-full rounded-lg border border-gray-200
-                px-3 py-2 text-sm
-                focus:outline-none focus:ring-2 focus:ring-black/10
-              "
-            />
-          </div>
+          />
+          <InputField
+            type='date'
+            value={to}
+            onChange={(v) => handleTo(v)}
+            name={'to'}
+            placeholder={`Enter to}`}
 
+            />
+            
         </div>
       )}
 

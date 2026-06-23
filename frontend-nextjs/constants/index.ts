@@ -70,7 +70,6 @@ export const statusOptions: OptionType[] = [
 export const sortOptions: OptionType[] = [
   { name: "Recently Added", value: "newest" },
   { name: "Earliest Added", value: "oldest" },
-  { name: "Reset", value: "reset" },
 ];
 
 export const dateOptions: OptionType[] = [
@@ -79,7 +78,7 @@ export const dateOptions: OptionType[] = [
   { name: "Yesterday", value: "yesterday" },
   { name: "This Week", value: "this_week" },
   { name: "This Month", value: "this_month" },
-  { name: "Custom Range", value: "*" },
+  { name: "Custom Range", value: "custom" },
 ];
 
 export const sidebarIcons = [

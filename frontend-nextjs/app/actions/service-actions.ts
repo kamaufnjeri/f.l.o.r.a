@@ -123,3 +123,162 @@ export async function getServices(orgId: string, params: { search?: string; name
     };
   }
 }
+
+export async function getService(orgId: string, serviceId: string, params: { date : string }) {
+  try {
+    if (!orgId || !serviceId) {
+      return {
+        success: false,
+        error: "Organization/Service ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+      // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+    if (params.date) query.set("date", params.date);
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/services/${serviceId}/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+   
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      success: true,
+      service: data?.data ?? data ?? null,
+    };
+  } catch (error) {
+    console.log("Error fetching service:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function editService(
+  orgId: string,
+  serviceId: string,
+  formData: FormData
+) {
+  try {
+    if (!orgId || !serviceId) {
+      return {
+        success: false,
+        error: "Organization/Service ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+    const payload = {
+      name: formData.get("name"),
+      description: formData.get("description")
+    };
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/services/${serviceId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+    revalidatePath(`/dashboard/${orgId}/services/${serviceId}`);
+    return {
+      success: true,
+      message: data.message || "Service updated successfully",
+      service: data?.service,
+      select_options: data?.select_options
+    };
+  } catch (error) {
+    console.log("Error editing service:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function deleteService(
+  orgId: string,
+  serviceId: string
+) {
+  try {
+    if (!orgId || !serviceId) {
+      return {
+        success: false,
+        error: "Organization/Service ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/services/${serviceId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+      }
+    );
+
+    
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      message: data.message || "Service deleted successfully",
+      
+      success: true,
+      select_options: data?.select_options,
+    };
+  } catch (error) {
+    console.log("Error deleting service:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

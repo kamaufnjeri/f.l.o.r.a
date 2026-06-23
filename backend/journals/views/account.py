@@ -44,7 +44,6 @@ class CategoryAPIView(generics.CreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -325,7 +324,7 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
                     instance.delete() 
                     select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
             
-                    return Response({"message": "Account deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
+                    return Response({"message": "Account deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)
                 else:
                     raise serializers.ValidationError("Cannot delete account, it's a permanent account")
             else:
@@ -345,7 +344,6 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

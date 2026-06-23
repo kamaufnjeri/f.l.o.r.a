@@ -45,7 +45,7 @@ export type UserOrganisation = {
 };
 
 export type User = {
-  id: number;
+  id: string | number;
   email: string;
   first_name: string;
   last_name: string;
@@ -325,3 +325,136 @@ export type UISection = {
   showAdd?: boolean;
   items: OptionItem[];
 };
+
+export interface AccountItem  {
+  id: string;
+  name: string;
+  group: string;
+  category: string;
+  sub_category: string;
+  account_balance: string | number;
+};
+
+export interface AccountDetails extends AccountItem {
+  account_data: {
+    entries: {
+      details: {
+        url: string,
+        type: string,
+        date: string,
+        description: string;
+        serial_number: string;
+      },
+      amount: number,
+      debit_credit: DebitCredit,
+    }[];
+    totals: {
+      debit: number,
+      credit: number,
+      closing: {
+        debit_credit: DebitCredit,
+        amount: number
+      }
+    }
+  }
+}
+
+export interface CustomerItem  {
+  id: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  account_id: string,
+};
+
+export interface CustomerData {
+  details: {
+    url: string,
+    type: string,
+    date: string,
+    description: string;
+    serial_number: string;
+    due_days: string;
+  },
+  due_date: string,
+  status: DebitCredit,
+  amount_paid: number,
+  amount_due: number,
+}
+export interface CustomerDetails extends CustomerItem {
+  customer_data: {
+    invoices: CustomerData[];
+    totals: {
+      amount_paid: number,
+      amount_due: number,
+      
+    }
+  }
+}
+
+export interface SupplierDetails extends CustomerItem {
+  supplier_data: {
+    bills: CustomerData[];
+    totals: {
+      amount_paid: number,
+      amount_due: number,
+      
+    }
+  }
+}
+
+
+export interface StockItem  {
+  id: string;
+  name: string;
+  unit_name: string;
+  unit_alias: string;
+};
+
+export interface StockSummary {
+  entries: {
+    details: {
+      serial_number: string;
+      url: string,
+      type: string,
+      date: string,
+      description: string;
+      rate: string | number;
+      quantity: string | number;
+      total: string | number;
+    }
+  }[],
+  totals: {
+    name: string;
+    quantity: string | number;
+    amount: string | number;
+  }[]
+}
+export interface StockDetails extends StockItem {
+  stock_summary: StockSummary
+}
+
+export interface ServiceItem  {
+  id: string;
+  name: string;
+  description: string;
+};
+
+export interface ServiceData {
+  entries: {
+    price: string | number;
+    quantity: string | number;
+    details: {
+      serial_number: string;
+      url: string,
+      date: string,
+      description: string;
+    
+      total: string | number;
+    }
+  }[],
+  total: string | number;
+}
+export interface ServiceDetails extends ServiceItem {
+  service_data: ServiceData
+}

@@ -37,6 +37,7 @@ class DetailedSalesEntriesSerializer(serializers.ModelSerializer):
     def get_details(self, obj):
         from journals.utils import get_date_description_type_url
         details = get_date_description_type_url(obj)
+        details['serial_number'] = obj.sales.serial_number
         details['quantity'] = obj.sold_quantity
         details['rate'] = obj.sales_price
         details['total'] = float(obj.sales_price) * float(obj.sold_quantity)

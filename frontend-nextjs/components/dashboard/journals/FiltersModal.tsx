@@ -7,6 +7,8 @@ import Modal from "../common/Modal";
 import ModalHeader from "../common/ModalHeader";
 import DateFilter from "./DateFilter";
 import SortFilter from "./SortFilter";
+import InputField from "./InputField";
+import { sortOptions } from "@/constants";
 
 type Filters = Record<string, string>;
 
@@ -114,41 +116,39 @@ export default function FiltersModal({
                     value={value}
                     onChange={(v) => setField(key, v)}
                     name={key}
-                    options={[
-                      {
-                        label: "Newest first",
-                        value: "newest",
-                      },
-                      {
-                        label: "Oldest first",
-                        value: "oldest",
-                      },
-                    ]}
+                    options={sortOptions}
                   />
                 ) : (
-                  <input
+                   <InputField
                     value={value}
-                    onChange={(e) =>
-                      setField(key, e.target.value)
-                    }
+                    onChange={(v) => setField(key, v)}
+                    name={key}
                     placeholder={`Enter ${label.toLowerCase()}`}
-                    className="
-                      w-full
-                      h-10
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-white
-                      px-4
-                      text-sm
-                      shadow-sm
-                      transition
-                      focus:outline-none
-                      focus:ring-2
-                      focus:ring-primary/20
-                      focus:border-primary
-                    "
-                  />
+
+                    />
+                  // <input
+                  //   value={value}
+                  //   onChange={(e) =>
+                  //     setField(key, e.target.value)
+                  //   }
+                  //   placeholder={`Enter ${label.toLowerCase()}`}
+                  //   className="
+                  //     w-full
+                  //     h-10
+                  //     rounded-xl
+                  //     border
+                  //     border-gray-200
+                  //     bg-white
+                  //     px-4
+                  //     text-sm
+                  //     shadow-sm
+                  //     transition
+                  //     focus:outline-none
+                  //     focus:ring-2
+                  //     focus:ring-primary/20
+                  //     focus:border-primary
+                  //   "
+                  // />
                 )}
               </div>
             );

@@ -118,5 +118,13 @@ class StockDetailsSerializer(serializers.ModelSerializer):
         
         return stock_entries
 
-    
+    def update(self, instance, validated_data):
+        name = validated_data.get('name', instance.name)
+        unit_alias = validated_data.get('unit_alias', instance.unit_alias)
+        unit_name = validated_data.get('unit_name', instance.unit_name)
 
+        instance.name = name
+        instance.unit_alias = unit_alias
+        instance.unit_name = unit_name
+
+        return instance

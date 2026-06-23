@@ -209,7 +209,7 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
+
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -237,7 +237,7 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
                 instance.delete() 
                 select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
             
-                return Response({"message": "Customer deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
+                return Response({"message": "Customer deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)
             else:
                 raise serializers.ValidationError("Cannot delete customer with associated invoices.")
 

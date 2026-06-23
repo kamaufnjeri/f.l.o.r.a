@@ -34,7 +34,7 @@ export default function InputField({
   return (
     <div className="w-full space-y-1">
       {/* LABEL */}
-      <div className="flex justify-between items-center">
+      {(label || required || isDirty) && <div className="flex justify-between items-center">
       {label && (
         <label
           htmlFor={name}
@@ -46,7 +46,7 @@ export default function InputField({
       )}
       {isDirty && <span className="text-yellow-500 text-xs">• edited</span>}
 
-      </div>
+      </div>}
 
       {/* INPUT */}
       <input
@@ -63,7 +63,7 @@ export default function InputField({
           onChange(e.target.value);
         }}
         className="
-          w-full px-3 py-2 rounded-lg border border-gray-200
+          w-full px-3 py-2 h-10 rounded-lg border border-gray-200
           text-sm text-gray-800 bg-white
           focus:outline-none focus:ring-2 focus:ring-black/10
           disabled:bg-gray-100 disabled:cursor-not-allowed

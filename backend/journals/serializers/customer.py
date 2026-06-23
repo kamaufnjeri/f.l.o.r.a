@@ -50,10 +50,11 @@ class CustomerSerializer(serializers.ModelSerializer):
 class CustomerDetailSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     customer_data = serializers.SerializerMethodField(read_only=True)
-    
+    account_id = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Customer
-        fields = ["id", "name", "email", "phone_number", "organisation", "customer_data"]
+        fields = ["id", "name", "email", "phone_number", "organisation", "customer_data", "account_id"]
 
     def validate(self, data):
         organisation_id = data.pop('organisation')
@@ -100,3 +101,16 @@ class CustomerDetailSerializer(serializers.ModelSerializer):
         
         
         return customer_data
+
+    def get_customer_data(self, obj):
+        date_param = self.context.get('date', None)
+
+        customer_data = CustomerUtils(obj, period=date_param).get_customer_data()
+        
+        
+        return customer_data
+    def get_account_id(self, obj):
+        account = obj.account
+        if account:
+            return account.id
+        return None

@@ -74,7 +74,8 @@ export async function getSuppliers(orgId: string, params: { search?: string; nam
     query.set("paginate", "true");
 
     if (params.search) query.set("search", params.search);
-    if (params.name) query.set("date", params.name);
+    if (params.name) query.set("name", params.name);
+    if (params.page) query.set("page", params.page);
   
     // 📊 FETCH JOURNALS
     const supplierRes = await fetch(
@@ -120,6 +121,167 @@ export async function getSuppliers(orgId: string, params: { search?: string; nam
     };
   } catch (error) {
     console.log("Error fetching suppliers:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function getSupplier(orgId: string, supplierId: string, params: { date : string }) {
+  try {
+    if (!orgId || !supplierId) {
+      return {
+        success: false,
+        error: "Organization/Supplier ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+      // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+    if (params.date) query.set("date", params.date);
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/suppliers/${supplierId}/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+   
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      success: true,
+      supplier: data?.data ?? data ?? null,
+    };
+  } catch (error) {
+    console.log("Error fetching supplier:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function editSupplier(
+  orgId: string,
+  supplierId: string,
+  formData: FormData
+) {
+  try {
+    if (!orgId || !supplierId) {
+      return {
+        success: false,
+        error: "Organization/Supplier ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+    const payload = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      phone_number: formData.get("phone_number"),
+
+    };
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/suppliers/${supplierId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+    revalidatePath(`/dashboard/${orgId}/suppliers/${supplierId}`);
+    return {
+      success: true,
+      message: data.message || "Supplier updated successfully",
+      supplier: data?.supplier,
+      select_options: data?.select_options
+    };
+  } catch (error) {
+    console.log("Error editing supplier:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function deleteSupplier(
+  orgId: string,
+  supplierId: string
+) {
+  try {
+    if (!orgId || !supplierId) {
+      return {
+        success: false,
+        error: "Organization/Supplier ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/suppliers/${supplierId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+      }
+    );
+
+    
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      message: data.message || "Supplier deleted successfully",
+      
+      success: true,
+      select_options: data?.select_options,
+    };
+  } catch (error) {
+    console.log("Error deleting supplier:", error);
 
     return {
       success: false,

@@ -23,9 +23,8 @@ export default function ServicesTable({
           <thead className="sticky top-0 z-10 bg-gray-50 text-gray-600">
             <tr className="border-b">
               <th className="p-3 text-left font-medium">Name</th>
-              <th className="p-3 text-left font-medium">Email</th>
-              <th className="p-3 text-left font-medium">Phone No.</th>
-              <th className="p-3 text-right font-medium">Amount Due</th>
+              <th className="p-3 text-left font-medium">Description</th>
+           
             </tr>
           </thead>
 

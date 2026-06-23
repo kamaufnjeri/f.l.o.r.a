@@ -52,7 +52,7 @@ export default async function StocksPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Stocks'} goToUrl={'stocks'} filters={{ search, name, page }} organisationId={organisationId} />
+      <FiltersSection title={'Stocks'} goToUrl={'stocks'} filters={{ search, name, page }} organisationId={organisationId} stock={true}/>
 
       {/* EMPTY STATE */}
       {stocks.length === 0 ? (

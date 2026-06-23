@@ -240,7 +240,7 @@ class StockDetailAPIView(generics.RetrieveAPIView):
                 instance.delete() 
                 select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_stocks=True)
 
-                return Response({"message": "Stock deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)            
+                return Response({"message": "Stock deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)            
             else:
                 raise serializers.ValidationError("Cannot delete stock with associated entries or non-zero closing stock.")
 

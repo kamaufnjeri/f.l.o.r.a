@@ -225,7 +225,7 @@ class ServiceDetailAPIView(generics.RetrieveAPIView):
                 instance.delete()
                 select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_services=True)
             
-                return Response({"message": "Service deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT) 
+                return Response({"message": "Service deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK) 
             else:
                 raise serializers.ValidationError("Cannot delete service with associated entries.")
 

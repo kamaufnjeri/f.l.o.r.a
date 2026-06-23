@@ -31,10 +31,12 @@ class DetailedPurchaseEntriesSerializer(serializers.ModelSerializer):
         model = PurchaseEntries
         fields = ['id', 'details']
 
-    
+   
     def get_details(self, obj):
         from journals.utils import get_date_description_type_url
         details = get_date_description_type_url(obj)
+        details['serial_number'] = obj.purchase.serial_number
+
         details['quantity'] = obj.purchased_quantity
         details['rate'] = obj.purchase_price
         details['total'] = float(obj.purchase_price) * float(obj.purchased_quantity)

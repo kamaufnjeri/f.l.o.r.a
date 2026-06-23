@@ -13,10 +13,10 @@ type Props = {
   customer?: boolean;
 };
 
-const baseButton =
+export const baseButton =
   "px-4 py-2 rounded-xl font-medium cursor-pointer transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 shadow-sm hover:shadow-md whitespace-nowrap";
 
-const variants: Record<string, string> = {
+export const variants: Record<string, string> = {
   account:
     "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 focus:ring-indigo-200 border border-indigo-100",
   stock:

@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 type Props = {
   label: string;
   name: string;
+  value?: string | number;
   type?: string;
   placeholder?: string;
   required?: boolean;
@@ -14,6 +15,7 @@ type Props = {
 export default function Input({
   label,
   name,
+  value,
   type = "text",
   placeholder,
   required,
@@ -38,6 +40,7 @@ export default function Input({
         <input
           name={name}
           type={type}
+          defaultValue={value}
           placeholder={placeholder}
           required={required}
           className={`

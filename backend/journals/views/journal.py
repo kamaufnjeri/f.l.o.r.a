@@ -272,7 +272,7 @@ class JournalDetailAPIView(generics.RetrieveAPIView):
             instance.delete() 
             select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
             
-            return Response({"message": "Journal deleted successfully.", "select_options": select_options_data}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Journal deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)
             
         except Journal.DoesNotExist:
             return Response({

@@ -160,7 +160,7 @@ const SingleStock = () => {
                             onClick={() => handleRowClick(entry.details.url)}
                         >
                             <td className='p-1 border-b border-r border-gray-800'>
-                                {index + 1}
+                                {entry.details.serial_number}
                             </td>
                             <td className='p-1 border-b border-r border-gray-800'>
                                 {entry.details.date}

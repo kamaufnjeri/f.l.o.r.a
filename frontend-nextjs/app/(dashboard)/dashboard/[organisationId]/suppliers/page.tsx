@@ -52,7 +52,7 @@ export default async function SuppliersPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Suppliers'} goToUrl={'suppliers'} filters={{ search, name, page }} organisationId={organisationId} />
+      <FiltersSection title={'Suppliers'} goToUrl={'suppliers'} filters={{ search, name, page }} organisationId={organisationId} supplier={true}/>
 
       {/* EMPTY STATE */}
       {suppliers.length === 0 ? (

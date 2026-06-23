@@ -1,64 +1,51 @@
 "use client";
 
-export type Option = {
-  label: string;
-  value: string;
-};
+import { OptionType } from "@/constants";
+
 
 type Props = {
   value: string;
   onChange: (value: string) => void;
-  options: Option[];
+  options: OptionType[];
   placeholder?: string;
-  name: string;
+  name?: string;
+  
 };
 
 export default function SelectFilter({
   value,
   onChange,
+ 
   options,
   placeholder = "Select",
-  name,
+  name = "",
 }: Props) {
   return (
-    <div className="relative w-full">
+   <div className="w-full space-y-1 relative">
+   
+
+      {/* INPUT */}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         name={name}
         className="
-          h-10
-          w-full
-          appearance-none
-          rounded-xl
-          border
-          border-gray-200
-          bg-white
-          px-4
-          text-sm
-          font-medium
-          shadow-sm
-          transition
-          focus:outline-none
-          focus:ring-2
-          focus:ring-black/10
-          focus:border-black
-          cursor-pointer
+          w-full px-3 py-2 h-10 rounded-lg border border-gray-200
+            text-sm text-gray-800 bg-white
+            focus:outline-none focus:ring-2 focus:ring-black/10
+            transition
         "
       >
         <option value="">{placeholder}</option>
 
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
-            {opt.label}
+            {opt.name}
           </option>
         ))}
       </select>
 
-      {/* dropdown icon */}
-      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-        ▾
-      </div>
+      
     </div>
   );
 }

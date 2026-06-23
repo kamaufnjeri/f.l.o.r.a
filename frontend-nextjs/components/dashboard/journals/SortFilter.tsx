@@ -1,11 +1,12 @@
 "use client";
 
-import SelectFilter, { Option } from "./SelectFilter";
+import { OptionType } from "@/constants";
+import SelectFilter from "./SelectFilter";
 
 type Props = {
   value: string;
   onChange: (value: string) => void;
-  options: Option[];
+  options: OptionType[];
   name: string;
 };
 

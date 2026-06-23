@@ -50,10 +50,12 @@ class SupplierSerializer(serializers.ModelSerializer):
 class SupplierDetailSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     supplier_data = serializers.SerializerMethodField(read_only=True)
+    account_id = serializers.SerializerMethodField(read_only=True)
+
     
     class Meta:
         model = Supplier
-        fields = ["id", "name", "email", "phone_number", "organisation", "supplier_data"]
+        fields = ["id", "name", "email", "phone_number", "organisation", "supplier_data", "account_id"]
 
     def validate(self, data):
         organisation_id = data.pop('organisation')
@@ -100,3 +102,8 @@ class SupplierDetailSerializer(serializers.ModelSerializer):
         
         
         return supplier_data
+    def get_account_id(self, obj):
+        account = obj.account
+        if account:
+            return account.id
+        return None

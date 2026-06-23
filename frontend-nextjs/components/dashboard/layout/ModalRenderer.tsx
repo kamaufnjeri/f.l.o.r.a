@@ -3,9 +3,9 @@
 import { ModalName } from "@/types";
 import CreateAccountModal from "../accounts/CreateAccountModal";
 import CreateStockModal from "../stocks/CreateStockModal";
-import CreateServiceModal from "../services/createServiceModal";
-import CreateSupplierModal from "../suppliers/createSupplierModal";
-import CreateCustomerModal from "../customers/createCustomerModal";
+import CreateServiceModal from "../services/CreateServiceModal";
+import CreateSupplierModal from "../suppliers/CreateSupplierModal";
+import CreateCustomerModal from "../customers/CreateCustomerModal";
 import { useModalStore } from "@/stores/modalStore";
 import { ComponentType } from "react";
 

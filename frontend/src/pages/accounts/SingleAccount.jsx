@@ -148,7 +148,7 @@ const SingleAccount = () => {
             <table className='min-w-full border-collapse border border-gray-800'>
                 <thead>
                     <tr className='text-left bg-gray-400'>
-                        <th className='p-1 border-b border-r border-gray-800'>No.</th>
+                        <th className='p-1 border-b border-r border-gray-800'>Serial No.</th>
                         <th className='p-1 border-b border-r border-gray-800'>Date</th>
                         <th className='p-1 border-b border-r border-gray-800'>Type</th>
 
@@ -164,7 +164,7 @@ const SingleAccount = () => {
                             onClick={() => handleRowClick(entry.details.url)}
                         >
                             <td className='p-1 border-b border-r border-gray-800'>
-                                {index + 1}
+                                {entry.details.serial_number}
                             </td>
                             <td className='p-1 border-b border-r border-gray-800'>
                                 {entry.details.date}

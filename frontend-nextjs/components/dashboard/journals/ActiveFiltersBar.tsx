@@ -3,6 +3,7 @@
 import { downloadListPdf } from "@/app/actions/download-actions";
 import { normalizeWord, replaceDash, saveFile } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { ReactNode } from "react";
 import toast from "react-hot-toast";
 
 
@@ -12,6 +13,7 @@ type Props = {
   downloadType: string;
   onOpen: () => void;
   resetFilters: () => void;
+  modalButtons: ReactNode;
 };
 
 // function formatDate(date: string) {
@@ -36,6 +38,7 @@ export default function ActiveFiltersBar({
   downloadType,
   onOpen,
   resetFilters,
+  modalButtons,
 }: Props) {
   const { currentOrg } = useAuthStore();
 
@@ -50,7 +53,7 @@ export default function ActiveFiltersBar({
 
     const dateLower = date.toLowerCase();
     // 1. RANGE (only if NOT today)
-    if (dateLower.includes("to")) {
+    if (dateLower.includes("to") && dateLower !== 'today') {
       const normalized = date
       .replace(/\s*to\s*/gi, " to ")
       .replace(/\s+/g, " ")
@@ -170,6 +173,7 @@ export default function ActiveFiltersBar({
             >
               Reset all
             </button>
+            {modalButtons}
 
             {/* RIGHT ACTIONS */}
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">

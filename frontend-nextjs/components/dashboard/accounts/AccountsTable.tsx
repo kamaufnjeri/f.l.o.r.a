@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
+import { AccountItem as Account } from "@/types";
 
 
-type Account = {
-  id: number;
-  name: string;
-  group: string;
-  category: string;
-  sub_category: string;
-  account_balance: string | number;
-};
 
 export default function AccountTable({
   accounts,

@@ -52,7 +52,7 @@ export default async function ServicesPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Services'} goToUrl={'services'} filters={{ search, name, page }} organisationId={organisationId} />
+      <FiltersSection service={true} title={'Services'} goToUrl={'services'} filters={{ search, name, page }} organisationId={organisationId} />
 
       {/* EMPTY STATE */}
       {services.length === 0 ? (
