@@ -93,7 +93,7 @@ export default function ItemFiltersModal({
                 active:scale-[0.98]
               "
             >
-              Apply Filters
+              Apply
             </button>
           </div>
         </div>

@@ -116,7 +116,7 @@ class SalesAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True, add_serial_no=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True, add_serial_no=True)
             return Response({
                 'message': 'Sales created successfully',
                 'select_options':   select_options_data
@@ -261,7 +261,7 @@ class SalesDetailAPIView(generics.RetrieveAPIView):
                 raise serializers.ValidationError(f"Sales {sale_id} can only be deleted by user who recorded it")
             
             instance.delete() 
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
             
             return Response({"message": "Sales deleted successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
                         

@@ -216,6 +216,24 @@ export interface PurchaseFormData {
   journal_entries: JournalEntry[];
 }
 
+export interface PaymentFormData {
+  date: string;
+  description: string;
+  bill?: string | null;
+  invoice?: string | null;
+  journal_entries: JournalEntry[];
+}
+
+export interface Payment {
+  id: string;
+  date: string;
+  description: string;
+  bill?: string | null;
+  invoice?: string | null;
+  journal_entries: JournalEntry[];
+  journal_entries_total?: JournalTotals;
+}
+
 
 export interface Purchase {
   id: string;
@@ -457,4 +475,114 @@ export interface ServiceData {
 }
 export interface ServiceDetails extends ServiceItem {
   service_data: ServiceData
+}
+
+export interface SalesItem {
+  id: string;
+  serial_number: string;
+  date: string;
+  description: string;
+}
+
+export interface SalesDetails {
+  total_amount: string | number;
+  total_quantity: string | number;
+  amount_due: string | number;
+  type: 'sales' | 'invoice' | 'bill' | 'purchase' | 'service_income';
+  items: string[]
+}
+
+export interface SalesTotal {
+  amount: string | number;
+  amount_due: string | number;
+  quantity: string | number;
+}
+export interface SalesOverview extends SalesItem {
+  details: SalesDetails
+}
+
+export type SalesType = "all" | 'is_invoices' | 'is_not_invoices' | "";
+export type PurchaseType = "all" | 'is_bills' | 'is_not_bills' | "";
+
+export type DueDaysType =
+  | "all"
+  | "in_two"
+  | "three_to_seven"
+  | "eight_to_thirty"
+  | "than_thirty"
+  | "overdue"
+  | "";
+
+export type StatusType =
+  | "all"
+  | "paid"
+  | "unpaid"
+  | "partially_paid"
+  | "";
+  
+export interface BillInvoiceDetails {
+  date: string;
+  due_days: string;
+  type: string;
+  serial_number: string;
+  url: string;
+}
+
+export interface BillInvoice {
+  id: string;
+  due_date: string;
+  amount_paid: string | number;
+  amount_due: string | number;
+  status: StatusType;
+  details: BillInvoiceDetails
+}
+
+
+export interface BillOverview extends BillInvoice {
+  supplier_name: string;
+
+}
+
+export interface InvoiceOverview extends BillInvoice {
+  customer_name?: string;
+
+}
+
+export interface BillInvoiceTotals {
+  amount_paid: string | number;
+  amount_due: string | number;
+}
+
+export type paymentType = "is_invoices" | "is_bills" | "all" | "";
+export interface PaymentOverview {
+  id: string;
+  date: string;
+  description: string;
+  amount_paid: string | number;
+  details: { 
+    type: string;
+    serial_number: string;
+    url: string;
+  }
+}
+
+export interface PaymentTotals {
+  amount_paid: string | number;
+}
+
+export interface ReturnOverview {
+  id: string;
+  description: string;
+  date: string;
+  details: {
+    url: string;
+    total_quantity: string | number;
+    total_amount: string | number;
+    serial_number: string;
+  };
+  return_entries: {
+    return_price: string | number;
+    return_quantity: string | number;
+    stock_name: string;
+  }[];
 }

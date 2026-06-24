@@ -34,7 +34,7 @@ export default async function StocksPage({
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
           <h2 className="font-semibold">Something went wrong</h2>
           <p className="text-sm mt-1">
-            Failed to load stock. Please try again.
+            Failed to load stock. Please try again. {stockResponse.error}
           </p>
         </div>
       </div>

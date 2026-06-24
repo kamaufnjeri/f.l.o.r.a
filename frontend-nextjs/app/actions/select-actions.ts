@@ -17,7 +17,7 @@ export async function fetchSelectOptions(
     const cookieStore = await cookies();
 
     const res = await fetch(
-      `${backendURL}/${orgId}/select_options/`,
+      `${backendURL}/${orgId}/select-options/`,
       {
         method: "GET",
         headers: {

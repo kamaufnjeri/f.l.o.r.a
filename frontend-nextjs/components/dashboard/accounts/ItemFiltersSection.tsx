@@ -130,7 +130,7 @@ export default function ItemFiltersSection({
               active:scale-[0.98]
             "
           >
-            Open Filters
+            Apply Filters
           </button>
         
       </div>

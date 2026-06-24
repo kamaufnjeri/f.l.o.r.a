@@ -8,7 +8,8 @@ import ModalHeader from "../common/ModalHeader";
 import DateFilter from "./DateFilter";
 import SortFilter from "./SortFilter";
 import InputField from "./InputField";
-import { sortOptions } from "@/constants";
+import { dueDaysOptions, paymentTypes, purchaseType, salesType, sortOptions, statusOptions } from "@/constants";
+import SelectFilter from "./SelectFilter";
 
 type Filters = Record<string, string>;
 
@@ -118,6 +119,46 @@ export default function FiltersModal({
                     name={key}
                     options={sortOptions}
                   />
+                ) : includesAny(key, ['sales', 'service_income']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={salesType}
+                    placeholder='Select Type'
+                  />
+                ) : includesAny(key, ['purchases']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={purchaseType}
+                    placeholder='Select Type'
+                  />
+                ) : includesAny(key, ['due_days']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={dueDaysOptions}
+                    placeholder='Select Due Days'
+                  />
+                ) : includesAny(key, ['type']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={paymentTypes}
+                    placeholder='Select Type'
+                  />
+                ) : includesAny(key, ['status']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={statusOptions}
+                    placeholder='Select Status'
+                  />
                 ) : (
                    <InputField
                     value={value}
@@ -206,7 +247,7 @@ export default function FiltersModal({
                 active:scale-[0.98]
               "
             >
-              Apply Filters
+              Apply
             </button>
           </div>
         </div>

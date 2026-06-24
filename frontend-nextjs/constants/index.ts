@@ -67,6 +67,19 @@ export const statusOptions: OptionType[] = [
   { name: "Partially Paid", value: "partially_paid" },
 ];
 
+
+export const purchaseType: OptionType[] = [
+  { name: "All", value: "all" },
+  { name: "Bills", value: "is_bills" },
+  { name: "Regular", value: "is_not_bills" },
+];
+
+export const  salesType: OptionType[] = [
+  { name: "All", value: "all" },
+  { name: "Invoices", value: "is_invoices" },
+  { name: "Regular", value: "is_not_invoices" },
+];
+
 export const sortOptions: OptionType[] = [
   { name: "Recently Added", value: "newest" },
   { name: "Earliest Added", value: "oldest" },
@@ -80,6 +93,12 @@ export const dateOptions: OptionType[] = [
   { name: "This Month", value: "this_month" },
   { name: "Custom Range", value: "custom" },
 ];
+
+export const paymentTypes: OptionType[] =[
+  { name: "All", value: "all" },
+  { name: "Invoices", value: "is_invoices" },
+  { name: "Bills", value: "is_bills" },
+]
 
 export const sidebarIcons = [
   {
@@ -127,7 +146,7 @@ export const sidebarIcons = [
     url: null,
     lists: [
       { name: "Record Service Income", url: "service-income/record" },
-      { name: "All Services Income", url: "service-income" },
+      { name: "All Service Incomes", url: "service-income" },
       { name: "All Services", url: "services" },
       { name: "service", showModal: true, url: null },
     ],

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
-import { ServiceIncomeFormData } from "@/types";
+import { SalesType, ServiceIncomeFormData } from "@/types";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -18,7 +18,7 @@ export async function recordServiceIncome(orgId: string, payload: ServiceIncomeF
 
     
 
-    const res = await fetch(`${backendURL}/${orgId}/service_income/`, {
+    const res = await fetch(`${backendURL}/${orgId}/service-income/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,15 +51,12 @@ export async function recordServiceIncome(orgId: string, payload: ServiceIncomeF
   }
 }
 
-export async function getJournals(orgId: string, params: { search?: string; date?: string; sort_by?: string; page?: string }) {
+export async function getServiceIncomes(orgId: string, params: { search?: string; service_income: SalesType, date?: string; sort_by?: string; page?: string }) {
   try {
     if (!orgId) {
       return {
         success: false,
         error: "Organization ID is required",
-        journals: [],
-        totals: null,
-        pagination: null,
       };
     }
     const cookieStore = await cookies();
@@ -70,15 +67,14 @@ export async function getJournals(orgId: string, params: { search?: string; date
     query.set("paginate", "true");
 
     if (params.search) query.set("search", params.search);
+    if (params.service_income) query.set("service_income", params.service_income);
     if (params.date) query.set("date", params.date);
     if (params.sort_by) query.set("sort_by", params.sort_by);
     if (params.page) query.set("page", params.page);
 
-  
-
     // 📊 FETCH JOURNALS
-    const journalRes = await fetch(
-      `${backendURL}/${orgId}/journals/?${query.toString()}`,
+    const serviceIncomeRes = await fetch(
+      `${backendURL}/${orgId}/service-income/?${query.toString()}`,
       {
         method: "GET",
         headers: {
@@ -88,21 +84,21 @@ export async function getJournals(orgId: string, params: { search?: string; date
       }
     );
 
-    if (!journalRes.ok) {
+    const data = await serviceIncomeRes.json();
+
+    if (!serviceIncomeRes.ok) {
+      
       return {
-        success: true,
-        journals: [],
-        pagination: null,
-        totals: null,
+        success: false,
+        error: formatApiError(data),
       };
     }
 
-    const data = await journalRes.json();
     const resultsData = data.results.data || {}
 
     // 🧾 EXPECTED BACKEND SHAPE:
     // data = {
-    //   journals: [],
+    //   serviceIncomes: [],
     //   totals: {},
     //   next: "",
     //   previous: ""
@@ -110,7 +106,7 @@ export async function getJournals(orgId: string, params: { search?: string; date
 
     return {
       success: true,
-      journals: resultsData.journals ?? [],
+      serviceIncomes: resultsData.service_income ?? [],
       totals: resultsData.totals ?? {
         debit_total: 0,
         credit_total: 0,
@@ -122,14 +118,11 @@ export async function getJournals(orgId: string, params: { search?: string; date
       },
     };
   } catch (error) {
-    console.log("Error fetching journals:", error);
+    console.log("Error fetching service incomes:", error);
 
     return {
       success: false,
-      user: null,
-      journals: [],
-      totals: null,
-      pagination: null,
+      error: formatApiError(error),
     };
   }
 }
@@ -139,14 +132,14 @@ export async function getServiceIncome(orgId: string, serviceIncomeId: string) {
     if (!orgId || !serviceIncomeId) {
       return {
         success: false,
-        error: "Organization/Service Income ID is required",
+        error: "Organization/Service income ID is required",
       };
     }
     const cookieStore = await cookies();
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/service_income/${serviceIncomeId}/`,
+      `${backendURL}/${orgId}/service-income/${serviceIncomeId}/`,
       {
         method: "GET",
         headers: {
@@ -197,7 +190,7 @@ export async function editServiceIncome(
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/service_income/${serviceIncomeId}/`,
+      `${backendURL}/${orgId}/service-income/${serviceIncomeId}/`,
       {
         method: "PATCH",
         headers: {
@@ -208,7 +201,6 @@ export async function editServiceIncome(
       }
     );
 
-   
     const data = await res.json();
 
     if (!res.ok) {
@@ -218,14 +210,15 @@ export async function editServiceIncome(
         error: formatApiError(data),
       };
     }
-     return {
-        success: true,
-        message: data.message || "Service Income updated successfully",
-        service_income: data?.service_income,
-        select_options: data?.select_options
-      };
+   
+    return {
+      success: true,
+      message: data.message || "Service income entry updated successfully",
+      serviceIncome: data?.serviceIncome,
+      select_options: data?.select_options
+    };
   } catch (error) {
-    console.log("Error editing service Income:", error);
+    console.log("Error editing serviceIncome:", error);
 
     return {
       success: false,
@@ -242,14 +235,14 @@ export async function deleteServiceIncome(
     if (!orgId || !serviceIncomeId) {
       return {
         success: false,
-        error: "Organization/Service Income ID is required",
+        error: "Organization/Service income ID is required",
       };
     }
     const cookieStore = await cookies();
 
 
     const res = await fetch(
-      `${backendURL}/${orgId}/service_income/${serviceIncomeId}/`,
+      `${backendURL}/${orgId}/service-income/${serviceIncomeId}/`,
       {
         method: "DELETE",
         headers: {
@@ -270,12 +263,13 @@ export async function deleteServiceIncome(
     }
 
     return {
-      message: data.message || "Service income deleted successfully",
+      message: data.message || "Service income entry deleted successfully",
+      
       success: true,
       select_options: data?.select_options,
     };
   } catch (error) {
-    console.log("Error deleting service income:", error);
+    console.log("Error deleting serviceIncome:", error);
 
     return {
       success: false,

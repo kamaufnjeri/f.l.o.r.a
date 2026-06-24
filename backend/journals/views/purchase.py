@@ -170,7 +170,7 @@ class DownloadPurchaseAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
+        
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -245,7 +245,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
+        
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -269,7 +269,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
                     raise serializers.ValidationError(f"Cannot delete purchase since {entry.get('stock_name')} will have negative remaining quantity")
 
             instance.delete() 
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
             
             return Response({"message": "Purchase deleted successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
             
@@ -287,7 +287,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
-            raise e
+            
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

@@ -45,8 +45,8 @@ export default function Modal({ open, onClose, children }: ModalProps) {
         dialog.modal {
           padding: 0;
           border: none;
-          width: 100%;
-          max-width: 600px;
+          width: min(1200px, 95vw);
+          max-width: 95vw;
           margin: auto;
           background: transparent;
 
@@ -68,8 +68,8 @@ export default function Modal({ open, onClose, children }: ModalProps) {
         .modal-content {
           position: relative;
           background: white;
-          width: 100%;
-          max-width: 600px;
+          width: auto;
+          max-width: 95vw;
 
           max-height: 90vh;
           overflow-y: auto;

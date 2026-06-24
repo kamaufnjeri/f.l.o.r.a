@@ -82,15 +82,23 @@ onChange={(val) =>
               updateEntry(index, "account", val as string)
             }            disabled={disabled}
           />
-  <InputField
-            label="Percentage %"
-            type="number"
-            value={(Number(entry.amount) * 100) / purchaseTotal}
-            onChange={(val) => {
-              const amount = (Number(val) * purchaseTotal) / 100;
-              updateEntry(index, "amount", amount)
-            }}
-          />
+ <InputField
+  label="Percentage %"
+  type="number"
+  min={0}
+  max={100}
+  value={(
+    (Number(entry.amount) * 100) /
+    purchaseTotal
+  ).toFixed(2)}
+  onChange={(val) => {
+    const amount = Math.round(
+      ((Number(val) * purchaseTotal) / 100) * 100
+    ) / 100;
+
+    updateEntry(index, "amount", amount);
+  }}
+/>
           
          
           <InputField

@@ -235,7 +235,7 @@ export default function ActiveFiltersBar({
                   hover:bg-gray-50
                 "
               >
-                Open Filters
+                Apply Filters
               </button>
             </div>
           </div>

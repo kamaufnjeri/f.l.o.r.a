@@ -68,7 +68,7 @@ export function SingleStock({ stock, organisationId, date }: Props) {
             className="hover:bg-gray-50 transition cursor-pointer"
           >
             <td className="p-3 text-gray-700">
-              {entry.details.serial_number}
+              {entry.details?.serial_number}
             </td>
 
             <td className="p-3 text-gray-700">

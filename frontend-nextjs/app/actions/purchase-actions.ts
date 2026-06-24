@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
 import { PurchaseFormData } from "@/types";
+import { PurchasesType } from "../(dashboard)/dashboard/[organisationId]/purchases/page";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -50,15 +51,12 @@ export async function recordPurchase(orgId: string, payload: PurchaseFormData) {
   }
 }
 
-export async function getJournals(orgId: string, params: { search?: string; date?: string; sort_by?: string; page?: string }) {
+export async function getPurchases(orgId: string, params: { search?: string; purchases: PurchasesType, date?: string; sort_by?: string; page?: string }) {
   try {
     if (!orgId) {
       return {
         success: false,
         error: "Organization ID is required",
-        journals: [],
-        totals: null,
-        pagination: null,
       };
     }
     const cookieStore = await cookies();
@@ -69,15 +67,14 @@ export async function getJournals(orgId: string, params: { search?: string; date
     query.set("paginate", "true");
 
     if (params.search) query.set("search", params.search);
+    if (params.purchases) query.set("purchases", params.purchases);
     if (params.date) query.set("date", params.date);
     if (params.sort_by) query.set("sort_by", params.sort_by);
     if (params.page) query.set("page", params.page);
 
-  
-
     // 📊 FETCH JOURNALS
-    const journalRes = await fetch(
-      `${backendURL}/${orgId}/journals/?${query.toString()}`,
+    const purchaseRes = await fetch(
+      `${backendURL}/${orgId}/purchases/?${query.toString()}`,
       {
         method: "GET",
         headers: {
@@ -87,21 +84,21 @@ export async function getJournals(orgId: string, params: { search?: string; date
       }
     );
 
-    if (!journalRes.ok) {
+    const data = await purchaseRes.json();
+
+    if (!purchaseRes.ok) {
+      
       return {
-        success: true,
-        journals: [],
-        pagination: null,
-        totals: null,
+        success: false,
+        error: formatApiError(data),
       };
     }
 
-    const data = await journalRes.json();
     const resultsData = data.results.data || {}
 
     // 🧾 EXPECTED BACKEND SHAPE:
     // data = {
-    //   journals: [],
+    //   purchases: [],
     //   totals: {},
     //   next: "",
     //   previous: ""
@@ -109,7 +106,7 @@ export async function getJournals(orgId: string, params: { search?: string; date
 
     return {
       success: true,
-      journals: resultsData.journals ?? [],
+      purchases: resultsData.purchases ?? [],
       totals: resultsData.totals ?? {
         debit_total: 0,
         credit_total: 0,
@@ -121,14 +118,11 @@ export async function getJournals(orgId: string, params: { search?: string; date
       },
     };
   } catch (error) {
-    console.log("Error fetching journals:", error);
+    console.log("Error fetching purchases:", error);
 
     return {
       success: false,
-      user: null,
-      journals: [],
-      totals: null,
-      pagination: null,
+      error: formatApiError(error),
     };
   }
 }
@@ -155,7 +149,7 @@ export async function getPurchase(orgId: string, purchaseId: string) {
       }
     );
 
-  
+   
     const data = await res.json();
 
     if (!res.ok) {
@@ -165,7 +159,6 @@ export async function getPurchase(orgId: string, purchaseId: string) {
         error: formatApiError(data),
       };
     }
-
 
     return {
       success: true,
@@ -208,7 +201,6 @@ export async function editPurchase(
       }
     );
 
-   
     const data = await res.json();
 
     if (!res.ok) {
@@ -218,13 +210,13 @@ export async function editPurchase(
         error: formatApiError(data),
       };
     }
-
-      return {
-        success: true,
-        message: data.message || "Purchase updated successfully",
-        purchase: data?.journal,
-        select_options: data?.select_options
-      };
+   
+    return {
+      success: true,
+      message: data.message || "Purchase entry updated successfully",
+      purchase: data?.purchase,
+      select_options: data?.select_options
+    };
   } catch (error) {
     console.log("Error editing purchase:", error);
 
@@ -259,7 +251,7 @@ export async function deletePurchase(
       }
     );
 
-   
+    
     const data = await res.json();
 
     if (!res.ok) {
@@ -269,8 +261,10 @@ export async function deletePurchase(
         error: formatApiError(data),
       };
     }
+
     return {
-      message: data.message || "Purchase deleted successfully",
+      message: data.message || "Purchase entry deleted successfully",
+      
       success: true,
       select_options: data?.select_options,
     };

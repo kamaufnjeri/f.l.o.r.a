@@ -35,7 +35,9 @@ class DetailedPurchaseEntriesSerializer(serializers.ModelSerializer):
     def get_details(self, obj):
         from journals.utils import get_date_description_type_url
         details = get_date_description_type_url(obj)
-        details['serial_number'] = obj.purchase.serial_number
+        if obj.purchase:
+
+          details['serial_number'] = obj.purchase.serial_number
 
         details['quantity'] = obj.purchased_quantity
         details['rate'] = obj.purchase_price

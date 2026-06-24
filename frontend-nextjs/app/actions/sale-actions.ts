@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
-import { SaleFormData } from "@/types";
+import { SaleFormData, SalesType } from "@/types";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -51,15 +51,13 @@ export async function recordSale(orgId: string, payload: SaleFormData) {
   }
 }
 
-export async function getJournals(orgId: string, params: { search?: string; date?: string; sort_by?: string; page?: string }) {
+
+export async function getSales(orgId: string, params: { search?: string; sales: SalesType, date?: string; sort_by?: string; page?: string }) {
   try {
     if (!orgId) {
       return {
         success: false,
         error: "Organization ID is required",
-        journals: [],
-        totals: null,
-        pagination: null,
       };
     }
     const cookieStore = await cookies();
@@ -70,15 +68,14 @@ export async function getJournals(orgId: string, params: { search?: string; date
     query.set("paginate", "true");
 
     if (params.search) query.set("search", params.search);
+    if (params.sales) query.set("sales", params.sales);
     if (params.date) query.set("date", params.date);
     if (params.sort_by) query.set("sort_by", params.sort_by);
     if (params.page) query.set("page", params.page);
 
-  
-
     // 📊 FETCH JOURNALS
-    const journalRes = await fetch(
-      `${backendURL}/${orgId}/journals/?${query.toString()}`,
+    const saleRes = await fetch(
+      `${backendURL}/${orgId}/sales/?${query.toString()}`,
       {
         method: "GET",
         headers: {
@@ -88,21 +85,21 @@ export async function getJournals(orgId: string, params: { search?: string; date
       }
     );
 
-    if (!journalRes.ok) {
+    const data = await saleRes.json();
+
+    if (!saleRes.ok) {
+      
       return {
-        success: true,
-        journals: [],
-        pagination: null,
-        totals: null,
+        success: false,
+        error: formatApiError(data),
       };
     }
 
-    const data = await journalRes.json();
     const resultsData = data.results.data || {}
 
     // 🧾 EXPECTED BACKEND SHAPE:
     // data = {
-    //   journals: [],
+    //   sales: [],
     //   totals: {},
     //   next: "",
     //   previous: ""
@@ -110,7 +107,7 @@ export async function getJournals(orgId: string, params: { search?: string; date
 
     return {
       success: true,
-      journals: resultsData.journals ?? [],
+      sales: resultsData.sales ?? [],
       totals: resultsData.totals ?? {
         debit_total: 0,
         credit_total: 0,
@@ -122,14 +119,11 @@ export async function getJournals(orgId: string, params: { search?: string; date
       },
     };
   } catch (error) {
-    console.log("Error fetching journals:", error);
+    console.log("Error fetching sales:", error);
 
     return {
       success: false,
-      user: null,
-      journals: [],
-      totals: null,
-      pagination: null,
+      error: formatApiError(error),
     };
   }
 }
@@ -208,7 +202,6 @@ export async function editSale(
       }
     );
 
-   
     const data = await res.json();
 
     if (!res.ok) {
@@ -218,13 +211,13 @@ export async function editSale(
         error: formatApiError(data),
       };
     }
-
-     return {
-        success: true,
-        message: data.message || "Sales updated successfully",
-        sales: data?.journal,
-        select_options: data?.select_options
-      };
+   
+    return {
+      success: true,
+      message: data.message || "Sale entry updated successfully",
+      sale: data?.sale,
+      select_options: data?.select_options
+    };
   } catch (error) {
     console.log("Error editing sale:", error);
 
@@ -259,6 +252,7 @@ export async function deleteSale(
       }
     );
 
+    
     const data = await res.json();
 
     if (!res.ok) {
@@ -270,7 +264,8 @@ export async function deleteSale(
     }
 
     return {
-      message: data.message || "Sales deleted successfully",
+      message: data.message || "Sale entry deleted successfully",
+      
       success: true,
       select_options: data?.select_options,
     };
@@ -283,3 +278,4 @@ export async function deleteSale(
     };
   }
 }
+

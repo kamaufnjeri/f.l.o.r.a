@@ -1,6 +1,7 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, date_filtering, sort_filtering
+from journals.utils.select_options_utils import select_options
 from journals.models import Payment
 from journals.serializers import PaymentSerializer, PaymentsDetailSerializer
 from django.db import models
@@ -111,7 +112,6 @@ class PaymentAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -125,7 +125,11 @@ class PaymentAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+            return Response({
+                'message': 'Payment recorded successfully',
+                'select_options':   select_options_data
+            }, status=status.HTTP_201_CREATED)        
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -134,7 +138,6 @@ class PaymentAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -302,7 +305,6 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

@@ -45,7 +45,7 @@ export default function FiltersSection({
     { key: "supplier", label: "Add Supplier", show: supplier },
   ];
   const resetFilters = () => {
-    router.push(`/dashboard/${organisationId}/journals`);
+    router.push(`/dashboard/${organisationId}/${goToUrl}`);
     setOpen(false);
   };
   const removeFilter = (key: string) => {

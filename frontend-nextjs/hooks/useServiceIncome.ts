@@ -325,8 +325,8 @@ const updateEntry = <
 
       toast.success("Service income updated");
 
-      setOriginal(res.service_income);
-      reset(res.service_income, res.select_options);
+      setOriginal(res.serviceIncome);
+      reset(res.serviceIncome, res.select_options);
     } catch (err) {
       console.error(err);
       toast.error("Save failed");

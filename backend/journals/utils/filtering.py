@@ -152,7 +152,7 @@ def get_date_description_type_url(entry):
         description = service_income.description
         entry_type = 'Service Income'
         serial_number = service_income.serial_number
-        url = f"/service_income/{service_income.id}"
+        url = f"/service-income/{service_income.id}"
 
     else:
         date = datetime.today().date()

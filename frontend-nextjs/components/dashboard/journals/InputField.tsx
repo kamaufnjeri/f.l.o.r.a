@@ -7,6 +7,7 @@ type InputFieldProps = {
   name?: string;
   min?: number,
   max?: number,
+  step?: number;
   value: string | number;
   onChange: (value: string) => void;
 
@@ -25,6 +26,7 @@ export default function InputField({
   min=0,
   max=1000000000,
   onChange,
+  step=0.01,
   type = "text",
   placeholder = "",
   required = false,
@@ -58,6 +60,7 @@ export default function InputField({
         placeholder={placeholder}
         min={type === "number" ? min : undefined}
         max={type === "number" ? max : undefined}
+        step={type === "number" ? step: undefined}
         required
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           onChange(e.target.value);
