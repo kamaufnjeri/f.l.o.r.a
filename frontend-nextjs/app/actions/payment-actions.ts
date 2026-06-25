@@ -1,10 +1,13 @@
+"use server";
+
 import { formatApiError } from "@/lib/utils";
 import { PaymentFormData, paymentType } from "@/types";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 const backendURL = process.env.BACKEND_URL;
 
-export async function recordPayment(orgId: string, payload: PaymentFormData) {
+export async function recordPayment(orgId: string, revalidateUrl: string, payload: PaymentFormData) {
   try {
     if (!orgId) {
       return {
@@ -35,6 +38,7 @@ export async function recordPayment(orgId: string, payload: PaymentFormData) {
         error: formatApiError(data),
       };
     }
+    revalidatePath(`/dashboard/${orgId}/${revalidateUrl}`)
     return {
       success: true,
       message: data.message || "Payment created successfully",
@@ -173,7 +177,8 @@ export async function getPayment(orgId: string, paymentId: string) {
 export async function editPayment(
   orgId: string,
   paymentId: string,
-  payload: PaymentFormData
+  payload: PaymentFormData,
+  revalidateUrl: string,
 ) {
   try {
     if (!orgId || !paymentId) {
@@ -206,7 +211,8 @@ export async function editPayment(
         error: formatApiError(data),
       };
     }
-   
+    revalidatePath(`/dashboard/${orgId}/${revalidateUrl}`)
+
     return {
       success: true,
       message: data.message || "Payment entry updated successfully",
@@ -225,7 +231,8 @@ export async function editPayment(
 
 export async function deletePayment(
   orgId: string,
-  paymentId: string
+  paymentId: string,
+  revalidateUrl: string
 ) {
   try {
     if (!orgId || !paymentId) {
@@ -257,6 +264,7 @@ export async function deletePayment(
         error: formatApiError(data),
       };
     }
+    revalidatePath(`/dashboard/${orgId}/${revalidateUrl}`)
 
     return {
       message: data.message || "Payment entry deleted successfully",
@@ -266,6 +274,79 @@ export async function deletePayment(
     };
   } catch (error) {
     console.log("Error deleting payment:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function getBillInvoicePayments(orgId: string, billInvoiceId: string, type: 'invoices' | 'bills', params: { page: string }) {
+  try {
+    if (!orgId || !billInvoiceId) {
+      return {
+        success: false,
+        error: "Organization/Invoice/Bill ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+    query.set("paginate", "true");
+    if (params.page) query.set("page", params.page);
+    // 📊 FETCH JOURNALS
+    const paymentRes = await fetch(
+      `${backendURL}/${orgId}/${type}/${billInvoiceId}/payments/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    const data = await paymentRes.json();
+
+
+    if (!paymentRes.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    const resultsData = data.results.data || {}
+
+    // 🧾 EXPECTED BACKEND SHAPE:
+    // data = {
+    //   payments: [],
+    //   totals: {},
+    //   next: "",
+    //   previous: ""
+    // }
+    console.log('***/n', resultsData.payments[0].journal_entries_total)
+
+    return {
+      success: true,
+      title: resultsData.title ?? "",
+      payments: resultsData.payments ?? [],
+      totals: resultsData.totals ?? {
+        debit_total: 0,
+        credit_total: 0,
+      },
+      pagination: {
+        next: data?.next,
+        previous: data?.previous,
+        page: params.page || 1,
+      },
+    };
+  } catch (error) {
+    console.log("Error fetching payments:", error);
 
     return {
       success: false,

@@ -1,4 +1,5 @@
 export interface SalesEntry {
+  id?: string;
   stock_name: string;
   sales_price: number;
   quantity: number;

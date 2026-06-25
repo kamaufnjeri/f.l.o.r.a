@@ -12,6 +12,8 @@ import { saveFile } from '@/lib/utils';
 import { SalesDetail } from '@/types/sales';
 import { deleteSale } from '@/app/actions/sale-actions';
 import JournalEntriesModal from './JournalEntriesModal';
+import PaymentModal from '../payments/PaymentModal';
+import ReturnModal from '../returns/ReturnModal';
 
 type Props = {
   organisationId: string;
@@ -24,7 +26,7 @@ export default function SalesDropDown({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPayment, setShowPaymentModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [showJournalEntriesModal, setShowJournalEntriesModal] = useState(false);
 
@@ -167,9 +169,9 @@ export default function SalesDropDown({
             </button>
           
 
-            {sales.details.has_returns && (
+             {sales.details.has_returns && (
               <Link
-                href="returns"
+                href={`/dashboard/${organisationId}/sales/${sales.id}/returns`}
                 className="block px-4 py-2 text-sm hover:bg-gray-50"
               >
                 Sales Returns
@@ -216,6 +218,16 @@ export default function SalesDropDown({
        journalEntries={sales.journal_entries}
        journalTotals={sales?.journal_entries_total}
       />}
+      {(sales.invoice && showPaymentModal) &&
+        <PaymentModal debitCreditType='debit' invoiceId={sales?.invoice?.id} open={showPaymentModal} onClose={() => setShowPaymentModal(false)} revalidateUrl={`sales/${sales.id}`}/>
+      }
+        {(sales && showReturnModal) &&
+          <ReturnModal
+            stocks={sales.sales_entries.map((entry) => ({ id: entry?.id as string, name: entry.stock_name }))}
+            salesId={sales.id}
+            
+            type='sales' open={showReturnModal} onClose={() => setShowReturnModal(false)} revalidateUrl={`sales/${sales.id}`}/>
+      }
     </>
   );
 }

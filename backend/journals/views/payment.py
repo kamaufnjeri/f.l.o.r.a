@@ -218,7 +218,7 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
+        
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -235,7 +235,13 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
+
+            return Response({
+                "message": "Payment updated successfully.",
+                "payment": serializer.data,
+                "select_options": select_options_data
+            } , status=status.HTTP_200_OK)
 
         except Payment.DoesNotExist:
             return Response({
@@ -251,7 +257,7 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            raise e
+            
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -289,8 +295,10 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
 
            
             instance.delete() 
-            return Response({"detail": "Payment item deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
             
+            return Response({"message": "Payment deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)
+                        
         except Payment.DoesNotExist:
             return Response({
                 'error': 'Not Found',

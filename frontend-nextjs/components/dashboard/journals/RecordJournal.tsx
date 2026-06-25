@@ -54,7 +54,7 @@ export default function RecordJournal() {
             onChange={(val) => {
               handleChange('description', val);
             }}
-            placeholder="Enter journal description"
+            placeholder="Enter description"
           />
         </div>
       </div>

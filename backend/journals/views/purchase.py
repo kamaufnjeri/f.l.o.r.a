@@ -117,7 +117,7 @@ class PurchaseAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True, add_serial_no=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True, add_serial_no=True)
             return Response({
                 'message': 'Purchase created successfully',
                 'select_options':   select_options_data
@@ -227,7 +227,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
             
             return Response({"purchase": serializer.data, "message": "Purchase updated successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
 

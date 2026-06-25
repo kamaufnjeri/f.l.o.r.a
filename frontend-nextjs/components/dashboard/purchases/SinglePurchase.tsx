@@ -78,7 +78,7 @@ export default function SinglePurchase({
         {purchase.bill && (
           <div className="border-t p-6">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Invoice Information
+              Bill Information
             </h3>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -95,13 +95,13 @@ export default function SinglePurchase({
                   className={`
                     inline-flex rounded-full px-3 py-1 text-xs font-medium
                     ${
-                      purchase.bill.status === "PAID"
+                      purchase.bill.status === "paid"
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     }
                   `}
                 >
-                  {purchase.bill.status}
+                  {normalizeWord(purchase.bill.status)}
                 </span>
               </div>
 

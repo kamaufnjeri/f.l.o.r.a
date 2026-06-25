@@ -11,7 +11,9 @@ import { downloadPdf } from '@/app/actions/download-actions';
 import { saveFile } from '@/lib/utils';
 import { PurchaseDetail } from '@/types/purchases';
 import { deletePurchase } from '@/app/actions/purchase-actions';
+import PaymentModal from '../payments/PaymentModal';
 import JournalEntriesModal from '../sales/JournalEntriesModal';
+import ReturnModal from '../returns/ReturnModal';
 
 type Props = {
   organisationId: string;
@@ -24,7 +26,7 @@ export default function PurchasesDropDown({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPayment, setShowPaymentModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [showJournalEntriesModal, setShowJournalEntriesModal] = useState(false);
 
@@ -88,7 +90,7 @@ export default function PurchasesDropDown({
         toast.success('Purchases deleted');
 
         router.push(
-          `/dashboard/${organisationId}/purchase`
+          `/dashboard/${organisationId}/purchases`
         );
       } else {
         toast.error(
@@ -163,16 +165,16 @@ export default function PurchasesDropDown({
               }}
               className="w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-gray-50"
             >
-              Return Purchases
+              Return Purchase
             </button>
           
 
             {purchase.details.has_returns && (
               <Link
-                href="returns"
+                href={`/dashboard/${organisationId}/purchases/${purchase.id}/returns`}
                 className="block px-4 py-2 text-sm hover:bg-gray-50"
               >
-                Purchases Returns
+                Purchase Returns
               </Link>
             )}
 
@@ -216,6 +218,16 @@ export default function PurchasesDropDown({
        journalEntries={purchase.journal_entries}
        journalTotals={purchase?.journal_entries_total}
       />}
+      {(purchase.bill && showPaymentModal) &&
+        <PaymentModal debitCreditType='credit' billId={purchase?.bill?.id} open={showPaymentModal} onClose={() => setShowPaymentModal(false)} revalidateUrl={`purchases/${purchase.id}`}/>
+      }
+       {(purchase && showReturnModal) &&
+          <ReturnModal
+            stocks={purchase.purchase_entries.map((entry) => ({ id: entry?.id as string, name: entry.stock_name }))}
+            purchaseId={purchase.id}
+            
+           type='purchases' open={showReturnModal} onClose={() => setShowReturnModal(false)} revalidateUrl={`purchases/${purchase.id}`}/>
+      }
     </>
   );
 }

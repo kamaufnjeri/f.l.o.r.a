@@ -175,13 +175,13 @@ class DetailedPurchaseReturnSerializer(PurchaseReturnSerializer):
     def update(self, instance, validated_data):
         with transaction.atomic():
             return_entries = validated_data.pop('return_entries')
-            try:
-                purchase_return_account = Account.objects.get(name="Purchase Return", organisation_id=validated_data.get('organisation'))
-            except Account.DoesNotExist:
-                raise serializers.ValidationError(f"Purchase return account not found")
-            
+            purchase_return_account = Account.objects.get(name="Purchase Return", organisation_id=validated_data.get('organisation'))
+            print('** purchase return', purchase_return_account)
+            # try:
+            #     purchase_return_account = Account.objects.get(name="Purchase Return", organisation_id=validated_data.get('organisation'))
+            # except Account.DoesNotExist:
+            #     raise serializers.ValidationError(f"Purchase return account not found")
             purchase_return = instance
-            
             purchase = getattr(purchase_return, 'purchase', None)
             if not purchase:
                 raise serializers.ValidationError("No related purchase found for the purchase return.")

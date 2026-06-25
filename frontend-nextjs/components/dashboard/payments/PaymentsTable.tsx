@@ -33,7 +33,7 @@ export default function PaymentsTable({
       </thead>
 
       <tbody className="divide-y">
-        {payments?.map((payment, index) => (
+        {payments?.map((payment) => (
           <tr
             key={payment.id}
             className="hover:bg-gray-50 transition"
@@ -70,7 +70,7 @@ export default function PaymentsTable({
 
             <td className="p-3 text-right">
               <Link
-                href={`/dasboard/${organisationId}${payment.details.url}`}
+                href={`/dashboard/${organisationId}${payment.details.url}`}
                 className="
                   inline-flex
                   items-center

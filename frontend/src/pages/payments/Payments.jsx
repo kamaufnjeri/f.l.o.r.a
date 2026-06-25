@@ -247,8 +247,8 @@ const Payments = () => {
                 <PrevNext pageNo={pageNo} data={paymentsData} previousPage={previousPage} nextPage={nextPage} className='w-full' />
 
             </div>
-
-            <table className='min-w-full border-collapse border border-gray-800'>
+<table className='min-w-full border-collapse border border-gray-800'>
+         
                 <thead>
                     <tr className='text-left bg-gray-400'>
                         <th className='p-1 border-r border-b border-gray-800'>No.</th>
@@ -314,7 +314,7 @@ const Payments = () => {
 
                 </tbody>
 
-            </table>
+            </table>   
             </div>
         </div>
     )

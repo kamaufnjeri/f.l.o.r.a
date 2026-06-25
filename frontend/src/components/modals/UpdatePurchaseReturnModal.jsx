@@ -131,8 +131,10 @@ const UpdatePurchaseReturnModal = ({ openModal, setOpenModal, title, purchaseRet
                                             item={true}
                                             isSubmitted={isSubmitted}
                                             handleChange={handleChange}
-                                            index={index} options={stocks}
-                                            value={entry.purchase_entry} name={'purchase_entry'}
+                                            index={index} 
+                                            options={stocks}
+                                            value={entry.purchase_entry} 
+                                            name={'purchase_entry'}
                                         />
 
 

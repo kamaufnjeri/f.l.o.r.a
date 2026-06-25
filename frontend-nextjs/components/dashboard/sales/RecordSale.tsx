@@ -73,7 +73,7 @@ export default function RecordSale() {
                            onChange={(val) => {
                              handleChange('description', val);
                            }}
-                           placeholder="Enter journal description"
+                           placeholder="Enter description"
                          />
      
                

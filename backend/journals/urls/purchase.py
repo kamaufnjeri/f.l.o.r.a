@@ -7,6 +7,6 @@ urlpatterns = [
     path('', PurchaseAPIView.as_view()),
     path('download/', DownloadPurchaseAPIView.as_view()),
     path('<pk>/', PurchaseDetailAPIView.as_view()),
-    path('<pk>/purchase-returns/', PurchasePurchaseReturnsApiView.as_view()),
-    path('<pk>/purchase-returns/download/', DownloadPurchasePurchaseReturnsApiView.as_view())
+    path('<pk>/returns/', PurchasePurchaseReturnsApiView.as_view()),
+    path('<pk>/returns/download/', DownloadPurchasePurchaseReturnsApiView.as_view())
 ]

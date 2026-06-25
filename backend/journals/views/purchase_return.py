@@ -1,6 +1,8 @@
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, date_filtering, sort_filtering
+from journals.utils.select_options_utils import select_options
+
 from journals.models import PurchaseReturn, Purchase
 from django.db import models
 from journals.serializers import PurchaseReturnSerializer, DetailedPurchaseReturnSerializer
@@ -98,7 +100,6 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
@@ -112,7 +113,11 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
+            return Response({
+                'message': 'Return created successfully',
+                'select_options':   select_options_data
+            }, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
@@ -121,7 +126,6 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
@@ -163,7 +167,6 @@ class DownloadPurchaseReturnAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)
@@ -303,14 +306,18 @@ class PurchaseReturnDetailApiView(generics.RetrieveAPIView):
         purchase_return_id = kwargs.get('pk')
         try:
             partial = kwargs.pop('partial', True)
-            data = request.data.copy()
+            serializer_data = request.data.copy()
+            serializer_data['organisation'] = kwargs.get('organisation_id')
+            serializer_data['user'] = request.user.id
             instance = self.get_object()
             if request.user != instance.user:
-                raise serializers.ValidationError(f"PurchaseReturn {purchase_return_id} can only be edited by user who recorded it")
-            serializer = self.get_serializer(instance, data=data, partial=partial)
+                raise serializers.ValidationError(f"Purchase Return {purchase_return_id} can only be edited by user who recorded it")
+            serializer = self.get_serializer(instance, data=serializer_data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
+            
+            return Response({"return": serializer.data, "message": "Return updated successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
 
         except PurchaseReturn.DoesNotExist:
             return Response({
@@ -412,10 +419,12 @@ class PurchaseReturnDetailApiView(generics.RetrieveAPIView):
                 raise serializers.ValidationError("Purchase return has no associated purchase")
 
             # Step 8: Delete the instance
-            
             instance.delete()
-            print(f"Purchase return deleted successfully: {instance}")
-            return Response({"detail": "Purchase return deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
+            
+            return Response({"message": "Return deleted successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
+            
+
         except Exception as e:
             raise e
             print(f"Error deleting Purchase Return: {str(e)}")

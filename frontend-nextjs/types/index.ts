@@ -90,6 +90,7 @@ export type JournalType =
 
 
 export interface JournalEntry {
+  account_name?: string;
   account: string | "";
   debit_credit: DebitCredit;
   amount: number;
@@ -217,12 +218,14 @@ export interface PurchaseFormData {
 }
 
 export interface PaymentFormData {
+  id?: string;
   date: string;
   description: string;
   bill?: string | null;
   invoice?: string | null;
   journal_entries: JournalEntry[];
 }
+
 
 export interface Payment {
   id: string;
@@ -233,7 +236,6 @@ export interface Payment {
   journal_entries: JournalEntry[];
   journal_entries_total?: JournalTotals;
 }
-
 
 export interface Purchase {
   id: string;
@@ -585,4 +587,11 @@ export interface ReturnOverview {
     return_quantity: string | number;
     stock_name: string;
   }[];
+}
+
+
+
+export interface PaymentDetails extends PaymentOverview {
+  journal_entries: ResJournalEntry[];
+  journal_entries_total: JournalTotals;
 }

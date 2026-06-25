@@ -95,13 +95,13 @@ export default function SingleSales({
                   className={`
                     inline-flex rounded-full px-3 py-1 text-xs font-medium
                     ${
-                      sales.invoice.status === "PAID"
+                      sales.invoice.status === "paid"
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     }
                   `}
                 >
-                  {sales.invoice.status}
+                  {normalizeWord(sales.invoice.status)}
                 </span>
               </div>
 

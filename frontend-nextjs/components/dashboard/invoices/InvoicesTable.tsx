@@ -98,7 +98,7 @@ export default function InvoicesTable({
               ).toLocaleString()}
             </td>
 
-            <td className="p-3 text-right">
+            <td className="p-3 text-right flex flex-wrap gap-2">
               <Link
                 href={`/dasboard/${organisationId}${invoice.details.url}`}
                 className="
@@ -118,6 +118,25 @@ export default function InvoicesTable({
                 <FiEye className="text-base" />
                 <span>View</span>
               </Link>
+              {invoice.status !== 'unpaid' && <Link
+                href={`/dasboard/${organisationId}/invoices/${invoice.id}/payments`}
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-sm
+                  font-medium
+                  text-blue-400
+                  hover:text-blue-500
+                  transition
+                  px-2 py-1
+                  rounded-md
+                  hover:bg-primary/5
+                "
+              >
+                <FiEye className="text-base" />
+                <span>View payments</span>
+              </Link>}
             </td>
           </tr>
         ))}

@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 
-export function usePayment(type: "debit" | "credit", initial?: Partial<Payment>){
+export function usePayment(type: "debit" | "credit", revalidateUrl?: string | null, initial?: Partial<Payment>){
   const { setOptions, paymentAccounts } = useSelectOptionsStore();
   const { currentOrg } = useAuthStore();
   const [posting, setPosting] = useState(false);
@@ -55,15 +55,21 @@ export function usePayment(type: "debit" | "credit", initial?: Partial<Payment>)
   return dirtyState[key];
 };
 const hasChanges = Object.values(dirtyState).some(Boolean);
-  const difference = useMemo(() => {
-    return payment.journal_entries.reduce((acc, entry) => {
-      const amount = Number(entry.amount || 0);
-  
-      return entry.debit_credit === "debit"
-        ? acc + amount
-        : acc - amount;
-      }, 0);
-  }, [payment.journal_entries]);
+const totalAmount = useMemo(() => {
+  return payment.journal_entries.reduce((acc, entry) => {
+    if (entry.debit_credit === type) {
+      return acc + Number(entry.amount || 0);
+    }
+
+    return acc;
+  }, 0);
+}, [payment.journal_entries, type]);
+
+const entriesLength = useMemo(() => {
+  return payment.journal_entries.filter(
+    (entry) => entry.debit_credit === type
+  ).length;
+}, [payment.journal_entries, type]);
 
   const handleChange = (field: keyof PaymentFormData, value: string) => {
     setPayment((prev) => {
@@ -135,9 +141,12 @@ const updateEntry = <
    
 
     try {
-     
+      if (!revalidateUrl) {
+        toast.error('Revalidate url required');
+        return;
+      }
       
-    const res = await recordPayment(currentOrg?.id || "", payment);
+    const res = await recordPayment(currentOrg?.id || "", revalidateUrl as string, payment);
 
     if (!res.success) {
         toast.error(res.error || "Something went wrong");
@@ -163,15 +172,33 @@ const updateEntry = <
       return;
     }
 
+    if (!revalidateUrl) {
+        toast.error('Revalidate url required');
+        return
+      }
+
     setPosting(true);
 
     try {
-      
+     const updatedEntries = payment.journal_entries.map((entry) => ({
+      ...entry,
+      amount:
+        entry.type === "bill" || entry.type === "invoice"
+          ? Math.max(0, totalAmount)
+          : entry.amount,
+    }));
+
+    const payload = {
+      ...payment,
+      journal_entries: updatedEntries,
+    };
       const res = await editPayment(
         currentOrg.id,
         original?.id,
-        payment
+        payload,
+        revalidateUrl
       );
+      
 
       if (!res?.success) {
         toast.error(res.error || "Update failed");
@@ -202,7 +229,7 @@ const updateEntry = <
 
   return {
     payment,
-    difference,
+    totalAmount,
     handleChange,
     updateEntry,
     addEntry,
@@ -219,5 +246,6 @@ const updateEntry = <
     hasChanges,
     isEditing,
     enableEditing,
+    entriesLength,
   };
 }

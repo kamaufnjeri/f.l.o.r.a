@@ -1,7 +1,7 @@
 "use client";
 
 import { downloadListPdf } from "@/app/actions/download-actions";
-import { buildQuery, normalizeWord, replaceDash, saveFile } from "@/lib/utils";
+import { normalizeWord, replaceDash, saveFile } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { ReactNode } from "react";
 import toast from "react-hot-toast";

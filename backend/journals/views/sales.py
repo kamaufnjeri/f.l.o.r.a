@@ -227,7 +227,7 @@ class SalesDetailAPIView(generics.RetrieveAPIView):
             serializer = self.get_serializer(instance, data=data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stock=True)
+            select_options_data = select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True, add_stocks=True)
             
             return Response({"sales": serializer.data, "message": "Sales updated successfully.", 'select_options': select_options_data}, status=status.HTTP_200_OK)
 

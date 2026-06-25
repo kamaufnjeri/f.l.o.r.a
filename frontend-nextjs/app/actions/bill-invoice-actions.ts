@@ -1,3 +1,5 @@
+"use server"
+
 import { formatApiError } from "@/lib/utils";
 import { DueDaysType, StatusType } from "@/types";
 import { cookies } from "next/headers";

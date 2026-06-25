@@ -14,6 +14,7 @@ import { saveFile } from '@/lib/utils';
 import { deleteServiceIncome } from '@/app/actions/service-income-actions';
 
 import { ServiceIncomeDetail } from '@/types/service-income';
+import PaymentModal from '../payments/PaymentModal';
 
 type Props = {
   organisationId: string;
@@ -26,7 +27,7 @@ export default function ServiceIncomeDropDown({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPayment, setShowPaymentModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const [showJournalEntriesModal, setShowJournalEntriesModal] =
     useState(false);
@@ -248,6 +249,9 @@ export default function ServiceIncomeDropDown({
           }
         />
       )}
+      {(serviceIncome.invoice && showPaymentModal) &&
+              <PaymentModal debitCreditType='debit' invoiceId={serviceIncome?.invoice?.id} open={showPaymentModal} onClose={() => setShowPaymentModal(false)} revalidateUrl={`service-income/${serviceIncome.id}`}/>
+            }
     </>
   );
 }
