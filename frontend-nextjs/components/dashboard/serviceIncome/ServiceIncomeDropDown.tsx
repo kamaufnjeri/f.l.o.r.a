@@ -158,7 +158,7 @@ export default function ServiceIncomeDropDown({
             </button>
 
             <Link
-              href="edit"
+              href={`/dashboard/${organisationId}/service-income/${serviceIncome.id}/edit`}
               className="block px-4 py-2 text-sm hover:bg-gray-50"
               onClick={() => setOpen(false)}
             >

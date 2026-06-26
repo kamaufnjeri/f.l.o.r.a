@@ -214,11 +214,11 @@ export async function editServiceIncome(
     return {
       success: true,
       message: data.message || "Service income entry updated successfully",
-      serviceIncome: data?.serviceIncome,
+      serviceIncome: data?.service_income,
       select_options: data?.select_options
     };
   } catch (error) {
-    console.log("Error editing serviceIncome:", error);
+    console.log("Error editing service income:", error);
 
     return {
       success: false,
@@ -269,7 +269,7 @@ export async function deleteServiceIncome(
       select_options: data?.select_options,
     };
   } catch (error) {
-    console.log("Error deleting serviceIncome:", error);
+    console.log("Error deleting service income:", error);
 
     return {
       success: false,

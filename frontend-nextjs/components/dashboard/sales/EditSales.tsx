@@ -1,43 +1,42 @@
 "use client";
 
-import PurchaseSalesAccountField, { Entry } from "./PurchaseSalesAccountField";
-import PaymentAccountsField from "./PaymentAccountsField";
-import BillInvoiveAccountField from "./BillInvoiceAccount";
-import DiscountAccountField from "./DiscountAccountField";
+import { useSale } from "@/hooks/useSale";
 import InputField from "../journals/InputField";
 import TextAreaField from "../journals/TextAreaField";
-import PurchaseEntries from "./PurchaseEntries";
-import { usePurchase } from "@/hooks/usePurchase";
 import { groupEntries } from "@/lib/utils";
-import { Purchase } from "@/types";
+import { Sale } from "@/types";
+import PurchaseSalesAccountField, { Entry } from "../purchases/PurchaseSalesAccountField";
+import SaleEntries from "./SaleEntries";
+import PaymentAccountsField from "../purchases/PaymentAccountsField";
+import DiscountAccountField from "../purchases/DiscountAccountField";
+import BillInvoiveAccountField from "../purchases/BillInvoiceAccount";
 
 
 type Props = {
-    purchase: Purchase;
+    sales: Sale;
 };
 
-export default function EditPurchase({ purchase }: Props) {
+export default function EditSales({ sales }: Props) {
 
     const {
-        currentOrg, difference, purchase: editingPurchase, handleChange, updateEntry, addEntry, removeEntry, posting,
-        addPurchaseEntry,
+        currentOrg, difference, sale: editingSales, handleChange, updateEntry, addEntry, removeEntry, posting,
+        addSaleEntry,
         handleUpdate,
-        updatePurchaseEntry,
-        removePurchaseEntry,
-        purchaseAccounts,
+        updateSaleEntry,
+        removeSaleEntry,
+        salesAccounts,
         paymentAccounts,
-        suppliersAccounts,
-        incomeDiscountAccounts,
+        customersAccounts,
+        expenseDiscountAccounts,
         stocks,
-        purchaseTotal,
+        saleTotal,
         serialNumber,
         isDirty, hasChanges, isEditing, cancelEdit, enableEditing, isJournalTypeDirty
-    } = usePurchase(purchase);
-    const grouped = groupEntries(editingPurchase.journal_entries);
+    } = useSale(sales);
+    const grouped = groupEntries(editingSales.journal_entries);
 
-    const billDirty =
-        isJournalTypeDirty("bill");
-    console.log(grouped);
+    const invoiceDirty =
+        isJournalTypeDirty("invoice") || isDirty('due_date');
 
     return (
         <form onSubmit={handleUpdate} className="max-w-7xl mx-auto space-y-6">
@@ -48,7 +47,7 @@ export default function EditPurchase({ purchase }: Props) {
                     {/* LEFT */}
                     <div className="flex flex-col">
                         <h1 className="text-lg font-semibold text-gray-800">
-                            Update Purchase
+                            Update Sales
                         </h1>
 
                         <div className="text-sm mt-1">
@@ -98,7 +97,7 @@ export default function EditPurchase({ purchase }: Props) {
                         type="text"
                         isDirty={isDirty("serial_number")}
                         disabled={!isEditing}
-                        value={editingPurchase.serial_number === "" ? serialNumber : purchase.serial_number}
+                        value={editingSales.serial_number === "" ? serialNumber : sales.serial_number}
                         onChange={(val) => {
                             handleChange('serial_number', val);
                         }}
@@ -110,7 +109,7 @@ export default function EditPurchase({ purchase }: Props) {
                         required
                         label="Date"
                         type="date"
-                        value={editingPurchase.date}
+                        value={editingSales.date}
                         onChange={(val) => {
                             handleChange('date', val);
                         }}
@@ -123,7 +122,7 @@ export default function EditPurchase({ purchase }: Props) {
                     <TextAreaField
                         required
                         label="Description"
-                        value={editingPurchase.description}
+                        value={editingSales.description}
                         onChange={(val) => {
                             handleChange('description', val);
                         }}
@@ -134,11 +133,11 @@ export default function EditPurchase({ purchase }: Props) {
 
 
                     <PurchaseSalesAccountField
-                        title="Purchase Account"
-                        entryData={grouped.purchase as Entry}
-                        accounts={purchaseAccounts}
+                        title="Sales Account"
+                        entryData={grouped.sales as Entry}
+                        accounts={salesAccounts}
                         updateEntry={updateEntry}
-                        isDirty={isJournalTypeDirty('purchase')}
+                        isDirty={isJournalTypeDirty('sale')}
                         disabled={!isEditing}
                     />
                 </div>
@@ -146,14 +145,14 @@ export default function EditPurchase({ purchase }: Props) {
 
 
             {/* ITEMS */}
-            <PurchaseEntries
-                purchaseEntries={editingPurchase.purchase_entries}
-                updatePurchaseEntry={updatePurchaseEntry}
-                removePurchaseEntry={removePurchaseEntry}
-                addPurchaseEntry={addPurchaseEntry}
+            <SaleEntries
+                saleEntries={editingSales.sales_entries}
+                updateSaleEntry={updateSaleEntry}
+                removeSaleEntry={removeSaleEntry}
+                addSaleEntry={addSaleEntry}
                 stocks={stocks}
                 currency={currentOrg?.currency ?? 'Kshs'}
-                isDirty={isDirty('purchase_entries')}
+                isDirty={isDirty('sales_entries')}
                 disabled={!isEditing}
             />
 
@@ -162,7 +161,7 @@ export default function EditPurchase({ purchase }: Props) {
                 <PaymentAccountsField
                     entriesData={grouped.payment as Entry[]}
                     accounts={paymentAccounts}
-                    debitCredit="credit"
+                    debitCredit="debit"
                     updateEntry={updateEntry}
                     addEntry={addEntry}
                     removeEntry={removeEntry}
@@ -171,25 +170,25 @@ export default function EditPurchase({ purchase }: Props) {
                 />
 
                 <BillInvoiveAccountField
-                    entryData={grouped.bill as Entry}
-                    dueDate={editingPurchase.due_date}
+                    entryData={grouped.invoice as Entry}
+                    dueDate={editingSales.due_date}
                     changeDueDate={handleChange}
-                    type="bill"
-                    accounts={suppliersAccounts}
-                    debitCredit="credit"
+                    type="invoice"
+                    accounts={customersAccounts}
+                    debitCredit="debit"
                     updateEntry={updateEntry}
                     addEntry={addEntry}
                     removeEntry={removeEntry}
-                    isDirty={billDirty}
+                    isDirty={invoiceDirty}
                     disabled={!isEditing}
                 />
 
             </div>
             <DiscountAccountField
                 entryData={grouped.discount as Entry}
-                purchaseTotal={purchaseTotal}
-                accounts={incomeDiscountAccounts}
-                debitCredit="credit"
+                purchaseTotal={saleTotal}
+                accounts={expenseDiscountAccounts}
+                debitCredit="debit"
                 updateEntry={updateEntry}
                 addEntry={addEntry}
                 removeEntry={removeEntry}
@@ -204,12 +203,12 @@ export default function EditPurchase({ purchase }: Props) {
                 <div className="flex items-center justify-between gap-4 bg-gray-100 p-4 rounded-lg">
                     {/* LEFT */}
                     <div className="text-sm font-medium text-gray-700">
-                        Total Purchases
+                        Total Saless
                     </div>
 
                     {/* RIGHT */}
                     <div className="text-lg font-semibold text-gray-900">
-                        {purchaseTotal.toLocaleString(undefined, {
+                        {saleTotal.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         })}
@@ -262,7 +261,7 @@ export default function EditPurchase({ purchase }: Props) {
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     )}
 
-                    {posting ? "Updating..." : "Update Purchase"}
+                    {posting ? "Updating..." : "Update Sales"}
                 </button>
 
             </div>

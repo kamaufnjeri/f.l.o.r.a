@@ -51,7 +51,28 @@ export function usePurchase(initial?: Partial<Purchase>){
     purchase_entries: initial?.purchase_entries ?? [{ ...defaultPurchaseEntry }]
 
   });
+const journalEntriesDirtyByType = useMemo(() => {
+  const current = purchase.journal_entries;
+  const previous = original?.journal_entries ?? [];
 
+  const types = ["purchase", "payment", "bill", "discount"] as const;
+
+  const result: Record<(typeof types)[number], boolean> = {
+    purchase: false,
+    payment: false,
+    bill: false,
+    discount: false,
+  };
+
+  types.forEach((type) => {
+    const curr = current.filter(e => e.type === type);
+    const prev = previous.filter(e => e.type === type);
+
+    result[type] = JSON.stringify(curr) !== JSON.stringify(prev);
+  });
+
+  return result;
+}, [purchase.journal_entries, original?.journal_entries]);
   const dirtyState = useMemo(() => {
   const state = {
     serial_number: purchase.serial_number !== original?.serial_number,
@@ -59,9 +80,6 @@ export function usePurchase(initial?: Partial<Purchase>){
     date: purchase.date !== original?.date,
     description: purchase.description !== original?.description,
     due_date: purchase.due_date !== original?.due_date,
-    journal_entries:
-      JSON.stringify(purchase.journal_entries) !==
-      JSON.stringify(original?.journal_entries ?? []),
     purchase_entries:
       JSON.stringify(purchase.purchase_entries) !==
       JSON.stringify(original?.purchase_entries ?? []),
@@ -73,7 +91,7 @@ export function usePurchase(initial?: Partial<Purchase>){
       date: false,
       description: false,
       due_date: false,
-      journal_entries: false,
+      purchase_entries: false,
     };
   }
 
@@ -85,18 +103,26 @@ export function usePurchase(initial?: Partial<Purchase>){
   purchase.date,
   purchase.description,
   purchase.due_date,
-  purchase.journal_entries,
   purchase.purchase_entries,
   original?.date,
   original?.due_date,
   original?.description,
-  original?.journal_entries,
   original?.purchase_entries
 ]);
 
+const isJournalTypeDirty = (type: keyof typeof journalEntriesDirtyByType) =>
+  journalEntriesDirtyByType[type];
 
+const journalChanged = Object.values(journalEntriesDirtyByType).some(Boolean);
 
-const hasChanges = Object.values(dirtyState).some(Boolean);
+const hasChanges = useMemo(() => {
+  if (!isEditing) return false;
+
+  return (
+    Object.values(dirtyState).some(Boolean) ||
+    journalChanged
+  );
+}, [dirtyState, journalChanged, isEditing]);
 
   const difference = useMemo(() => {
     return purchase.journal_entries.reduce((acc, entry) => {
@@ -374,6 +400,7 @@ const updateEntry = <
     incomeDiscountAccounts,
     stocks,
     purchaseTotal,
-    serialNumber
+    serialNumber,
+    isJournalTypeDirty
   };
 }

@@ -8,6 +8,7 @@ type Props = {
   debitCredit: DebitCredit;
   entriesData: Entry[];
   accounts: SelectOption[];
+  isDirty?: boolean;
   disabled?: boolean;
   updateEntry: <
   K extends keyof JournalEntry
@@ -24,6 +25,7 @@ export default function PaymentAccountsField({
   debitCredit,
   entriesData,
   accounts,
+  isDirty = false,
   disabled = false,
   updateEntry,
   addEntry,
@@ -36,9 +38,15 @@ export default function PaymentAccountsField({
         <h2 className="text-lg font-semibold text-gray-900">
           Payment Accounts
         </h2>
-
+ {isDirty && (
+            <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+              edited
+            </span>
+          )}
         <button
           type="button"
+                    disabled={disabled}
+
           onClick={() => addEntry("payment", debitCredit)}
           className="cursor-pointer px-4 py-2 rounded-xl bg-gray-700 text-white text-sm hover:bg-gray-800 transition"
         >

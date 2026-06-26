@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthStore } from "@/stores/authStore";
 import { useModalStore } from "@/stores/modalStore";
 import { ModalName } from "@/types";
 
@@ -38,8 +39,9 @@ export default function Header({
   customer = false,
   supplier = false,
 }: Props) {
-  const openModal = useModalStore((s) => s.openModal);
 
+  const openModal = useModalStore((s) => s.openModal);
+  const { currentOrg } = useAuthStore();
   const actions: { key: ModalName; label: string; show: boolean }[] = [
     { key: "account", label: "Add Account", show: account },
     { key: "stock", label: "Add Stock", show: stock },
@@ -55,7 +57,7 @@ export default function Header({
         {/* LEFT */}
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
-            {title}
+            {title} {currentOrg?.currency ?? 'KSHS'}
           </h1>
 
           <p className="text-sm text-gray-500 max-w-md leading-relaxed">

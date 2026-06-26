@@ -1,6 +1,7 @@
 import { ServiceIncomeDetail } from "@/types/service-income";
 import ServiceIncomeDropDown from "./ServiceIncomeDropDown";
 import { normalizeWord } from "@/lib/utils";
+import PurchaseHeader from "../purchases/PurchaseHeader";
 
 type Props = {
   organisationId: string;
@@ -17,16 +18,8 @@ export default function SingleServiceIncome({
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b bg-gradient-to-r from-slate-50 to-white p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Service Income #{serviceIncome.serial_number}
-              </h1>
+            <PurchaseHeader title='Service Income' description={serviceIncome.description} serialNumber={serviceIncome.serial_number}/>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {serviceIncome.description ||
-                  "Service income transaction details"}
-              </p>
-            </div>
 
             <ServiceIncomeDropDown
               organisationId={organisationId}

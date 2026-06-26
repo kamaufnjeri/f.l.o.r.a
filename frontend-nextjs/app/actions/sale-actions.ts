@@ -215,7 +215,7 @@ export async function editSale(
     return {
       success: true,
       message: data.message || "Sale entry updated successfully",
-      sale: data?.sale,
+      sale: data?.sales,
       select_options: data?.select_options
     };
   } catch (error) {

@@ -126,6 +126,8 @@ export default function PurchaseEntries({
               {(!disabled && purchaseEntries.length > 1) && (
                 <button
                   type="button"
+                            disabled={disabled}
+
                   onClick={() => removePurchaseEntry(index)}
                   className="flex cursor-pointer items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl transition"
                 >

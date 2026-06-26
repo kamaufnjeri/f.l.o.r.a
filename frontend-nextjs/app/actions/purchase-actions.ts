@@ -135,6 +135,7 @@ export async function getPurchase(orgId: string, purchaseId: string) {
         error: "Organization/Purchase ID is required",
       };
     }
+
     const cookieStore = await cookies();
 
 

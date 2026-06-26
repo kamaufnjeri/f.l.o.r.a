@@ -52,6 +52,28 @@ export function useServiceIncome(initial?: Partial<ServiceIncome>){
 
   });
 
+  const journalEntriesDirtyByType = useMemo(() => {
+  const current = serviceIncome.journal_entries;
+  const previous = original?.journal_entries ?? [];
+
+  const types = ["service_income", "payment", "invoice", "discount"] as const;
+
+  const result: Record<(typeof types)[number], boolean> = {
+    service_income: false,
+    payment: false,
+    invoice: false,
+    discount: false,
+  };
+
+  types.forEach((type) => {
+    const curr = current.filter(e => e.type === type);
+    const prev = previous.filter(e => e.type === type);
+
+    result[type] = JSON.stringify(curr) !== JSON.stringify(prev);
+  });
+
+  return result;
+}, [serviceIncome.journal_entries, original?.journal_entries]);
   const dirtyState = useMemo(() => {
   const state = {
     serial_number: serviceIncome.serial_number !== original?.serial_number,
@@ -59,9 +81,6 @@ export function useServiceIncome(initial?: Partial<ServiceIncome>){
     date: serviceIncome.date !== original?.date,
     description: serviceIncome.description !== original?.description,
     due_date: serviceIncome.due_date !== original?.due_date,
-    journal_entries:
-      JSON.stringify(serviceIncome.journal_entries) !==
-      JSON.stringify(original?.journal_entries ?? []),
     service_income_entries:
       JSON.stringify(serviceIncome.service_income_entries) !==
       JSON.stringify(original?.service_income_entries ?? []),
@@ -73,7 +92,7 @@ export function useServiceIncome(initial?: Partial<ServiceIncome>){
       date: false,
       description: false,
       due_date: false,
-      journal_entries: false,
+      service_income_entries: false,
     };
   }
 
@@ -85,19 +104,32 @@ export function useServiceIncome(initial?: Partial<ServiceIncome>){
   serviceIncome.date,
   serviceIncome.description,
   serviceIncome.due_date,
-  serviceIncome.journal_entries,
   serviceIncome.service_income_entries,
   original?.date,
   original?.due_date,
   original?.description,
-  original?.journal_entries,
   original?.service_income_entries
 ]);
 
+const isJournalTypeDirty = (type: keyof typeof journalEntriesDirtyByType) =>
+  journalEntriesDirtyByType[type];
+
+const journalChanged = Object.values(journalEntriesDirtyByType).some(Boolean);
+
+const hasChanges = useMemo(() => {
+  if (!isEditing) return false;
+
+  return (
+    Object.values(dirtyState).some(Boolean) ||
+    journalChanged
+  );
+}, [dirtyState, journalChanged, isEditing]);
 
 
-const hasChanges = Object.values(dirtyState).some(Boolean);
 
+    const isDirty = (key: keyof typeof dirtyState) => {
+  return dirtyState[key];
+};
   const difference = useMemo(() => {
     return serviceIncome.journal_entries.reduce((acc, entry) => {
       const amount = Number(entry.amount || 0);
@@ -119,9 +151,7 @@ const hasChanges = Object.values(dirtyState).some(Boolean);
 
 
 
-    const isDirty = (key: keyof typeof dirtyState) => {
-  return dirtyState[key];
-};
+
   const handleChange = (field: keyof ServiceIncomeFormData, value: string) => {
     setServiceIncome((prev) => {
       return {
@@ -374,6 +404,7 @@ const updateEntry = <
     expenseDiscountAccounts,
     services,
     serviceIncomeTotal,
-    serialNumber
+    serialNumber,
+    isJournalTypeDirty
   };
 }

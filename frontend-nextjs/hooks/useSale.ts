@@ -52,6 +52,28 @@ export function useSale(initial?: Partial<Sale>){
 
   });
 
+ const journalEntriesDirtyByType = useMemo(() => {
+  const current = sale.journal_entries;
+  const previous = original?.journal_entries ?? [];
+
+  const types = ["sale", "payment", "invoice", "discount"] as const;
+
+  const result: Record<(typeof types)[number], boolean> = {
+    sale: false,
+    payment: false,
+    invoice: false,
+    discount: false,
+  };
+
+  types.forEach((type) => {
+    const curr = current.filter(e => e.type === type);
+    const prev = previous.filter(e => e.type === type);
+
+    result[type] = JSON.stringify(curr) !== JSON.stringify(prev);
+  });
+
+  return result;
+}, [sale.journal_entries, original?.journal_entries]);
   const dirtyState = useMemo(() => {
   const state = {
     serial_number: sale.serial_number !== original?.serial_number,
@@ -59,9 +81,6 @@ export function useSale(initial?: Partial<Sale>){
     date: sale.date !== original?.date,
     description: sale.description !== original?.description,
     due_date: sale.due_date !== original?.due_date,
-    journal_entries:
-      JSON.stringify(sale.journal_entries) !==
-      JSON.stringify(original?.journal_entries ?? []),
     sales_entries:
       JSON.stringify(sale.sales_entries) !==
       JSON.stringify(original?.sales_entries ?? []),
@@ -73,7 +92,7 @@ export function useSale(initial?: Partial<Sale>){
       date: false,
       description: false,
       due_date: false,
-      journal_entries: false,
+      sales_entries: false,
     };
   }
 
@@ -85,19 +104,26 @@ export function useSale(initial?: Partial<Sale>){
   sale.date,
   sale.description,
   sale.due_date,
-  sale.journal_entries,
   sale.sales_entries,
   original?.date,
   original?.due_date,
   original?.description,
-  original?.journal_entries,
   original?.sales_entries
 ]);
 
+const isJournalTypeDirty = (type: keyof typeof journalEntriesDirtyByType) =>
+  journalEntriesDirtyByType[type];
 
+const journalChanged = Object.values(journalEntriesDirtyByType).some(Boolean);
 
-const hasChanges = Object.values(dirtyState).some(Boolean);
+const hasChanges = useMemo(() => {
+  if (!isEditing) return false;
 
+  return (
+    Object.values(dirtyState).some(Boolean) ||
+    journalChanged
+  );
+}, [dirtyState, journalChanged, isEditing]);
   const difference = useMemo(() => {
     return sale.journal_entries.reduce((acc, entry) => {
       const amount = Number(entry.amount || 0);
@@ -325,8 +351,8 @@ const updateEntry = <
 
       toast.success("Sale updated");
 
-      setOriginal(res.sales);
-      reset(res.sales, res.select_options)
+      setOriginal(res.sale);
+      reset(res.sale, res.select_options)
     } catch (err) {
       console.error(err);
       toast.error("Save failed");
@@ -374,6 +400,7 @@ const updateEntry = <
     expenseDiscountAccounts,
     stocks,
     saleTotal,
-    serialNumber
+    serialNumber,
+    isJournalTypeDirty
   };
 }

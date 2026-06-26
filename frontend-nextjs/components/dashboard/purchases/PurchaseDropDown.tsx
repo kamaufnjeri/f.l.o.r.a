@@ -130,7 +130,7 @@ export default function PurchasesDropDown({
             </button>
             
             <Link
-              href={`edit`}
+              href={`/dashboard/${organisationId}/purchases/${purchase.id}/edit`}
               className="block px-4 py-2 text-sm hover:bg-gray-50"
             >
               Edit

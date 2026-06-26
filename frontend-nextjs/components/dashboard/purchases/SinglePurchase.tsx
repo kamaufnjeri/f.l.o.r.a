@@ -1,6 +1,7 @@
 import { PurchaseDetail } from "@/types/purchases";
 import PurchaseDropDown from "./PurchaseDropDown";
 import { normalizeWord } from "@/lib/utils";
+import PurchaseHeader from "./PurchaseHeader";
 
 type Props = {
   organisationId: string;
@@ -17,16 +18,7 @@ export default function SinglePurchase({
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b bg-gradient-to-r from-slate-50 to-white p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Purchase #{purchase.serial_number}
-              </h1>
-
-              <p className="mt-1 text-sm text-slate-500">
-                {purchase.description || "Purchase transaction details"}
-              </p>
-            </div>
-
+            <PurchaseHeader title='Purchase' serialNumber={purchase.serial_number} description={purchase.description}/>
             <div className="flex justify-start lg:justify-end">
               <PurchaseDropDown
                 purchase={purchase}

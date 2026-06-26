@@ -18,7 +18,7 @@ export default function RecordSale() {
     handleSubmit,
     updateSaleEntry,
     removeSaleEntry,
-      salesAccounts,
+    salesAccounts,
     paymentAccounts,
     customersAccounts,
     expenseDiscountAccounts,

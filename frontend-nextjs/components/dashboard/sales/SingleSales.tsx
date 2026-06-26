@@ -1,6 +1,7 @@
 import { SalesDetail } from "@/types/sales";
 import SalesDropDown from "./SalesDropDown";
 import { normalizeWord } from "@/lib/utils";
+import PurchaseHeader from "../purchases/PurchaseHeader";
 
 type Props = {
   organisationId: string;
@@ -17,15 +18,7 @@ export default function SingleSales({
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b bg-gradient-to-r from-slate-50 to-white p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Sales #{sales.serial_number}
-              </h1>
-
-              <p className="mt-1 text-sm text-slate-500">
-                {sales.description || "Sales transaction details"}
-              </p>
-            </div>
+            <PurchaseHeader title='Sales' description={sales.description} serialNumber={sales.serial_number}/>
 
             <div className="flex justify-start lg:justify-end">
               <SalesDropDown
