@@ -25,7 +25,7 @@ class Category(BaseModel):
 class SubCategory(BaseModel):
     name = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
-    category = models.ForeignKey(Category, related_name='category', on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, related_name='sub_categories', on_delete=models.CASCADE)
     
 
     def __str__(self):

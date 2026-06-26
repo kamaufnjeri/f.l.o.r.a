@@ -21,7 +21,7 @@ class SalesSerializer(serializers.ModelSerializer):
     details = serializers.SerializerMethodField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None) 
+    due_date = serializers.CharField(required=False, allow_null=True, default=None) 
 
     class Meta:
         model = Sales
@@ -160,7 +160,9 @@ class SalesDetailSerializer(SalesSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-
+        if hasattr(instance, "invoice") and instance.invoice:
+            data["due_date"] = instance.invoice.due_date
+        
         journal_entries = data.get('journal_entries', [])
         sorted_journal_entries = sorted(
             journal_entries, key=lambda entry: entry.get('debit_credit') == 'credit'
@@ -184,7 +186,7 @@ class SalesDetailSerializer(SalesSerializer):
     def update(self, instance, validated_data):
         with transaction.atomic():
             sales_entries_data = validated_data.pop('sales_entries')
-            due_date = validated_data.pop('due_date')
+            due_date = validated_data.pop('due_date', None)
             journal_entries_data = validated_data.pop('journal_entries')
             sales = instance
      

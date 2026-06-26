@@ -16,7 +16,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     purchase_entries = PurchaseEntriesSerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
     details = serializers.SerializerMethodField(read_only=True)
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None) 
+    due_date = serializers.CharField(required=False, allow_null=True, default=None) 
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
@@ -78,7 +78,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         with transaction.atomic():
             purchase_entries_data = validated_data.pop('purchase_entries')
-            due_date = validated_data.pop('due_date')
+            due_date = validated_data.pop('due_date', None)
             journal_entries = validated_data.pop('journal_entries')
             purchase = Purchase.objects.create(**validated_data)
             cogs = purchase_entries_manager.create_purchase_entries(purchase_entries_data, purchase)
@@ -162,6 +162,8 @@ class PurchaseDetailSerializer(PurchaseSerializer):
             journal_entries, 
             key=lambda entry: entry.get('debit_credit') == 'credit'
         )
+        if hasattr(instance, "bill") and instance.bill:
+            data["due_date"] = instance.bill.due_date
         
         debit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'debit')
         credit_total = sum(float(entry.get('amount')) for entry in sorted_journal_entries if entry.get('debit_credit') == 'credit')
@@ -177,8 +179,9 @@ class PurchaseDetailSerializer(PurchaseSerializer):
     def update(self, instance, validated_data):
         with transaction.atomic():
             purchase_entries_data = validated_data.pop('purchase_entries')
-            due_date = validated_data.pop('due_date')
+            due_date = validated_data.pop('due_date', None)
             journal_entries_data = validated_data.pop('journal_entries')
+            print('journals: ', journal_entries_data)
             purchase = instance
      
             cogs, purchase_entries_id = purchase_entries_manager.update_purchase_entries(purchase_entries_data, purchase)

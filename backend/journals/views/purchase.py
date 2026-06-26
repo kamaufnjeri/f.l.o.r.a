@@ -221,6 +221,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
         try:
             partial = kwargs.pop('partial', True)
             data = request.data.copy()
+            print('data', data)
             instance = self.get_object()
             if request.user != instance.user:
                 raise serializers.ValidationError(f"Purchase {purchase_id} can only be edited by user who recorded it")
@@ -245,7 +246,7 @@ class PurchaseDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-        
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

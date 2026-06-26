@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from journals.serializers import AccountSerializer, AccountDetailsSerializer, CategorySerializer, SubCategorySerializer
 from journals.utils import flatten_errors
 from journals.utils.select_options_utils import select_options
-from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES, PERMANENT_ACCOUNTS
+from journals.constants import ACCOUNT_STRUCTURE, SUB_CATEGORIES, PERMANENT_ACCOUNTS, PERMANENT_SUBCATEGORIES, PERMANENT_CATEGORIES
 from django.db.models import Q
 from journals.models import Account, SubCategory, Category
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -44,12 +44,11 @@ class CategoryAPIView(generics.CreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class SubCategoryAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated, IsUserInOrganisation]
@@ -220,7 +219,212 @@ class DownloadAccountsAPIView(generics.ListCreateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
+class CategoryDetailAPIView(generics.RetrieveAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+    def patch(self, request, *args, **kwargs):
+        category_id = kwargs.get("pk")
+
+        try:
+            partial = kwargs.pop("partial", True)
+            instance = self.get_object()
+            if instance.name.strip().lower() in map(str.lower, PERMANENT_CATEGORIES):
+                raise serializers.ValidationError(
+                    "Cannot update category because it a permanent category."
+                )
+
+            data = request.data.copy()
+            data['organisation'] = kwargs.get('organisation_id')
+            data["user"] = instance.user.id
+            data["group"] = instance.group.id
+
+            serializer = self.get_serializer(
+                instance,
+                data=data,
+                partial=partial
+            )
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            select_options_data = select_options.get_specific_select_options(
+                organisation=request.user.current_org,
+                add_categories=True
+            )
+
+            return Response({
+                "message": "Category updated successfully.",
+                "category": serializer.data,
+                "select_options": select_options_data
+            }, status=status.HTTP_200_OK)
+
+        except Category.DoesNotExist:
+            return Response({
+                "error": "Not Found",
+                "details": f"Category with ID {category_id} does not exist."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            return Response({
+                "error": "Bad Request",
+                "details": flatten_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "error": "Internal Server Error",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, *args, **kwargs):
+        category_id = kwargs.get("pk")
+
+        try:
+            instance = self.get_object()
+            if instance.name.strip().lower() in map(str.lower, PERMANENT_CATEGORIES):
+                raise serializers.ValidationError(
+                    "Cannot delete category because it a permanent category."
+                )
+
+            if instance.sub_categories.filter(accounts__isnull=False).exists():
+                raise serializers.ValidationError(
+                    "Cannot delete category because one or more subcategories contain accounts."
+                )
+
+            instance.delete()
+
+            select_options_data = select_options.get_specific_select_options(
+                organisation=request.user.current_org,
+                add_categories=True
+            )
+
+            return Response({
+                "message": "Category deleted successfully.",
+                "select_options": select_options_data
+            }, status=status.HTTP_200_OK)
+
+        except Category.DoesNotExist:
+            return Response({
+                "error": "Not Found",
+                "details": f"Category with ID {category_id} does not exist."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            return Response({
+                "error": "Bad Request",
+                "details": flatten_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "error": "Internal Server Error",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class SubCategoryDetailAPIView(generics.RetrieveAPIView):
+    queryset = SubCategory.objects.all()
+    serializer_class = SubCategorySerializer
+    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+
+    def patch(self, request, *args, **kwargs):
+        sub_category_id = kwargs.get("pk")
+
+        try:
+            partial = kwargs.pop("partial", True)
+            instance = self.get_object()
+            if instance.name.strip().lower() in map(str.lower, PERMANENT_SUBCATEGORIES):
+                raise serializers.ValidationError(
+                    "Cannot update sub-category because it a permanent sub-category."
+                )
+            data = request.data.copy()
+            data['organisation'] = kwargs.get('organisation_id')
+            data["category"] = instance.category.id
+
+            serializer = self.get_serializer(
+                instance,
+                data=data,
+                partial=partial
+            )
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            select_options_data = select_options.get_specific_select_options(
+                organisation=request.user.current_org,
+                add_sub_categories=True
+            )
+
+            return Response({
+                "message": "Sub category updated successfully.",
+                "sub_category": serializer.data,
+                "select_options": select_options_data
+            }, status=status.HTTP_200_OK)
+
+        except SubCategory.DoesNotExist:
+            return Response({
+                "error": "Not Found",
+                "details": f"Sub category with ID {sub_category_id} does not exist."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            return Response({
+                "error": "Bad Request",
+                "details": flatten_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "error": "Internal Server Error",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, *args, **kwargs):
+        sub_category_id = kwargs.get("pk")
+
+        try:
+            instance = self.get_object()
+
+            if instance.name.strip().lower() in map(str.lower, PERMANENT_SUBCATEGORIES):
+                raise serializers.ValidationError(
+                    "Cannot delete sub-category because it a permanent sub-category."
+                )
+
+            if instance.accounts.exists():
+                raise serializers.ValidationError(
+                    "Cannot delete sub category because it contains accounts."
+                )
+
+            instance.delete()
+
+            select_options_data = select_options.get_specific_select_options(
+                organisation=request.user.current_org,
+                add_sub_categories=True
+            )
+
+            return Response({
+                "message": "Sub category deleted successfully.",
+                "select_options": select_options_data
+            }, status=status.HTTP_200_OK)
+
+        except SubCategory.DoesNotExist:
+            return Response({
+                "error": "Not Found",
+                "details": f"Sub category with ID {sub_category_id} does not exist."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            return Response({
+                "error": "Bad Request",
+                "details": flatten_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "error": "Internal Server Error",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+ 
         
 class AccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()

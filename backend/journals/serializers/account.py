@@ -14,38 +14,53 @@ class FixedGroupSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    group = serializers.PrimaryKeyRelatedField(queryset=FixedGroup.objects.all()) 
+    group = serializers.PrimaryKeyRelatedField(queryset=FixedGroup.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     value = serializers.CharField(read_only=True)
-
 
     class Meta:
         model = Category
         fields = ["id", "name", "value", "organisation", "user", "group"]
 
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Name is required.")
+        return value
+
     def validate(self, data):
-        organisation_id = data.get('organisation')
+        organisation = data.get("organisation", getattr(self.instance, "organisation", None))
+        name = data.get("name", getattr(self.instance, "name", "")).strip()
 
-        try:
-            category = Category.objects.get(name=data.get('name'), organisation_id=organisation_id)
-            raise serializers.ValidationError(f"Category {data.get('name')} already exists")
-        except Category.DoesNotExist:
-            return data
-        
+        queryset = Category.objects.filter(
+            organisation=organisation,
+            name__iexact=name
+        )
+
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError(
+                f"Category '{name}' already exists."
+            )
+
+        return data
+
     def create(self, validated_data):
-        try:
-            with transaction.atomic():
-                value = validated_data.get('name').lower().replace(" ", "_")
-                category = Category.objects.create(**validated_data, value=value)
+        validated_data["value"] = validated_data["name"].strip().lower().replace(" ", "_")
+        return Category.objects.create(**validated_data)
 
-        
-                return category
-        except Exception as e:
-            raise Exception(str(e))
+    def update(self, instance, validated_data):
+        name = validated_data.get("name", instance.name).strip()
 
+        instance.name = name
+        instance.value = name.lower().replace(" ", "_")
+        instance.save(update_fields=["name", "value"])
+
+        return instance
     
-
 class SubCategorySerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
@@ -56,27 +71,44 @@ class SubCategorySerializer(serializers.ModelSerializer):
         model = SubCategory
         fields = ["id", "name", "value", "category", "organisation"]
 
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Name is required.")
+        return value
+
     def validate(self, data):
-        organisation_id = data.get('organisation')
+        category = data.get("category", getattr(self.instance, "category", None))
+        name = data.get("name", getattr(self.instance, "name", "")).strip()
 
-        try:
-            sub_category = SubCategory.objects.get(name=data.get('name'), category__organisation_id=organisation_id)
-            raise serializers.ValidationError(f"Sub category {data.get('name')} already exists")
-        except SubCategory.DoesNotExist:
-            return data
-        
+        queryset = SubCategory.objects.filter(
+            category=category,
+            name__iexact=name
+        )
+
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError(
+                f"Sub category '{name}' already exists."
+            )
+
+        return data
+
     def create(self, validated_data):
-        try:
-            with transaction.atomic():
-                validated_data.pop('organisation')
-                value = validated_data.get('name').lower().replace(" ", "_")
-                sub_category = SubCategory.objects.create(**validated_data, value=value)
-                return sub_category
-        except Exception as e:
-            raise Exception(str(e))
+        validated_data.pop("organisation")
+        validated_data["value"] = validated_data["name"].strip().lower().replace(" ", "_")
+        return SubCategory.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        name = validated_data.get("name", instance.name).strip()
 
+        instance.name = name
+        instance.value = name.lower().replace(" ", "_")
+        instance.save(update_fields=["name", "value"])
 
+        return instance
 
 class AccountSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)

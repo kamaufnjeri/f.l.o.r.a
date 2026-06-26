@@ -47,7 +47,7 @@ class ServiceIncomeSerializer(serializers.ModelSerializer):
     service_income_entries = ServiceIncomeEntrySerializer(many=True)
     journal_entries = JournalEntrySerializer(many=True)
     details = serializers.SerializerMethodField(read_only=True)
-    due_date = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, default=None)
+    due_date = serializers.CharField(required=False, allow_null=True, default=None) 
     user = serializers.PrimaryKeyRelatedField(queryset=FloraUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
  
@@ -176,6 +176,8 @@ class ServiceIncomeDetailSerializer(ServiceIncomeSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        if hasattr(instance, "invoice") and instance.invoice:
+            data["due_date"] = instance.invoice.due_date
         
         journal_entries = data.get('journal_entries', [])
         
@@ -194,7 +196,7 @@ class ServiceIncomeDetailSerializer(ServiceIncomeSerializer):
     def update(self, instance, validated_data):
         with transaction.atomic():
             service_income_entries_data = validated_data.pop('service_income_entries')
-            due_date = validated_data.pop('due_date')
+            due_date = validated_data.pop('due_date', None)
             journal_entries_data = validated_data.pop('journal_entries')
             service_income = instance
      

@@ -1,4 +1,4 @@
-from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView, DownloadAccountDetailAPIView
+from .account import AccountAPIView, AccountDetailAPIView, CategoryAPIView,SubCategoryAPIView, DownloadAccountsAPIView, DownloadAccountDetailAPIView, CategoryDetailAPIView, SubCategoryDetailAPIView
 from .bill import BillApiView, BillPaymentsApiView, DownloadBillApiView, DownloadBillPaymentsApiView
 from .customer import CustomerAPIVew, CustomerDetailsAPIView, DownloadCustomerAPIVew, DownloadCustomerDetailAPIView
 from .invoice import InvoiceApiView, InvoicePaymentsApiView, DownloadInvoiceApiView, DownloadInvoicePaymentsApiView

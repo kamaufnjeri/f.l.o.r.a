@@ -95,3 +95,25 @@ INITIAL_DATA = [
 ]
 
 PERMANENT_ACCOUNTS = ('Cash', 'Bank', 'Capital', 'Purchase', 'Discount Allowed', 'Purchase Return', 'Sales', 'Sales Return', 'Service Income', 'Discount Received')
+PERMANENT_SUBCATEGORIES = (
+    "Cash and Cash Equivalents",
+    "Accounts Receivable",
+    "Accounts Payable",
+    "Owner Investment",
+    "Cost of Goods Sold",
+    "Expense from Discounts",
+    "Contra-Expense",
+    "Product Sales",
+    "Contra-Revenue",
+    "Service Income",
+    "Income from Discounts",
+)
+
+PERMANENT_CATEGORIES = (
+    "Current Asset",
+    "Current Liability",
+    "Owner Equity",
+    "Operating Expense",
+    "Operating Income",
+    "Other Income",
+)
