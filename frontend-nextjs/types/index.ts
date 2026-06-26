@@ -135,11 +135,13 @@ export interface Service {
 export interface Category {
   id: ID;
   name: string;
+  group?: string;
 }
 
 export interface SubCategory {
   id: ID;
   name: string;
+  category?: string;
 }
 
 export interface SerialNumbers {
@@ -330,7 +332,7 @@ export type SupplierCustomerFormData = {
 };
 
 
-export type ModalName = "account" | "stock" | "service" | "customer" | "supplier";
+export type ModalName = "account" | "stock" | "service" | "customer" | "supplier" | "accountGroups";
 
 export type OptionItem = {
   id: string | number;

@@ -18,6 +18,8 @@ export const baseButton =
   "px-4 py-2 rounded-xl font-medium cursor-pointer transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 shadow-sm hover:shadow-md whitespace-nowrap";
 
 export const variants: Record<string, string> = {
+  accountGroups:
+  "bg-violet-50 text-violet-700 hover:bg-violet-100 focus:ring-violet-200 border border-violet-100",
   account:
     "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 focus:ring-indigo-200 border border-indigo-100",
   stock:
@@ -48,6 +50,8 @@ export default function Header({
     { key: "service", label: "Add Service", show: service },
     { key: "customer", label: "Add Customer", show: customer },
     { key: "supplier", label: "Add Supplier", show: supplier },
+    { key: "accountGroups", label: "Account Groups", show: supplier },
+
   ];
 
   return (
@@ -57,7 +61,7 @@ export default function Header({
         {/* LEFT */}
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
-            {title} {currentOrg?.currency ?? 'KSHS'}
+            {title} ({currentOrg?.currency ?? 'KSHS'})
           </h1>
 
           <p className="text-sm text-gray-500 max-w-md leading-relaxed">

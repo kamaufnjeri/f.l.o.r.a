@@ -22,6 +22,7 @@ export default function FiltersSection({
     service = false,
     customer = false,
     supplier = false,
+    accountGroups = false,
 }: {
   filters: Filters;
   title: string;
@@ -32,6 +33,7 @@ export default function FiltersSection({
   service?: boolean;
   supplier?: boolean;
   customer?: boolean;
+  accountGroups?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -43,6 +45,7 @@ export default function FiltersSection({
     { key: "service", label: "Add Service", show: service },
     { key: "customer", label: "Add Customer", show: customer },
     { key: "supplier", label: "Add Supplier", show: supplier },
+    { key: 'accountGroups', label: "Account Groups", show: accountGroups}
   ];
   const resetFilters = () => {
     router.push(`/dashboard/${organisationId}/${goToUrl}`);

@@ -57,7 +57,10 @@ export async function createAccount(orgId: string, formData: FormData) {
   }
 }
 
-export async function createAccountSubCategory(orgId: string, formData: FormData) {
+export async function createAccountSubCategory(orgId: string, payload: {
+  name: string;
+  category: string;
+}) {
   try {
     if (!orgId) {
       return {
@@ -67,13 +70,7 @@ export async function createAccountSubCategory(orgId: string, formData: FormData
     }
     const cookieStore = await cookies();
 
-    const payload = {
-      name: formData.get("name"),
-      category: formData.get("category"),
-      
-    };
-
-    const res = await fetch(`${backendURL}/${orgId}/accounts/sub_categories/`, {
+    const res = await fetch(`${backendURL}/${orgId}/accounts/sub-categories/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -107,7 +104,10 @@ export async function createAccountSubCategory(orgId: string, formData: FormData
 }
 
 
-export async function createAccountCategory(orgId: string, formData: FormData) {
+export async function createAccountCategory(orgId: string, payload: {
+  name: string;
+  group: string;
+}) {
   try {
     if (!orgId) {
       return {
@@ -117,11 +117,7 @@ export async function createAccountCategory(orgId: string, formData: FormData) {
     }
     const cookieStore = await cookies();
 
-    const payload = {
-      name: formData.get("name"),
-      group: formData.get("group"),
-      
-    };
+
 
     const res = await fetch(`${backendURL}/${orgId}/accounts/categories/`, {
       method: "POST",
@@ -379,6 +375,114 @@ export async function deleteAccount(
     };
   } catch (error) {
     console.log("Error deleting account:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+
+export async function editCategory(
+  orgId: string,
+  type: 'categories' | 'sub-categories',
+  categoryId: string,
+  payload: {
+    name: string;
+}) {
+  try {
+    if (!orgId || !categoryId) {
+      return {
+        success: false,
+        error: `Organization/${type} ID is required`,
+      };
+    }
+    const cookieStore = await cookies();
+    
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/accounts/${type}/${categoryId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+    return {
+      success: true,
+      message: data.message || `Account ${type} updated successfully`,
+      category: data?.category,
+      select_options: data?.select_options
+    };
+  } catch (error) {
+    console.log("Error editing account category:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function deleteCategory(
+  orgId: string,
+  categoryId: string,
+    type: 'categories' | 'sub-categories',
+
+) {
+  try {
+    if (!orgId || !categoryId) {
+      return {
+        success: false,
+        error: `Organization/${type} ID is required`,
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(
+      `${backendURL}/${orgId}/accounts/${type}/${categoryId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+      }
+    );
+
+    
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      message: data.message || `Account ${type} deleted successfully`,
+      
+      success: true,
+      select_options: data?.select_options,
+    };
+  } catch (error) {
+    console.log("Error deleting account category:", error);
 
     return {
       success: false,

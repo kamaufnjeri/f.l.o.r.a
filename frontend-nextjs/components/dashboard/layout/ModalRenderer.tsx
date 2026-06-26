@@ -8,6 +8,7 @@ import CreateSupplierModal from "../suppliers/CreateSupplierModal";
 import CreateCustomerModal from "../customers/CreateCustomerModal";
 import { useModalStore } from "@/stores/modalStore";
 import { ComponentType } from "react";
+import ManageCategoriesModal from "../accounts/ManageCategoriesModal";
 
 export type ModalComponentProps = {
   open: boolean;
@@ -22,7 +23,8 @@ export const MODAL_REGISTRY: Record<ModalName, ModalComponent> = {
   stock: CreateStockModal,
   service: CreateServiceModal,
   supplier: CreateSupplierModal,
-  customer: CreateCustomerModal
+  customer: CreateCustomerModal,
+  accountGroups: ManageCategoriesModal
 };
 
 export default function ModalRenderer() {

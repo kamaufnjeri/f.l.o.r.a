@@ -73,9 +73,13 @@ export default function CreateAccountModal({
 
     startCategoryTransition(async () => {
       try {
+        const payload = {
+          name: formData.get("name") as string,
+          group: formData.get("group") as string
+        }
         const res = await createAccountCategory(
           currentOrg?.id || "",
-          formData
+          payload
         );
 
         if (!res.success) {
@@ -99,9 +103,13 @@ export default function CreateAccountModal({
 
     startSubCategoryTransition(async () => {
       try {
+        const payload = {
+          name: formData.get("name") as string,
+          category: formData.get("category") as string
+        }
         const res = await createAccountSubCategory(
           currentOrg?.id || "",
-          formData
+          payload
         );
 
         if (!res.success) {

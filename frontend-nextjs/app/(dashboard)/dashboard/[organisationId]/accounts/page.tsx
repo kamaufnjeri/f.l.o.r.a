@@ -52,7 +52,7 @@ export default async function AccountsPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Accounts'} goToUrl={'accounts'} filters={{ search, name, page }} organisationId={organisationId} account={true}/>
+      <FiltersSection title={'Accounts'} goToUrl={'accounts'} filters={{ search, name, page }} organisationId={organisationId} account={true} accountGroups={true}/>
 
       {/* EMPTY STATE */}
       {accounts.length === 0 ? 
