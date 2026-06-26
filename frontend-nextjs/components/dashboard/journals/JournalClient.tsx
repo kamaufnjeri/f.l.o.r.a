@@ -14,6 +14,7 @@ import { saveFile } from "@/lib/utils";
 import ConfirmModal from "../common/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useJournal } from "@/hooks/useJournal";
+import BalanceStatus from "../purchases/BalanceStatus";
 
 
 type Props = {
@@ -214,15 +215,8 @@ const handleDelete = async () => {
       {isEditing && (
         <div className="sticky bottom-3 bg-white border rounded-xl shadow-md p-4 flex items-center justify-between">
 
-          <div className="text-sm">
-            {difference === 0 ? (
-              <span className="text-green-600">✓ Balanced</span>
-            ) : (
-              <span className="text-red-600">
-                ✗ Not Balanced ({difference})
-              </span>
-            )}
-          </div>
+            <BalanceStatus currency={currentOrg?.currency} difference={difference}/>
+          
          {!isEditing && (
   <button
     type="button"

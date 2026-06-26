@@ -9,6 +9,7 @@ import TextAreaField from "../journals/TextAreaField";
 import PurchaseEntries from "./PurchaseEntries";
 import { usePurchase } from "@/hooks/usePurchase";
 import { groupEntries } from "@/lib/utils";
+import BalanceStatus from "./BalanceStatus";
 
 export default function RecordPurchase() {
  
@@ -149,18 +150,8 @@ export default function RecordPurchase() {
             })}
           </div>
         </div>
-        <div className="text-sm">
-          {difference === 0 ? (
-            <span className="text-green-600 font-medium">
-              ✓ Balanced
-            </span>
-          ) : (
-            <span className="text-red-600 font-medium">
-              ✗ Not Balanced (Difference: {currentOrg?.currency || "Kshs"} {difference.toFixed(2)})
-            </span>
-          )}
-        </div>
-
+                       <BalanceStatus currency={currentOrg?.currency} difference={difference}/>
+       
         {/* SUBMIT */}
         <button
             type="submit"

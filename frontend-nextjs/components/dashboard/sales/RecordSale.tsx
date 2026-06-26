@@ -2,6 +2,7 @@
 
 import InputField from "../journals/InputField";
 import TextAreaField from "../journals/TextAreaField";
+import BalanceStatus from "../purchases/BalanceStatus";
 import BillInvoiveAccountField from "../purchases/BillInvoiceAccount";
 import DiscountAccountField from "../purchases/DiscountAccountField";
 import PaymentAccountsField from "../purchases/PaymentAccountsField";
@@ -149,17 +150,8 @@ export default function RecordSale() {
             })}
           </div>
         </div>
-        <div className="text-sm">
-          {difference === 0 ? (
-            <span className="text-green-600 font-medium">
-              ✓ Balanced
-            </span>
-          ) : (
-            <span className="text-red-600 font-medium">
-              ✗ Not Balanced (Difference: {currentOrg?.currency || "Kshs"} {difference.toFixed(2)})
-            </span>
-          )}
-        </div>
+                        <BalanceStatus currency={currentOrg?.currency} difference={difference}/>
+        
 
         {/* SUBMIT */}
         <button

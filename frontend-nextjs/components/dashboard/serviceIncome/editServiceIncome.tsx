@@ -10,6 +10,7 @@ import ServiceIncomeEntries from "./ServiceIncomeEntries";
 import PaymentAccountsField from "../purchases/PaymentAccountsField";
 import DiscountAccountField from "../purchases/DiscountAccountField";
 import BillInvoiveAccountField from "../purchases/BillInvoiceAccount";
+import BalanceStatus from "../purchases/BalanceStatus";
 
 
 type Props = {
@@ -214,17 +215,8 @@ export default function EditServiceIncome({ serviceIncome }: Props) {
                         })}
                     </div>
                 </div>
-                <div className="text-sm">
-                    {difference === 0 ? (
-                        <span className="text-green-600 font-medium">
-                            ✓ Balanced
-                        </span>
-                    ) : (
-                        <span className="text-red-600 font-medium">
-                            ✗ Not Balanced (Difference: {currentOrg?.currency || "Kshs"} {difference.toFixed(2)})
-                        </span>
-                    )}
-                </div>
+                                <BalanceStatus currency={currentOrg?.currency} difference={difference}/>
+                
                 {!isEditing && (
                     <button
                         type="button"

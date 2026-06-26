@@ -6,6 +6,7 @@ import JournalEntries from "./JournalEntries";
 
 import { useJournal } from "@/hooks/useJournal";
 import TextAreaField from "./TextAreaField";
+import BalanceStatus from "../purchases/BalanceStatus";
 
 
 export default function RecordJournal() {
@@ -73,17 +74,8 @@ export default function RecordJournal() {
       {/* FOOTER ACTION BAR */}
       <div className="flex items-center justify-between bg-white border rounded-xl p-4 shadow-sm sticky bottom-3">
         {/* STATUS */}
-        <div className="text-sm">
-          {difference === 0 ? (
-            <span className="text-green-600 font-medium">
-              ✓ Balanced
-            </span>
-          ) : (
-            <span className="text-red-600 font-medium">
-              ✗ Not Balanced (Difference: {currentOrg?.currency || "Kshs"} {difference.toFixed(2)})
-            </span>
-          )}
-        </div>
+                        <BalanceStatus currency={currentOrg?.currency} difference={difference}/>
+        
 
         {/* SUBMIT */}
         <button
