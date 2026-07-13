@@ -1,1 +1,1 @@
-from .user_in_organisation import IsUserInOrganisation
+from .user_in_organisation import IsViewer, IsEditor, IsAdmin, OrganisationRolePermission

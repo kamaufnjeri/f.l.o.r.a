@@ -8,7 +8,7 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -55,7 +55,7 @@ def get_bills_totals(data):
 class BillApiView(generics.ListAPIView):
     queryset = Bill.objects.all().order_by('created_at')
     serializer_class = BillDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     pagination_class = BillPagination
     filter_backends = [BillFilter]
     search_fields = ['serial_number', 'supplier']
@@ -99,7 +99,7 @@ class BillApiView(generics.ListAPIView):
 class DownloadBillApiView(generics.ListAPIView):
     queryset = Bill.objects.all().order_by('created_at')
     serializer_class = BillDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     pagination_class = BillPagination
     filter_backends = [BillFilter]
     search_fields = ['serial_number', 'supplier']
@@ -156,7 +156,7 @@ class BillPaymentsApiView(generics.ListAPIView):
     serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = BillPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):
@@ -207,7 +207,7 @@ class DownloadBillPaymentsApiView(generics.ListAPIView):
     serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
     pagination_class = BillPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def post(self, request, *args, **kwargs):
         try:

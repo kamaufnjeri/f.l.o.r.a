@@ -71,10 +71,8 @@ export default function CreateStockModal({
             <form
               key={resetKey}
               action={handleSubmit}
-              className="space-y-6"
-            >
+className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-4">           
               {/* GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 {/* STOCK NAME */}
                 <Input
@@ -117,9 +115,11 @@ export default function CreateStockModal({
                   icon={<FiDollarSign />}
                   placeholder="0.00"
                 />
-              </div>
+              
 
               {/* SUBMIT */}
+                            <div className="flex h-10 self-center">
+
               <Button
                 type="submit"
                 disabled={pending}
@@ -127,6 +127,7 @@ export default function CreateStockModal({
               >
                 {pending ? "Creating..." : "Create Stock"}
               </Button>
+              </div>
             </form>
 
           </div>

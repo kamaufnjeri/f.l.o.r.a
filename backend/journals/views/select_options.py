@@ -4,11 +4,11 @@ from journals.utils import flatten_errors
 from journals.utils.select_options_utils import select_options
 from journals.models import Account, Supplier, Customer, Stock, SubCategory, Category, FixedGroup, Service
 from rest_framework.permissions import IsAuthenticated
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 
 
 class SelectOptionsAPIView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         try:

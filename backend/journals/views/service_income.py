@@ -7,7 +7,7 @@ from journals.utils.select_options_utils import select_options
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils import flatten_errors, date_filtering, sort_filtering
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -70,7 +70,7 @@ class ServiceIncomeAPIView(generics.ListCreateAPIView):
     queryset = ServiceIncome.objects.all().order_by('created_at')
     serializer_class = ServiceIncomeSerializer
     pagination_class = ServiceIncomePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [ServiceIncomeFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
 
@@ -144,7 +144,7 @@ class DownloadServiceIncomeAPIView(generics.ListCreateAPIView):
     queryset = ServiceIncome.objects.all().order_by('created_at')
     serializer_class = ServiceIncomeSerializer
     pagination_class = ServiceIncomePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [ServiceIncomeFilter, SearchFilter]
     search_fields = ['serial_number', 'description']    
 
@@ -183,7 +183,7 @@ class DownloadServiceIncomeAPIView(generics.ListCreateAPIView):
 class ServiceIncomeDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ServiceIncomeDetailSerializer
     queryset = ServiceIncome.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):

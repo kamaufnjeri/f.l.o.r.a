@@ -7,7 +7,7 @@ from journals.serializers import SupplierSerializer, SupplierDetailSerializer
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -30,7 +30,7 @@ class SupplierAPIVew(generics.ListCreateAPIView):
     queryset = Supplier.objects.all().order_by('created_at')
     serializer_class = SupplierSerializer
     pagination_class = SupplierPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
 
@@ -104,7 +104,7 @@ class DownloadSupplierAPIVew(generics.ListCreateAPIView):
     queryset = Supplier.objects.all().order_by('created_at')
     serializer_class = SupplierSerializer
     pagination_class = SupplierPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
 
@@ -143,7 +143,7 @@ class DownloadSupplierAPIVew(generics.ListCreateAPIView):
 class SupplierDetailsAPIView(generics.RetrieveAPIView):
     queryset = Supplier.objects.all()
     serializer_class = SupplierDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         supplier_id = kwargs.get('pk')
@@ -266,7 +266,7 @@ class SupplierDetailsAPIView(generics.RetrieveAPIView):
 class DownloadSupplierDetailAPIView(generics.RetrieveAPIView):
     queryset = Supplier.objects.all()
     serializer_class = SupplierDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):

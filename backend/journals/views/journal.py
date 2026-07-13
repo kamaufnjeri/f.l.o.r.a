@@ -10,7 +10,7 @@ from django.db import models
 from datetime import datetime
 from journals.utils import date_filtering, sort_filtering
 from journals.utils.select_options_utils import select_options
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -57,7 +57,7 @@ class JournalAPIView(generics.ListCreateAPIView):
     pagination_class = JournalPagination
     filter_backends = [JournalFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -136,7 +136,7 @@ class DownloadJournalAPIView(generics.ListCreateAPIView):
     pagination_class = JournalPagination
     filter_backends = [JournalFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):
@@ -182,7 +182,7 @@ class DownloadJournalAPIView(generics.ListCreateAPIView):
 class JournalDetailAPIView(generics.RetrieveAPIView):
     serializer_class = JournalDetailSerializer
     queryset = Journal.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     

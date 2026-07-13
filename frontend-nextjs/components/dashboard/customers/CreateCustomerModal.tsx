@@ -52,7 +52,7 @@ export default function CreateCustomerModal({
     <Modal open onClose={onClose}>
       <div className="flex flex-col max-h-[90vh]">
 
-        <div className="sticky top-0 z-10 bg-white">
+        <div className="sticky top-0 z-10 bg-white border-b">
           <ModalHeader
             title="Create Customer"
             description="Add a new customer"
@@ -63,7 +63,7 @@ export default function CreateCustomerModal({
         <div className="overflow-y-auto px-5 py-6">
           <div className="bg-gray-50 rounded-xl p-5 sm:p-6 shadow-sm">
 
-            <form key={resetKey} action={handleSubmit} className="space-y-6">
+            <form key={resetKey} action={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <Input
                 label="Name"
@@ -87,10 +87,11 @@ export default function CreateCustomerModal({
                 required
                 icon={<FiPhone />}
               />
-
+              <div className="flex h-10 self-center">
               <Button type="submit" disabled={pending} className="w-full">
                 {pending ? "Creating..." : "Create Customer"}
               </Button>
+              </div>
 
             </form>
 

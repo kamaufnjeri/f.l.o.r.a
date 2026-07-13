@@ -107,6 +107,7 @@ class FloraUserSerializer(serializers.ModelSerializer):
             data = {
                 "org_name": org.org_name,
                 "org_id": org.id,
+                "is_archived": org.is_archived,
             }
             orgs.append(data)
 
@@ -115,3 +116,27 @@ class FloraUserSerializer(serializers.ModelSerializer):
     def get_current_organisation(self, obj):
         data = OrganisationSerializer(obj.current_org).data
         return data
+    
+    def validate(self, data):      
+        if self.partial:
+            allowed_fields = {'first_name', 'last_name', 'phone_number', 'email'}
+            for field in data.keys():
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(f"{field} is not allowed in a partial update.")
+
+        return data
+    
+    def update(self, instance, validated_data):
+        first_name = validated_data.get('first_name', instance.first_name)
+        last_name = validated_data.get('last_name', instance.last_name)
+        phone_number = validated_data.get('phone_number', instance.phone_number)
+        email = validated_data.get('email', instance.email)
+        instance.first_name = first_name
+        instance.last_name = last_name
+        instance.phone_number = phone_number
+        instance.email = email
+
+        
+        instance.save()
+
+        return instance

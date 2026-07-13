@@ -88,7 +88,7 @@ export default function UpdateServiceModal({
 
                 <Input label="Service name" name="name" required value={service.name}/>
                 <Textarea label="Description" name="description" required value={service.description}/>
-                <div className="flex h-10 self-center">
+                <div className="flex h-10 self-center sm:col-span-2">
                    <Button type="submit" disabled={servicePending} className="w-full">
                 {servicePending ? "Saving..." : "Save"}
               </Button>

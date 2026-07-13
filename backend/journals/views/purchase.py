@@ -7,7 +7,7 @@ from journals.serializers import PurchaseSerializer, PurchaseDetailSerializer, P
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -70,7 +70,7 @@ class PurchaseAPIView(generics.ListCreateAPIView):
     queryset = Purchase.objects.all().order_by('created_at')
     serializer_class = PurchaseSerializer
     pagination_class = PurchasePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [PurchaseFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
 
@@ -141,7 +141,7 @@ class DownloadPurchaseAPIView(generics.ListCreateAPIView):
     queryset = Purchase.objects.all().order_by('created_at')
     serializer_class = PurchaseSerializer
     pagination_class = PurchasePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [PurchaseFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
 
@@ -180,7 +180,7 @@ class DownloadPurchaseAPIView(generics.ListCreateAPIView):
 class PurchaseDetailAPIView(generics.RetrieveAPIView):
     serializer_class = PurchaseDetailSerializer
     queryset = Purchase.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         purchase_id = kwargs.get('pk')

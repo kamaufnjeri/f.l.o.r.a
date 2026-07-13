@@ -7,7 +7,7 @@ from journals.utils.select_options_utils import select_options
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
@@ -31,7 +31,7 @@ class StockAPIView(generics.ListCreateAPIView):
     queryset = Stock.objects.all().order_by('created_at')
     serializer_class = StockSerializer
     pagination_class = StockPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
 
@@ -107,7 +107,7 @@ class DownloadStockAPIView(generics.ListCreateAPIView):
     queryset = Stock.objects.all().order_by('created_at')
     serializer_class = StockSerializer
     pagination_class = StockPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
 
@@ -148,7 +148,7 @@ class DownloadStockAPIView(generics.ListCreateAPIView):
 class StockDetailAPIView(generics.RetrieveAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockDetailsSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):
@@ -269,7 +269,7 @@ class StockDetailAPIView(generics.RetrieveAPIView):
 class DownloadStockDetailAPIView(generics.RetrieveAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockDetailsSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):

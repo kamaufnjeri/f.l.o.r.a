@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from journals.utils import flatten_errors, send_email, token_uid
 from journals.models import FloraUser
@@ -99,6 +99,8 @@ class MeAPIView(generics.GenericAPIView):
        
         return Response(data, status=status.HTTP_200_OK)
     
+
+    
 class ForgotPasswordAPIView(generics.GenericAPIView):    
     serializer_class = ForgotPasswordSerializeer
     permission_classes = [AllowAny]
@@ -155,6 +157,15 @@ class CustomLoginAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
+
+        if user.is_archived:
+            return Response(
+                {
+                    "error": "Archived user",
+                    "details": "This account has been archived. Please contact support for assistance.",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # ❌ Not verified
         if not user.is_verified:
@@ -219,6 +230,17 @@ class RegisterAPIVew(generics.CreateAPIView):
         with transaction.atomic():
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
+                user_exists = FloraUser.objects.filter(email=serializer.validated_data['email']).exists()
+                if user_exists:
+                    if user_exists and user_exists.is_archived:
+                        return Response({
+                            'error': 'Conflict',
+                            'details': 'A user with this email exists but is archived. Please contact support to reactivate your account.'
+                        }, status=status.HTTP_409_CONFLICT)
+                    return Response({
+                        'error': 'Conflict',
+                        'details': 'A user with this email already exists.'
+                    }, status=status.HTTP_409_CONFLICT)
                 user = serializer.create(serializer.validated_data)
                 
                 try:
@@ -271,3 +293,101 @@ class VerifyEmailView(generics.GenericAPIView):
                     'details': "Invalid or expired token."
                 }, status=status.HTTP_400_BAD_REQUEST)
         
+   
+class UserDetailsApiView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FloraUserSerializer
+    queryset = FloraUser.objects.all()
+    lookup_field = "pk"
+
+     
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk')
+
+        try:
+            user = self.get_object()            
+
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except FloraUser.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The user of ID {user_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def patch(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk')
+        try:
+            partial = kwargs.pop('partial', True)
+            data = request.data.copy()
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response({
+                "message": "User updated successfully.",
+                "user": serializer.data,
+            } , status=status.HTTP_200_OK)
+        except FloraUser.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The user of ID {user_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def delete(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk')
+
+        try:
+            instance = self.get_object()
+            instance.is_archived = True
+            instance.save()
+            
+            return Response({"message": "User archived successfully."}, status=status.HTTP_200_OK)
+            
+        except FloraUser.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The user with ID {user_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

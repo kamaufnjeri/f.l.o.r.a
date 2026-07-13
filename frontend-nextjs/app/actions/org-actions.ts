@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { formatApiError } from "@/lib/utils";
+import { OrganisationFormData } from "@/types";
 
 const backendURL = process.env.BACKEND_URL;
 
@@ -60,9 +61,9 @@ export async function sendInvites(formData: FormData, orgId?:  string | null) {
     const cookieStore = await cookies();
 
     // 👇 emails come as JSON string from hidden input
-    const emailsRaw = formData.get("emails") as string;
+    const invitesRaw = formData.get("invites") as string;
 
-    const emails = emailsRaw ? JSON.parse(emailsRaw) : [];
+    const invites = invitesRaw ? JSON.parse(invitesRaw) : [];
 
     const res = await fetch(`${backendURL}/organisations/${orgId}/send-invite/`, {
       method: "POST",
@@ -70,7 +71,7 @@ export async function sendInvites(formData: FormData, orgId?:  string | null) {
         "Content-Type": "application/json",
         Cookie: cookieStore.toString(),
       },
-      body: JSON.stringify(emails),
+      body: JSON.stringify(invites),
       cache: "no-store",
     });
 
@@ -88,7 +89,7 @@ export async function sendInvites(formData: FormData, orgId?:  string | null) {
     return {
       success: true,
       message: data?.message || "Invitations sent successfully",
-      data,
+      user: data?.user,
     };
   } catch (error) {
     return {
@@ -139,3 +140,157 @@ export async function changeOrganisation(orgId?:  string | null) {
     };
   }
 }
+
+
+export async function editOrganisation(
+  orgId: string,
+  payload: OrganisationFormData | { is_archived: boolean}
+) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+       const res = await fetch(`${backendURL}/organisations/${orgId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+   
+    return {
+      success: true,
+      message: data.message || "Organisation updated successfully",
+      organisation: data?.organisation,
+    };
+  } catch (error) {
+    console.log("Error editing organisation:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function ChangeMemberRoleOrganisation(
+  orgId: string,
+  userId: string,
+  userRole: "viewer" | "editor" | "admin"
+) {
+  try {
+    if (!orgId || !userId) {
+      return {
+        success: false,
+        error: "Organization ID and User ID are required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(`${backendURL}/organisations/${orgId}/remove-member/`, {
+        method: "DELETE",
+         headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify({ user_id: userId, user_role: userRole }),
+      }
+    );
+
+    
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      message: data.message || "Member removed successfully",
+      user: data?.user,
+      success: true,
+    };
+  } catch (error) {
+    console.log("Error removing member organisation:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+
+
+export async function removeMemberOrganisation(
+  orgId: string,
+  userId: string
+) {
+  try {
+    if (!orgId || !userId) {
+      return {
+        success: false,
+        error: "Organization ID and User ID are required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+    const res = await fetch(`${backendURL}/organisations/${orgId}/remove-member/`, {
+        method: "DELETE",
+         headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify({ user_id: userId }),
+      }
+    );
+
+    
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+    return {
+      message: data.message || "Member removed successfully",
+      user: data?.user,
+      success: true,
+    };
+  } catch (error) {
+    console.log("Error removing member organisation:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+

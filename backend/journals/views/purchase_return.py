@@ -9,7 +9,7 @@ from journals.serializers import PurchaseReturnSerializer, DetailedPurchaseRetur
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -66,7 +66,7 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
     queryset = PurchaseReturn.objects.all().order_by('created_at')
     serializer_class = PurchaseReturnSerializer
     pagination_class = PurchaseReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [PurchaseReturnFilter]
     search_fields = ['description']
 
@@ -137,7 +137,7 @@ class DownloadPurchaseReturnAPIView(generics.ListCreateAPIView):
     queryset = PurchaseReturn.objects.all().order_by('created_at')
     serializer_class = PurchaseReturnSerializer
     pagination_class = PurchaseReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [PurchaseReturnFilter]
     search_fields = ['description']
 
@@ -178,7 +178,7 @@ class PurchasePurchaseReturnsApiView(generics.ListAPIView):
     serializer_class = DetailedPurchaseReturnSerializer
     queryset = PurchaseReturn.objects.all()
     pagination_class = PurchaseReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -228,7 +228,7 @@ class DownloadPurchasePurchaseReturnsApiView(generics.ListAPIView):
     serializer_class = DetailedPurchaseReturnSerializer
     queryset = PurchaseReturn.objects.all()
     pagination_class = PurchaseReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def post(self, request, *args, **kwargs):
         try:
@@ -266,7 +266,7 @@ class DownloadPurchasePurchaseReturnsApiView(generics.ListAPIView):
 class PurchaseReturnDetailApiView(generics.RetrieveAPIView):
     serializer_class = DetailedPurchaseReturnSerializer
     queryset = PurchaseReturn.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         purchase_return_id = kwargs.get('pk')

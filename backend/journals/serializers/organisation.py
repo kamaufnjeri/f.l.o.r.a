@@ -7,9 +7,11 @@ from .account import AccountSerializer, CategorySerializer, SubCategorySerialize
 
 class OrganisationSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
+    org_users = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Organisation
-        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number"]
+        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "org_admin", "is_archived", "org_users"]
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -19,6 +21,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
             user = request.user
 
             organisation = Organisation.objects.create(org_admin=user, **validated_data)
+
 
             for data in INITIAL_DATA:
                 category_data = data["category"]
@@ -70,4 +73,71 @@ class OrganisationSerializer(serializers.ModelSerializer):
             user.save()
 
         return organisation
+    
+    def get_org_users(self, obj):
+        memberships = obj.org_membership.all()
+        users_data = []
+        for membership in memberships:
+            user = membership.user
+            if user and user.is_active and not user.is_archived:
+                user_data = {
+                    "user_id": user.id,
+                    "user_name": f"{user.first_name} {user.last_name}",
+                    "user_email": user.email,
+                    "user_role": membership.role,
+                    "is_active": membership.is_active
+                }
+                users_data.append(user_data)
+        return users_data
+    
+class OrgDetailSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    org_users = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Organisation
+        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "org_admin", "is_archived", "org_users"]
+
+
+    def validate(self, data):      
+        if self.partial:
+            allowed_fields = {'org_name', 'org_email', 'org_phone_number', 'country', 'currency'}
+            for field in data.keys():
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(f"{field} is not allowed in a partial update.")
+
+        return data
+    
+    def update(self, instance, validated_data):
+        org_name = validated_data.get('org_name', instance.org_name)
+        org_email = validated_data.get('org_email', instance.org_email)
+        org_phone_number = validated_data.get('org_phone_number', instance.org_phone_number)
+        country = validated_data.get('country', instance.country)
+        currency = validated_data.get('currency', instance.currency)
+        instance.org_name = org_name
+        instance.org_email = org_email
+        instance.org_phone_number = org_phone_number
+        instance.country = country
+        instance.currency = currency
+
+        
+        instance.save()
+
+        return instance
+    
+    def get_org_users(self, obj):
+        memberships = obj.org_membership.all()
+        users_data = []
+        for membership in memberships:
+            user = membership.user
+            if user and user.is_active and not user.is_archived:
+                user_data = {
+                    "user_id": user.id,
+                    "user_name": f"{user.first_name} {user.last_name}",
+                    "user_email": user.email,
+                    "user_role": membership.role,
+                    "is_active": membership.is_active
+                }
+                users_data.append(user_data)
+        return users_data
     

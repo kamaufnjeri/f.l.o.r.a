@@ -11,13 +11,13 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from django.http import HttpResponse
 
 
 
 class CategoryAPIView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -51,7 +51,7 @@ class CategoryAPIView(generics.CreateAPIView):
 
 
 class SubCategoryAPIView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     queryset = SubCategory.objects.all()
     serializer_class = SubCategorySerializer
 
@@ -100,7 +100,7 @@ def get_totals(data):
 
 
 class AccountAPIView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     queryset = Account.objects.all().order_by('created_at')
     serializer_class = AccountSerializer
     pagination_class = AccountPagination
@@ -180,7 +180,7 @@ class AccountAPIView(generics.ListCreateAPIView):
 
 
 class DownloadAccountsAPIView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     queryset = Account.objects.all().order_by('created_at')
     serializer_class = AccountSerializer
     pagination_class = AccountPagination
@@ -222,7 +222,7 @@ class DownloadAccountsAPIView(generics.ListCreateAPIView):
 class CategoryDetailAPIView(generics.RetrieveAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def patch(self, request, *args, **kwargs):
         category_id = kwargs.get("pk")
@@ -325,7 +325,7 @@ class CategoryDetailAPIView(generics.RetrieveAPIView):
 class SubCategoryDetailAPIView(generics.RetrieveAPIView):
     queryset = SubCategory.objects.all()
     serializer_class = SubCategorySerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def patch(self, request, *args, **kwargs):
         sub_category_id = kwargs.get("pk")
@@ -429,7 +429,7 @@ class SubCategoryDetailAPIView(generics.RetrieveAPIView):
 class AccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountDetailsSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):
@@ -558,7 +558,7 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
 class DownloadAccountDetailAPIView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountDetailsSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):

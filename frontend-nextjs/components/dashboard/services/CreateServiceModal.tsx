@@ -69,11 +69,10 @@ export default function CreateServiceModal({ onClose }: Props) {
             <form
               key={resetKey}
               action={handleSubmit}
-              className="space-y-6"
-            >
+className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            
 
               {/* GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 {/* NAME */}
                 <Input
@@ -84,25 +83,25 @@ export default function CreateServiceModal({ onClose }: Props) {
                 />
 
                 {/* DESCRIPTION */}
-                <div className="sm:col-span-2">
                   <Textarea
                     label="Description"
                     name="description"
                     icon={<FiInfo />}
                     required
                   />
-                </div>
 
-              </div>
 
               {/* SUBMIT */}
+                            <div className="flex h-10 self-center sm:col-span-2">
+
               <Button
                 type="submit"
                 disabled={pending}
-                className="w-full"
+                className=""
               >
                 {pending ? "Creating..." : "Create Service"}
               </Button>
+              </div>
 
             </form>
 

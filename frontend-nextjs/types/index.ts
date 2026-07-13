@@ -30,6 +30,13 @@ export interface ApiErrorShape {
   message?: string;
 };
 
+export type OrgUser = {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  user_role: string;
+  is_active: boolean;
+}
 export type Organisation = {
   id: string;
   org_name: string;
@@ -37,12 +44,24 @@ export type Organisation = {
   org_phone_number?: string;
   country?: string;
   currency?: string;
+  org_users?: OrgUser[];
 };
+
+export interface OrganisationFormData {
+  org_name: string;
+  org_email?: string;
+  org_phone_number?: string;
+  country?: string;
+  currency?: string;
+}
 
 export type UserOrganisation = {
   org_id: string;
   org_name: string;
+  is_archived: boolean;
 };
+
+
 
 export type User = {
   id: string | number;

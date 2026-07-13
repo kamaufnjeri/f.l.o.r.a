@@ -8,7 +8,7 @@ from journals.serializers import SalesReturnSerializer, DetailedSalesReturnSeria
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -65,7 +65,7 @@ class SalesReturnAPIView(generics.ListCreateAPIView):
     queryset = SalesReturn.objects.all().order_by('created_at')
     serializer_class = SalesReturnSerializer
     pagination_class = SalesReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [SalesReturnFilter]
     search_fields = ['description']
 
@@ -138,7 +138,7 @@ class DownloadSalesReturnAPIView(generics.ListCreateAPIView):
     queryset = SalesReturn.objects.all().order_by('created_at')
     serializer_class = SalesReturnSerializer
     pagination_class = SalesReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [SalesReturnFilter]
     search_fields = ['description']
 
@@ -180,7 +180,7 @@ class SalesSalesReturnsApiView(generics.ListAPIView):
     serializer_class = DetailedSalesReturnSerializer
     queryset = SalesReturn.objects.all()
     pagination_class = SalesReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -230,7 +230,7 @@ class DownloadSalesSalesReturnsApiView(generics.ListAPIView):
     serializer_class = DetailedSalesReturnSerializer
     queryset = SalesReturn.objects.all()
     pagination_class = SalesReturnPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def post(self, request, *args, **kwargs):
         try:
@@ -268,7 +268,7 @@ class DownloadSalesSalesReturnsApiView(generics.ListAPIView):
 class SalesReturnDetailApiView(generics.RetrieveAPIView):
     serializer_class = DetailedSalesReturnSerializer
     queryset = SalesReturn.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         sales_return_id = kwargs.get('pk')

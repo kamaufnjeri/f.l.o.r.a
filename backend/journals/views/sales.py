@@ -7,7 +7,7 @@ from journals.serializers import SalesSerializer, SalesDetailSerializer, SalesRe
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -67,7 +67,7 @@ class SalesAPIView(generics.ListCreateAPIView):
     queryset = Sales.objects.all().order_by('created_at')
     serializer_class = SalesSerializer
     pagination_class = SalesPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [SalesFilter, SearchFilter]
     search_fields = ['serial_number', 'description']
 
@@ -139,7 +139,7 @@ class DownloadSalesAPIView(generics.ListCreateAPIView):
     queryset = Sales.objects.all().order_by('created_at')
     serializer_class = SalesSerializer
     pagination_class = SalesPagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [SalesFilter, SearchFilter]
     search_fields = ['serial_number', 'description'] 
 
@@ -178,7 +178,7 @@ class DownloadSalesAPIView(generics.ListCreateAPIView):
 class SalesDetailAPIView(generics.RetrieveAPIView):
     serializer_class = SalesDetailSerializer
     queryset = Sales.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):

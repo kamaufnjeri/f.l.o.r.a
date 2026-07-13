@@ -8,7 +8,7 @@ from django.db import models
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
@@ -73,7 +73,7 @@ def get_payments_totals(data):
 class PaymentAPIView(generics.ListCreateAPIView):
     queryset = Payment.objects.all().order_by('created_at')
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     pagination_class = PaymentPagination
     filter_backends = [PaymentFilter]
     search_fields = ['description']
@@ -148,7 +148,7 @@ class PaymentAPIView(generics.ListCreateAPIView):
 class DownloadPaymentAPIView(generics.ListCreateAPIView):
     queryset = Payment.objects.all().order_by('created_at')
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     pagination_class = PaymentPagination
     filter_backends = [PaymentFilter]
     search_fields = ['description']
@@ -188,7 +188,7 @@ class DownloadPaymentAPIView(generics.ListCreateAPIView):
 class PaymentDetailAPIView(generics.RetrieveAPIView):
     serializer_class = PaymentsDetailSerializer
     queryset = Payment.objects.all()
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         payment_id = kwargs.get('pk')

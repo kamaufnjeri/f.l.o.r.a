@@ -9,6 +9,7 @@ class Organisation(BaseModel):
     country = models.CharField(max_length=200)
     currency = models.CharField(max_length=200)
     org_admin = models.ForeignKey('FloraUser', related_name='org_admin', on_delete=models.SET_NULL, null=True)
+    is_archived = models.BooleanField(default=False)
 
 
     def __str__(self):

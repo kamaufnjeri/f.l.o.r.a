@@ -3,38 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join Organization</title>
+    <title>You're Invited to Join {{ organization_name }}</title>
     <style>
-        .text {
-            color: black;
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333;
+            line-height: 1.6;
         }
-        a.button {
-            background-color: rgb(212, 29, 212);
-            border: 2px solid rgb(212, 29, 212);
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 24px;
+        }
+
+        .button {
             display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 4px;
+            background-color: #d41dd4;
+            color: #fff !important;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
         }
-        a.button:hover {
-            background-color: white;
-            color: rgb(212, 29, 212);
-            border: 2px solid rgb(212, 29, 212);
+
+        .button:hover {
+            background-color: #b318b3;
+        }
+
+        .role {
+            display: inline-block;
+            background: #f3e8ff;
+            color: #7a1fa2;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .footer {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .link {
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
-    <h1 class="text">Welcome to F.L.O.R.A!</h1>
-    <p class="text">Thank you, <strong>{{ user_name }}</strong>, for your interest in joining <strong>{{ organization_name }}</strong>. Please confirm your invitation by clicking the button below:</p>
-    <a href="{{ invite_link }}" class="button">Join Organization</a>
-    <p class="text">If the button doesn't work, you can also copy and paste the following URL into your browser:</p>
-    <p>{{ invite_link }}</p>
-    <br>
-    <p class="text">Thank you!</p>
+    <div class="container">
+        <h1>You're Invited to Join F.L.O.R.A.</h1>
+
+        <p>Hello <strong>{{ user_name }}</strong>,</p>
+
+        <p>
+            You have been invited to join
+            <strong>{{ organization_name }}</strong>.
+        </p>
+
+        <p>Your assigned role will be:</p>
+
+        <p>
+            <span class="role">{{ user_role }}</span>
+        </p>
+
+        <p>
+            Click the button below to accept your invitation and join the organization.
+        </p>
+
+        <a href="{{ invite_link }}" class="button">
+            Accept Invitation
+        </a>
+
+        <p>
+            If the button doesn't work, copy and paste this link into your browser:
+        </p>
+
+        <p class="link">{{ invite_link }}</p>
+
+        <p>
+            <strong>Note:</strong> This invitation link expires in <strong>8 hours</strong>.
+            If it expires, please contact your organization administrator for a new invitation.
+        </p>
+
+        <div class="footer">
+            <p>Thank you,</p>
+            <p><strong>The F.L.O.R.A. Team</strong></p>
+        </div>
+    </div>
 </body>
 </html>

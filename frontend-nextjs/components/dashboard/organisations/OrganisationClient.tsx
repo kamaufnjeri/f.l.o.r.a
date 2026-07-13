@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import CreateOrgModal from "./CreateOrgModal";
-import InviteModal from "./InviteModal";
 import { useAuthStore } from "@/stores/authStore";
 import { changeOrganisation } from "@/app/actions/org-actions";
 import toast from "react-hot-toast";
@@ -20,28 +19,13 @@ import {
   FiEdit3,
   FiSave,
 } from "react-icons/fi";
-import { Organisation } from "@/types";
+import CurrentOrganisationCard from "./CurrentOrganisationCard";
 
 export default function OrganisationClient() {
-  const [openInvite, setOpenInvite] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
-  const [editing, setEditing] = useState(false);
   const router = useRouter();
-  const { currentOrg, userOrgs, setCurrentOrg } = useAuthStore();
+  const { currentOrg, userOrgs, currentOrgUsers, setCurrentOrg, setUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
-
-  /* ---------------- SAFE FORM HYDRATION ---------------- */
-  function hydrateForm(org: Organisation | null) {
-    return {
-      org_name: org?.org_name || "",
-      org_email: org?.org_email || "",
-      org_phone_number: org?.org_phone_number || "",
-      country: org?.country || "",
-      currency: org?.currency || "",
-    };
-  }
-
-  const [form, setForm] = useState(() => hydrateForm(currentOrg));
 
   /* ---------------- SWITCH ORG ---------------- */
   async function switchOrg(orgId: string) {
@@ -58,10 +42,6 @@ export default function OrganisationClient() {
 
         setCurrentOrg(res.data || null);
 
-        // 🔥 IMPORTANT: manual hydration instead of useEffect
-        setForm(hydrateForm(res.data));
-
-        setEditing(false);
       } else {
         toast.error(res.error || "Failed to switch");
       }
@@ -103,119 +83,13 @@ export default function OrganisationClient() {
 
         </div>
 
-        {/* CURRENT ORG */}
         {currentOrg && (
-          <div className="border border-gray-200 rounded-2xl shadow-sm p-6 bg-white">
-
-            {/* TOP */}
-            <div className="flex items-start justify-between">
-
-              <div className="flex items-start gap-3">
-
-                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-100">
-                  <FiLayers className="text-indigo-600" />
-                </div>
-
-                <div>
-                  <p className="text-xs tracking-[0.3em] text-gray-400 uppercase">
-                    Active Workspace
-                  </p>
-
-                  {editing ? (
-                    <input
-                      value={form.org_name}
-                      onChange={(e) =>
-                        setForm({ ...form, org_name: e.target.value })
-                      }
-                      className="text-2xl font-semibold mt-1 border-b outline-none focus:border-indigo-500 bg-transparent"
-                    />
-                  ) : (
-                    <h2 className="text-2xl font-semibold mt-1">
-                      {currentOrg.org_name}
-                    </h2>
-                  )}
-                </div>
-
-              </div>
-
-              <div className="flex gap-2">
-
-                <button
-                  onClick={() => setEditing(!editing)}
-                  className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
-                >
-                  <FiEdit3 />
-                  {editing ? "Cancel" : "Edit"}
-                </button>
-
-                <button
-                  onClick={() => setOpenInvite(true)}
-                  className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm"
-                >
-                  <FiUsers />
-                  Invite
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* META GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
-
-              <Meta icon={<FiHash />} label="ID" value={currentOrg.id} />
-
-              <EditableMeta
-                editing={editing}
-                icon={<FiMail />}
-                label="Email"
-                value={form.org_email}
-                onChange={(v) => setForm({ ...form, org_email: v })}
-              />
-
-              <EditableMeta
-                editing={editing}
-                icon={<FiPhone />}
-                label="Phone"
-                value={form.org_phone_number}
-                onChange={(v) => setForm({ ...form, org_phone_number: v })}
-              />
-
-              <EditableMeta
-                editing={editing}
-                icon={<FiGlobe />}
-                label="Country"
-                value={form.country}
-                onChange={(v) => setForm({ ...form, country: v })}
-              />
-
-              <EditableMeta
-                editing={editing}
-                icon={<FiDollarSign />}
-                label="Currency"
-                value={form.currency}
-                onChange={(v) => setForm({ ...form, currency: v })}
-              />
-
-            </div>
-
-            {/* SAVE BAR */}
-            {editing && (
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => {
-                    console.log("SAVE PAYLOAD:", form);
-                    setEditing(false);
-                  }}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm"
-                >
-                  <FiSave />
-                  Save Changes
-                </button>
-              </div>
-            )}
-
-          </div>
+          <CurrentOrganisationCard
+            organisation={currentOrg}
+            setOrganisation={setCurrentOrg}
+            organisationUsers={currentOrgUsers}
+            setUser={setUser}
+          />
         )}
 
         {/* SECTION HEADER */}
@@ -282,7 +156,6 @@ export default function OrganisationClient() {
 
         {/* MODALS */}
         {openCreate && <CreateOrgModal onClose={() => setOpenCreate(false)} />}
-        {openInvite && <InviteModal onClose={() => setOpenInvite(false)} />}
       </div>
     </div>
   );

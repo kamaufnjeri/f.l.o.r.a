@@ -41,10 +41,12 @@ class SendEmail:
             fail_silently=False,
         )
 
-    def send_invite_emails(self, invite_emails, user):
+    def send_invite_emails(self, invite_data, user):
         with transaction.atomic():
-            if invite_emails and user:
-                for email in invite_emails:
+            if invite_data and user:
+                for invite in invite_data:
+                    email = invite["email"]
+                    role = invite["role"]                    
                     try:
 
                         email_user = FloraUser.objects.get(email=email)
@@ -52,8 +54,10 @@ class SendEmail:
                         email_user = None
                     try:
                         organisation_membership = OrganisationMembership.objects.get(organisation=user.current_org, user=email_user)
+                        organisation_membership.role = role
+                        organisation_membership.save()
                     except OrganisationMembership.DoesNotExist:
-                        organisation_membership = OrganisationMembership.objects.create(organisation=user.current_org, user=email_user, role='staff')
+                        organisation_membership = OrganisationMembership.objects.create(organisation=user.current_org, user=email_user, role=role, is_active=False)
                     
                     uid64 = token_uid.encode_uid(organisation_membership)
                     invite_link = f"{frontend_url}/accept-invite/{uid64}"
@@ -61,7 +65,8 @@ class SendEmail:
                     subject = 'Join Our Organization'
                     html_message = render_to_string('email/invite_email.html', {
                         'invite_link': invite_link,
-                        "user_name": f"{user.first_name} {user.last_name}", 
+                        "user_name": f"{user.first_name} {user.last_name}",
+                        "user_role": role,
                         "organisation_name": user.current_org.org_name
                     })
                     plain_message = strip_tags(html_message)

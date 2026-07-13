@@ -14,7 +14,7 @@ from .stock import StockDetailsSerializer, StockSerializer
 from .supplier import SupplierSerializer, SupplierDetailSerializer
 from .auth import RegisterSerializer, LoginSerializer, ForgotPasswordSerializeer, ResetPasswordSerializer, FloraUserSerializer
 from .bill_invoice import InvoiceSerializer, BillSerializer, InvoiceDetailSerializer, BillDetailSerializer
-from .organisation import OrganisationSerializer
+from .organisation import OrganisationSerializer, OrgDetailSerializer
 from .service import ServiceSerializer, ServiceDetailSerializer
 from .service_income import ServiceIncomeSerializer, ServiceIncomeDetailSerializer, DetailedServiceIncomeEntrySerializer
 from .audit_trail import AuditTrailSerializer

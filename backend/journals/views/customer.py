@@ -8,7 +8,7 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from journals.utils.generate_pdfs import GenerateListsPDF
 from django.http import HttpResponse
 
@@ -33,7 +33,7 @@ class CustomerAPIVew(generics.ListCreateAPIView):
     pagination_class = CustomerPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -106,7 +106,7 @@ class DownloadCustomerAPIVew(generics.ListCreateAPIView):
     pagination_class = CustomerPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def post(self, request, *args, **kwargs):
         try:
@@ -143,7 +143,7 @@ class DownloadCustomerAPIVew(generics.ListCreateAPIView):
 class CustomerDetailsAPIView(generics.RetrieveAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
     def get(self, request, *args, **kwargs):
         customer_id = kwargs.get('pk')
@@ -264,7 +264,7 @@ class CustomerDetailsAPIView(generics.RetrieveAPIView):
 class DownloadCustomerDetailAPIView(generics.RetrieveAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):

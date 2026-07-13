@@ -7,7 +7,7 @@ from journals.utils.select_options_utils import select_options
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from journals.permissions import IsUserInOrganisation
+from journals.permissions import OrganisationRolePermission
 from rest_framework.permissions import IsAuthenticated
 from journals.utils import flatten_errors
 from journals.utils.generate_pdfs import GenerateListsPDF
@@ -24,7 +24,7 @@ class ServiceAPIView(generics.ListCreateAPIView):
     queryset = Service.objects.all().order_by('created_at')
     serializer_class = ServiceSerializer
     pagination_class = ServicePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'description']
 
@@ -97,7 +97,7 @@ class DownloadServiceAPIView(generics.ListCreateAPIView):
     queryset = Service.objects.all().order_by('created_at')
     serializer_class = ServiceSerializer
     pagination_class = ServicePagination
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'description']
 
@@ -135,7 +135,7 @@ class DownloadServiceAPIView(generics.ListCreateAPIView):
 class ServiceDetailAPIView(generics.RetrieveAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def get(self, request, *args, **kwargs):
@@ -253,7 +253,7 @@ class ServiceDetailAPIView(generics.RetrieveAPIView):
 class DownloadServiceDetailAPIView(generics.RetrieveAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceDetailSerializer
-    permission_classes = [IsAuthenticated, IsUserInOrganisation]
+    permission_classes = [IsAuthenticated, OrganisationRolePermission]
 
 
     def post(self, request, *args, **kwargs):
