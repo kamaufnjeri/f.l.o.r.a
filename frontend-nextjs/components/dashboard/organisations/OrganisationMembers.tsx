@@ -5,30 +5,65 @@ import { FiUsers } from "react-icons/fi";
 import MemberCard from "./MemberCard";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { removeMemberOrganisation } from "@/app/actions/org-actions";
+import { changeMemberRoleOrganisation, removeMemberOrganisation } from "@/app/actions/org-actions";
 import ConfirmModal from "../common/ConfirmationModal";
 
 interface Props {
   organisation: Organisation;
   organisationUsers: OrgUser[];
   setUser: (user: User | null) => void;
+  isSuperAdmin: boolean;
 }
 
 export default function OrganisationMembers({
   organisation,
   organisationUsers,
   setUser,
+  isSuperAdmin
 }: Props) {
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-   const handleRemoveMember = async () => {
+  const handleRemoveMember = async () => {
+    if (!isSuperAdmin) {
+        toast.error('Only super admin can remove member');
+        return;
+    }
     if (!selectedMemberId) {
       toast.error("No member selected");
       return;
     }
     try {
        const res = await removeMemberOrganisation(organisation.id, selectedMemberId);
+
+      if (res?.success) {
+        toast.success(res.message || "Member removed");
+        
+        // redirect or remove from list here
+        setUser(res.user)
+
+      } else {
+        toast.error(res?.error || "Delete failed");
+      }
+    } catch (error) {
+      console.error('Error', error);
+      toast.error("Download failed");
+    } finally {
+      setShowRemoveModal(false);
+      setSelectedMemberId(null);
+    }
+   
+  };
+
+   const handleMemberRoleChange = async (userId: string, userRole: "admin" |"editor" | "viewer") => {
+    if (!isSuperAdmin) {
+        toast.error('Only super admin can change member role');
+        return;
+    }
+
+  
+    try {
+       const res = await changeMemberRoleOrganisation(organisation.id, userId, userRole);
 
       if (res?.success) {
         toast.success(res.message || "Member removed");
@@ -77,17 +112,19 @@ export default function OrganisationMembers({
           No members found.
         </div>
       ) : (
-        <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
 
           {organisationUsers?.map((member) => (
             
             <MemberCard
               key={member.user_id}
               member={member}
+              isSuperAdmin={isSuperAdmin}
               enableRemove={() => {
                 setSelectedMemberId(member.user_id);
                 setShowRemoveModal(true);
               }}
+              handleRoleChange={handleMemberRoleChange}
             />
           ))}
 
@@ -95,7 +132,7 @@ export default function OrganisationMembers({
       )}
 
     </div>
-     {showRemoveModal &&  <ConfirmModal
+     {(showRemoveModal && isSuperAdmin) &&  <ConfirmModal
                 open={showRemoveModal}
                 onClose={() => setShowRemoveModal(false)}
                 title="Remove Member"

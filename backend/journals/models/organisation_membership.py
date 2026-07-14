@@ -8,6 +8,7 @@ class OrganisationMembership(BaseModel):
         ("admin", "Admin"),
         ("editor", "Editor"),
         ("viewer", "Viewer"),
+        ("super_admin", "Super Admin")
     )
     organisation = models.ForeignKey(Organisation, related_name='org_membership', on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(FloraUser, related_name='org_membership', on_delete=models.SET_NULL, null=True, blank=True)

@@ -1,4 +1,4 @@
-from journals.permissions.user_in_organisation import IsAdmin
+from journals.permissions.user_in_organisation import IsSuperAdmin
 from journals.serializers.organisation import OrgDetailSerializer
 from rest_framework import generics, serializers, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -10,7 +10,7 @@ from journals.serializers import OrganisationSerializer, FloraUserSerializer
 from django.db import transaction
 from datetime import timedelta, datetime
 from django.utils import timezone
-from journals.permissions import IsAdmin
+from journals.permissions import IsSuperAdmin
 
 
 class ChangeCurrentOrgApiView(generics.CreateAPIView):
@@ -22,6 +22,15 @@ class ChangeCurrentOrgApiView(generics.CreateAPIView):
                 org_id = request.data.get('org_id')
                 user = request.user
 
+                if user.current_org.id == org_id:
+                    return Response(
+                        {
+                            "error": "Bad Request",
+                            "details": "Organisation is already the current organisation.",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
                 try:
                     organisation = Organisation.objects.get(pk=org_id)
                 except Organisation.DoesNotExist:
@@ -31,17 +40,36 @@ class ChangeCurrentOrgApiView(generics.CreateAPIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 if user.current_org == organisation:
-                    return Response({
-                        'error': 'Bad Request',
-                        'details': 'Organisation already current organisation'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    user.current_org = organisation
-                    user.save()
+                    return Response(
+                        {
+                            "error": "Bad Request",
+                            "details": "Organisation is already the current organisation.",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-                    data = OrganisationSerializer(organisation).data
-                    return Response(data=data, status=status.HTTP_200_OK)
-            
+                elif not user.org_membership.filter(
+                    organisation=organisation,
+                    is_active=True,
+                ).exists():
+                    return Response(
+                        {
+                            "error": "Forbidden",
+                            "details": "You are not a member of this organisation.",
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                user.current_org = organisation
+                user.save()
+
+                return Response(
+                    {
+                        "message": "Organisation changed successfully",
+                        "user": FloraUserSerializer(user).data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
         except Exception as e:
             print(f"Internal Error: {e}") 
             return Response({
@@ -82,7 +110,7 @@ class OrganisationApiView(generics.CreateAPIView):
 
 
 class OrganisationSentInviteApiView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def post(self, request, *args, **kwargs):
         invite_data = request.data
@@ -213,7 +241,7 @@ class OrganizationAcceptInviteApiView(generics.GenericAPIView):
         return user
     
 class OrganisationDetailsApiView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
     serializer_class = OrgDetailSerializer
     queryset = Organisation.objects.all()
     lookup_field = "id"          # model field
@@ -252,23 +280,7 @@ class OrganisationDetailsApiView(generics.RetrieveAPIView):
         org_id = kwargs.get('organisation_id')
         try:
             instance = self.get_object()
-            is_archived = request.data.get("is_archived")
-
-            if is_archived is not None:
-                instance.is_archived = is_archived
-                instance.save()
-
-                return Response(
-                    {
-                        "message": (
-                            "Organisation archived successfully."
-                            if instance.is_archived
-                            else "Organisation unarchived successfully."
-                        ),
-                        "organisation": self.get_serializer(instance).data,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+           
             partial = kwargs.pop('partial', True)
             data = request.data.copy()
             serializer = self.get_serializer(instance, data=data, partial=partial)
@@ -277,7 +289,7 @@ class OrganisationDetailsApiView(generics.RetrieveAPIView):
 
             return Response({
                 "message": "Organisation updated successfully.",
-                "organisation": serializer.data,
+                "user": FloraUserSerializer(request.user).data,
             } , status=status.HTTP_200_OK)
         except Organisation.DoesNotExist:
             return Response({
@@ -299,56 +311,40 @@ class OrganisationDetailsApiView(generics.RetrieveAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
    
-
-class OrganisationMembershipApiView(generics.DestroyAPIView):
-    permission_classes = [IsAuthenticated, IsAdmin]
+class OrganisationArchiveApiView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = OrgDetailSerializer
-    queryset = OrganisationMembership.objects.all()
+    queryset = Organisation.objects.all()
+    lookup_field = "pk"          # model field
 
+        
     def patch(self, request, *args, **kwargs):
-        org_id = kwargs.get('organisation_id')
+        org_id = kwargs.get('pk')
         try:
-            organisation = self.get_object()
-            user_id = request.data.get('user_id')
-            user_role = request.data.get('user_role')
-            membership = OrganisationMembership.objects.get(organisation=organisation, user_id=user_id)
-            
-            user = membership.user
-            if user.id == request.user.id:
-                return Response({
-                    'error': 'Bad Request',
-                    'details': 'You cannot change your role in the organisation.'
-                }, status=status.HTTP_400_BAD_REQUEST)          
-            if membership.role == 'admin':
-                admin_count = OrganisationMembership.objects.filter(organisation_id=org_id, role='admin', is_active=True).count()
-                if admin_count <= 1:
-                    return Response({
-                        'error': 'Bad Request',
-                        'details': 'Cannot change role of the last admin in the organisation.'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
+            instance = self.get_object()
+            is_archived = request.data.get("is_archived")
 
-            if user_role != membership.role:
-                membership.role = user_role
-                membership.save()
+            if request.user.id != instance.super_admin.id:
+                 return Response({
+                    'error': 'Forbidden',
+                    'details': "Only super admin can archive organisation"
+                }, status=status.HTTP_403_FORBIDDEN)
 
-                return Response(
-                    {
-                        "message":"Member role changed successfully.", 
-                        "organisation": self.get_serializer(instance).data,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            partial = kwargs.pop('partial', True)
-            data = request.data.copy()
-            serializer = self.get_serializer(instance, data=data, partial=partial)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            instance.is_archived = is_archived
+            instance.save()
 
-            return Response({
-                "message": "Organisation updated successfully.",
-                "organisation": serializer.data,
-            } , status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": (
+                        "Organisation archived successfully."
+                        if instance.is_archived
+                        else "Organisation unarchived successfully."
+                    ),
+                    "user": FloraUserSerializer(request.user).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
         except Organisation.DoesNotExist:
             return Response({
                 'error': 'Not Found',
@@ -368,6 +364,72 @@ class OrganisationMembershipApiView(generics.DestroyAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class OrganisationMembershipApiView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    serializer_class = OrgDetailSerializer
+    queryset = OrganisationMembership.objects.all()
+    lookup_field = "id"          # model field
+    lookup_url_kwarg = 'organisation_id'
+
+
+    def patch(self, request, *args, **kwargs):
+        org_id = kwargs.get('organisation_id')
+        try:
+            user_id = request.data.get('user_id')
+            user_role = request.data.get('user_role')
+            membership = OrganisationMembership.objects.get(organisation_id=org_id, user_id=user_id)
+            
+            user = membership.user
+            if user.id == request.user.id:
+                return Response({
+                    'error': 'Bad Request',
+                    'details': 'You cannot change your role in the organisation.'
+                }, status=status.HTTP_400_BAD_REQUEST)          
+            if membership.role == 'super_admin':
+                
+                return Response({
+                    'error': 'Bad Request',
+                    'details': 'Cannot change role of super_admin in the organisation.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+
+            if user_role == membership.role:
+                return Response({
+                    'error': 'Bad Request',
+                    'details': 'Role is same.'
+                }, status=status.HTTP_400_BAD_REQUEST) 
+
+            membership.role = user_role
+            membership.save()
+
+            return Response(
+                {
+                    "message":"Member role changed successfully.", 
+                    "user": FloraUserSerializer(request.user).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+        except Organisation.DoesNotExist:
+            return Response({
+                'error': 'Not Found',
+                'details': f'The org of ID {org_id} does not exist.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except serializers.ValidationError as e:
+            errors = flatten_errors(e.detail)
+            return Response({
+                'error': 'Bad Request',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            raise e
+            return Response({
+                'error': 'Internal Server Error',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
     def delete(self, request, *args, **kwargs):
         org_id = kwargs.get('organisation_id')
@@ -382,13 +444,12 @@ class OrganisationMembershipApiView(generics.DestroyAPIView):
                     'error': 'Bad Request',
                     'details': 'You cannot remove yourself from the organisation.'
                 }, status=status.HTTP_400_BAD_REQUEST)          
-            if membership.role == 'admin':
-                admin_count = OrganisationMembership.objects.filter(organisation_id=org_id, role='admin', is_active=True).count()
-                if admin_count <= 1:
-                    return Response({
-                        'error': 'Bad Request',
-                        'details': 'Cannot remove the last admin from the organisation.'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            if membership.role == 'super_admin':
+            
+                return Response({
+                    'error': 'Bad Request',
+                    'details': 'Cannot remove super dmin from the organisation.'
+                }, status=status.HTTP_400_BAD_REQUEST)
                 
             if user.current_org and user.current_org.id == org_id:
                 user.current_org = None

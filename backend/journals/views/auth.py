@@ -367,12 +367,30 @@ class UserDetailsApiView(generics.RetrieveAPIView):
         user_id = kwargs.get('pk')
 
         try:
+            
+            refresh_token = request.COOKIES.get("refresh")
             instance = self.get_object()
             instance.is_archived = True
             instance.save()
-            
-            return Response({"message": "User archived successfully."}, status=status.HTTP_200_OK)
-            
+
+            res = Response({"message": "User archived successfully."}, status=status.HTTP_200_OK)
+
+            # always clear cookies
+            res.delete_cookie("accessToken")
+            res.delete_cookie("refreshToken")
+
+            if not refresh_token:
+                return res
+
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                pass
+
+            return res
+       
+           
         except FloraUser.DoesNotExist:
             return Response({
                 'error': 'Not Found',

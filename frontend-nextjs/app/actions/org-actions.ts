@@ -131,7 +131,7 @@ export async function changeOrganisation(orgId?:  string | null) {
     return {
       success: true,
       message: data?.message || "Organisation changed successfully",
-      data,
+      user: data?.user,
     };
   } catch (error) {
     return {
@@ -179,7 +179,7 @@ export async function editOrganisation(
     return {
       success: true,
       message: data.message || "Organisation updated successfully",
-      organisation: data?.organisation,
+      user: data?.user,
     };
   } catch (error) {
     console.log("Error editing organisation:", error);
@@ -191,7 +191,56 @@ export async function editOrganisation(
   }
 }
 
-export async function ChangeMemberRoleOrganisation(
+export async function archiveOrganisation(
+  orgId: string,
+  payload: { is_archived: boolean}
+) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+
+       const res = await fetch(`${backendURL}/organisations/${orgId}/archive/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+   
+    return {
+      success: true,
+      message: data.message || "Organisation archived successfully",
+      user: data?.user,
+    };
+  } catch (error) {
+    console.log("Error archiving organisation:", error);
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+export async function changeMemberRoleOrganisation(
   orgId: string,
   userId: string,
   userRole: "viewer" | "editor" | "admin"
@@ -206,8 +255,8 @@ export async function ChangeMemberRoleOrganisation(
     const cookieStore = await cookies();
 
 
-    const res = await fetch(`${backendURL}/organisations/${orgId}/remove-member/`, {
-        method: "DELETE",
+    const res = await fetch(`${backendURL}/organisations/${orgId}/membership/`, {
+        method: "PATCH",
          headers: {
           "Content-Type": "application/json",
           Cookie: cookieStore.toString(),
@@ -228,12 +277,12 @@ export async function ChangeMemberRoleOrganisation(
     }
 
     return {
-      message: data.message || "Member removed successfully",
+      message: data.message || "Member role changed successfully",
       user: data?.user,
       success: true,
     };
   } catch (error) {
-    console.log("Error removing member organisation:", error);
+    console.log("Error changing member role organisation:", error);
 
     return {
       success: false,
@@ -258,7 +307,7 @@ export async function removeMemberOrganisation(
     const cookieStore = await cookies();
 
 
-    const res = await fetch(`${backendURL}/organisations/${orgId}/remove-member/`, {
+    const res = await fetch(`${backendURL}/organisations/${orgId}/membership/`, {
         method: "DELETE",
          headers: {
           "Content-Type": "application/json",

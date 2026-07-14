@@ -96,17 +96,20 @@ class FloraUserSerializer(serializers.ModelSerializer):
     user_organisations = serializers.SerializerMethodField(read_only=True)
     current_organisation = serializers.SerializerMethodField(read_only=True)
 
+
     class Meta:
         model = FloraUser
-        fields = ["id", "first_name", "last_name", "phone_number", "email", 'user_organisations', 'current_organisation']
+        fields = ["id", "first_name", "last_name", "phone_number", "email", 'user_organisations', 'current_organisation', 'is_active']
 
     def get_user_organisations(self, obj):
         orgs = []
         for org_memb in obj.org_membership.all():
             org = org_memb.organisation
+            is_super_admin = org.super_admin.id == obj.id
             data = {
                 "org_name": org.org_name,
                 "org_id": org.id,
+                "is_super_admin": is_super_admin,
                 "is_archived": org.is_archived,
             }
             orgs.append(data)
@@ -115,6 +118,7 @@ class FloraUserSerializer(serializers.ModelSerializer):
 
     def get_current_organisation(self, obj):
         data = OrganisationSerializer(obj.current_org).data
+
         return data
     
     def validate(self, data):      

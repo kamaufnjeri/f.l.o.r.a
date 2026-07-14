@@ -24,20 +24,20 @@ import { editOrganisation } from "@/app/actions/org-actions";
 interface Props {
   organisation: Organisation;
   organisationUsers: OrgUser[];
-  setOrganisation: (org: Organisation | null) => void;
   setUser: (user: User | null) => void;
+  isSuperAdmin: boolean;
 }
 
 export default function CurrentOrganisationCard({
   organisation,
   organisationUsers,
-  setOrganisation,
   setUser,
+  isSuperAdmin,
 }: Props) {
   const [openInvite, setOpenInvite] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-   function hydrateForm(org: Organisation | null) {
+  function hydrateForm(org: Organisation | null) {
       return {
         org_name: org?.org_name || "",
         org_email: org?.org_email || "",
@@ -47,9 +47,13 @@ export default function CurrentOrganisationCard({
       };
     }
   
-    const [form, setForm] = useState(() => hydrateForm(organisation));
+  const [form, setForm] = useState(() => hydrateForm(organisation));
 
     async function onSave() {
+      if (!isSuperAdmin) {
+        toast.error('Only super admin can edit');
+        return;
+      }
       setLoading(true);
       try {
         const res = await editOrganisation(organisation.id, form);
@@ -58,8 +62,8 @@ export default function CurrentOrganisationCard({
           toast.error(res.error || "Something went wrong");
           return;
         } else {
-          setOrganisation(res.organisation);
-          setForm(hydrateForm(res.organisation));
+          setUser(res.user);
+          setForm(hydrateForm(res.user.current_organisation));
 
           toast.success(res.message || "Organisation updated");
 
@@ -88,7 +92,7 @@ export default function CurrentOrganisationCard({
               Active Workspace
             </p>
 
-            {editing ? (
+            {(editing && isSuperAdmin) ? (
               <input
                 value={form.org_name}
                 onChange={(e) =>
@@ -106,27 +110,28 @@ export default function CurrentOrganisationCard({
             )}
           </div>
         </div>
+{isSuperAdmin && (
+<div className="flex gap-2">
+    <button
+      onClick={() => {
+        setEditing((prev) => !prev);
+        setForm(hydrateForm(organisation));
+      }}
+      className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
+    >
+      <FiEdit3 />
+      {editing ? "Cancel" : "Edit"}
+    </button>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() =>{ 
-              setEditing((prev) => !prev);
-              setForm(hydrateForm(organisation));
-            }}
-            className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            <FiEdit3 />
-            {editing ? "Cancel" : "Edit"}
-          </button>
 
-          <button
-            onClick={() => setOpenInvite(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            <FiUsers />
-            Invite
-          </button>
-        </div>
+  <button
+    onClick={() => setOpenInvite(true)}
+    className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
+  >
+    <FiUsers />
+    Invite
+  </button>
+</div>)}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -137,7 +142,7 @@ export default function CurrentOrganisationCard({
         />
 
         <EditableMeta
-          editing={editing}
+           editing={editing && isSuperAdmin}
           icon={<FiMail />}
           label="Email"
           value={form.org_email}
@@ -150,7 +155,7 @@ export default function CurrentOrganisationCard({
         />
 
         <EditableMeta
-          editing={editing}
+           editing={editing && isSuperAdmin}
           icon={<FiPhone />}
           label="Phone"
           value={form.org_phone_number}
@@ -163,7 +168,7 @@ export default function CurrentOrganisationCard({
         />
 
         <EditableMeta
-          editing={editing}
+           editing={editing && isSuperAdmin}
           icon={<FiGlobe />}
           label="Country"
           value={form.country}
@@ -176,7 +181,7 @@ export default function CurrentOrganisationCard({
         />
 
         <EditableMeta
-          editing={editing}
+           editing={editing && isSuperAdmin}
           icon={<FiDollarSign />}
           label="Currency"
           value={form.currency}
@@ -189,7 +194,7 @@ export default function CurrentOrganisationCard({
         />
       </div>
 
-      {editing && (
+      {(editing && isSuperAdmin) && (
         <div className="mt-6 flex justify-end">
           <button
             onClick={onSave}
@@ -205,9 +210,10 @@ export default function CurrentOrganisationCard({
         organisation={organisation}
         setUser={setUser}
         organisationUsers={organisationUsers}
+        isSuperAdmin={isSuperAdmin}
       />
     </div>
-    {openInvite && <InviteModal onClose={() => setOpenInvite(false)} setUser={setUser} organisationId={organisation.id} />}
+    {(openInvite && isSuperAdmin) && <InviteModal onClose={() => setOpenInvite(false)} setUser={setUser} organisationId={organisation.id} />}
 
     </>
   );

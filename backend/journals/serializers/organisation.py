@@ -11,7 +11,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organisation
-        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "org_admin", "is_archived", "org_users"]
+        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "is_archived", "org_users", "super_admin"]
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -67,7 +67,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
             OrganisationMembership.objects.create(
                 organisation=organisation,
                 user=user,
-                role='admin',
+                role='super_admin',
                 is_active=True
             )
             user.save()
@@ -80,12 +80,14 @@ class OrganisationSerializer(serializers.ModelSerializer):
         for membership in memberships:
             user = membership.user
             if user and user.is_active and not user.is_archived:
+                is_super_admin = user.id == obj.super_admin.id
                 user_data = {
                     "user_id": user.id,
                     "user_name": f"{user.first_name} {user.last_name}",
                     "user_email": user.email,
                     "user_role": membership.role,
-                    "is_active": membership.is_active
+                    "is_active": membership.is_active,
+                    "is_super_admin": is_super_admin
                 }
                 users_data.append(user_data)
         return users_data
@@ -96,7 +98,7 @@ class OrgDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organisation
-        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "org_admin", "is_archived", "org_users"]
+        fields = ["id", "org_name", "org_email", "country", "currency", "org_phone_number", "super_admin", "is_archived", "org_users"]
 
 
     def validate(self, data):      
@@ -131,12 +133,15 @@ class OrgDetailSerializer(serializers.ModelSerializer):
         for membership in memberships:
             user = membership.user
             if user and user.is_active and not user.is_archived:
+                is_super_admin = user.id == obj.super_admin.id
                 user_data = {
                     "user_id": user.id,
                     "user_name": f"{user.first_name} {user.last_name}",
                     "user_email": user.email,
                     "user_role": membership.role,
-                    "is_active": membership.is_active
+                    "is_active": membership.is_active,
+                    "is_super_admin": is_super_admin
+
                 }
                 users_data.append(user_data)
         return users_data

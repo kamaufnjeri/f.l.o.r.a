@@ -3,55 +3,74 @@
 import { useState } from "react";
 import CreateOrgModal from "./CreateOrgModal";
 import { useAuthStore } from "@/stores/authStore";
-import { changeOrganisation } from "@/app/actions/org-actions";
+import { archiveOrganisation, changeOrganisation } from "@/app/actions/org-actions";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
   FiPlus,
-  FiUsers,
-  FiPhone,
-  FiGlobe,
-  FiDollarSign,
-  FiHash,
-  FiArrowRight,
-  FiLayers,
-  FiMail,
-  FiEdit3,
-  FiSave,
 } from "react-icons/fi";
 import CurrentOrganisationCard from "./CurrentOrganisationCard";
+import UserOrganisations from "./UserOrganisations";
 
 export default function OrganisationClient() {
   const [openCreate, setOpenCreate] = useState(false);
   const router = useRouter();
-  const { currentOrg, userOrgs, currentOrgUsers, setCurrentOrg, setUser } = useAuthStore();
+  const { currentOrg, currentOrgUsers, userOrgs, setUser, user } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const isSuperAdmin = user?.id === currentOrg?.super_admin;
 
-  /* ---------------- SWITCH ORG ---------------- */
   async function switchOrg(orgId: string) {
-    if (!orgId || orgId === currentOrg?.id) return;
+  if (!orgId || orgId === currentOrg?.id) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await changeOrganisation(orgId);
+    const res = await changeOrganisation(orgId);
 
-      if (res.success) {
-        toast.success("Workspace switched");
-        router.push(`/dashboard/${orgId}/organisations`);
-
-        setCurrentOrg(res.data || null);
-
-      } else {
-        toast.error(res.error || "Failed to switch");
-      }
-    } catch {
-      toast.error("Unexpected error");
-    } finally {
-      setLoading(false);
+    if (!res.success) {
+      toast.error(res.error || "Failed to switch workspace");
+      return;
     }
-  }
 
+    toast.success(res.message || "Workspace switched");
+
+    setUser(res.user);
+
+    router.push(`/dashboard/${orgId}/organisations`);
+  } catch {
+    toast.error("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function updateArchiveOrganisation(orgId: string, isArchived: boolean) {
+
+  try {
+    setLoading(true);
+
+    const res = await archiveOrganisation(orgId, { is_archived: isArchived });
+
+    if (!res.success) {
+      toast.error(res.error || "Failed to archive workspace");
+      return;
+    }
+
+    toast.success(res.message);
+
+    setUser(res.user);
+
+  } catch {
+    toast.error("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+}
+
+console.log('user id', currentOrg?.super_admin, user?.id);
+
+
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 md:px-10 py-10">
       <div className="max-w-7xl mx-auto flex flex-col gap-10">
@@ -86,73 +105,13 @@ export default function OrganisationClient() {
         {currentOrg && (
           <CurrentOrganisationCard
             organisation={currentOrg}
-            setOrganisation={setCurrentOrg}
             organisationUsers={currentOrgUsers}
             setUser={setUser}
+            isSuperAdmin={isSuperAdmin}
           />
         )}
+        {(userOrgs && currentOrg) && <UserOrganisations organisations={userOrgs} currentOrg={currentOrg} switchOrg={switchOrg} updateArchiveOrganisation={updateArchiveOrganisation} loading={loading}/>}
 
-        {/* SECTION HEADER */}
-        <div className="flex items-center justify-between">
-          <p className="text-xs tracking-[0.35em] text-gray-400 uppercase">
-            Your Workspaces
-          </p>
-
-          <span className="text-xs text-gray-400">
-            {userOrgs.length} total
-          </span>
-        </div>
-
-        {/* GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          {userOrgs.map((org) => {
-            const isActive = org.org_id === currentOrg?.id;
-
-            return (
-              <button
-                key={org.org_id}
-                onClick={() => switchOrg(org.org_id)}
-                className={`
-                  group cursor-pointer text-left rounded-2xl p-6 border transition-all duration-300
-                  hover:-translate-y-1 hover:shadow-lg
-                  ${
-                    isActive
-                      ? "border-indigo-300 bg-indigo-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }
-                `}
-              >
-
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition">
-                    {org.org_name}
-                  </h3>
-
-                  {isActive && (
-                    <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full">
-                      ACTIVE
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between mt-6 text-xs text-gray-500">
-                  <span>ID: {org.org_id.slice(0, 8)}...</span>
-                  <FiArrowRight className="opacity-60 group-hover:translate-x-1 transition" />
-                </div>
-
-              </button>
-            );
-          })}
-
-        </div>
-
-        {/* LOADING */}
-        {loading && (
-          <div className="fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-2 rounded-full text-sm shadow-xl">
-            Switching workspace...
-          </div>
-        )}
 
         {/* MODALS */}
         {openCreate && <CreateOrgModal onClose={() => setOpenCreate(false)} />}

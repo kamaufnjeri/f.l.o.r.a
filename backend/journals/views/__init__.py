@@ -14,7 +14,7 @@ from .stock import StockAPIView, StockDetailAPIView, DownloadStockAPIView, Downl
 from .supplier import SupplierAPIVew, SupplierDetailsAPIView, DownloadSupplierAPIVew, DownloadSupplierDetailAPIView
 from .custom_404 import Custom404APIView
 from .auth import RegisterAPIVew, VerifyEmailView, CustomLoginAPIView, ResetPasswordAPIView, ForgotPasswordAPIView, MeAPIView, LogoutView, CookieTokenRefreshView, UserDetailsApiView
-from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView, ChangeCurrentOrgApiView, OrganisationDetailsApiView, OrganisationMembershipApiView
+from .organisation import OrganisationApiView, OrganisationSentInviteApiView, OrganizationAcceptInviteApiView, ChangeCurrentOrgApiView, OrganisationDetailsApiView, OrganisationMembershipApiView, OrganisationArchiveApiView
 from .select_options import SelectOptionsAPIView
 from .generate_pdf import GeneratePDFAPIView
 from .service import ServiceAPIView,  DownloadServiceAPIView, DownloadServiceDetailAPIView, ServiceDetailAPIView

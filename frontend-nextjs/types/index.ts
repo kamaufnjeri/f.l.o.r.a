@@ -34,14 +34,16 @@ export type OrgUser = {
   user_id: string;
   user_name: string;
   user_email: string;
-  user_role: string;
+  user_role: "super_admin" | "admin" | "editor" | "viewer";
   is_active: boolean;
+
 }
 export type Organisation = {
   id: string;
   org_name: string;
   org_email?: string;
   org_phone_number?: string;
+  super_admin: string;
   country?: string;
   currency?: string;
   org_users?: OrgUser[];
@@ -55,20 +57,28 @@ export interface OrganisationFormData {
   currency?: string;
 }
 
+export interface  UserFormData {
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+}
+
 export type UserOrganisation = {
   org_id: string;
   org_name: string;
   is_archived: boolean;
+  is_super_admin: boolean;
 };
 
 
 
 export type User = {
-  id: string | number;
+  id: string;
   email: string;
   first_name: string;
   last_name: string;
   phone_number?: string;
+  is_active: boolean;
   user_organisations?: UserOrganisation[];
   current_organisation?: Organisation | null;
 };

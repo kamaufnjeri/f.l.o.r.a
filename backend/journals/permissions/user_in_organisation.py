@@ -67,6 +67,8 @@ class IsEditor(OrganisationPermission):
 class IsAdmin(OrganisationPermission):
     allowed_roles = ["admin"]
 
+class IsSuperAdmin(OrganisationPermission):
+    allowed_roles = ["super_admin"]
 
 class OrganisationRolePermission(OrganisationPermission):
     def has_permission(self, request, view):
