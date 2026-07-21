@@ -37,7 +37,7 @@ class DetailedPurchaseEntriesSerializer(serializers.ModelSerializer):
         details = get_date_description_type_url(obj)
         if obj.purchase:
 
-          details['serial_number'] = obj.purchase.serial_number
+            details['serial_number'] = obj.purchase.serial_number
 
         details['quantity'] = obj.purchased_quantity
         details['rate'] = obj.purchase_price

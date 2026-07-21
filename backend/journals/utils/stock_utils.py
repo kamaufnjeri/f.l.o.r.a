@@ -115,6 +115,8 @@ class StockUtils:
         }
         closing_stock_data = {
             'name': 'Closing Stock',
+            'rate': round(average_cost, 2),
+
             'quantity': closing_stock,
             'amount': round(closing_stock_total, 2),
         }

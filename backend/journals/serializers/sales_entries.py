@@ -39,7 +39,7 @@ class DetailedSalesEntriesSerializer(serializers.ModelSerializer):
         details = get_date_description_type_url(obj)
         if obj.sales:
 
-          details['serial_number'] = obj.purchase.serial_number
+           details['serial_number'] = obj.sales.serial_number
         details['quantity'] = obj.sold_quantity
         details['rate'] = obj.sales_price
         details['total'] = float(obj.sales_price) * float(obj.sold_quantity)

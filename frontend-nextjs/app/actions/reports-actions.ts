@@ -68,3 +68,65 @@ export async function getTrialBalance(orgId: string, params: { search?: string; 
     };
   }
 }
+
+
+export async function getIncomeStatement(orgId: string, params: { date?: string }) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+
+    if (params.date) query.set("date", params.date);
+
+  
+    // 📊 FETCH JOURNALS
+    const accountRes = await fetch(
+      `${backendURL}/${orgId}/reports/trial-balance/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    const data = await accountRes.json();
+
+    if (!accountRes.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+
+    // 🧾 EXPECTED BACKEND SHAPE:
+    // data = {
+    //   accounts: [],
+    //   totals: {},
+    //   next: "",
+    //   previous: ""
+    // }
+
+    return {
+      success: true,
+      incomeStatement: data ?? [],
+    };
+  } catch (error) {
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

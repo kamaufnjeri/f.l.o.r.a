@@ -21,3 +21,4 @@ from .service import ServiceAPIView,  DownloadServiceAPIView, DownloadServiceDet
 from .service_income import ServiceIncomeAPIView, ServiceIncomeDetailAPIView, DownloadServiceIncomeAPIView
 from .audit_trail import AuditTrailAPIView
 from .trial_balance import TrialBalanceAPIView, DownloadTrialBalanceAPIView
+from .income_statement import IncomeStatementAPIView, DownloadIncomeStatementAPIView
