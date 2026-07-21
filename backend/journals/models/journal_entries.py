@@ -1,6 +1,6 @@
 from .base_model import BaseModel
 from django.db import models
-from .account import Account
+from .account import Account, Opening
 from .purchase import Purchase
 from .sales import Sales
 from .purchase_return import PurchaseReturn
@@ -17,6 +17,7 @@ class JournalEntries(BaseModel):
     amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     debit_credit = models.CharField(max_length=200, choices=DEBIT_CREDIT)
     account = models.ForeignKey(Account, related_name='journal_entries', on_delete=models.SET_NULL, null=True)
+    opening = models.ForeignKey(Opening, related_name='journal_entries', on_delete=models.CASCADE, null=True)
     journal = models.ForeignKey(Journal, related_name='journal_entries', on_delete=models.CASCADE, null=True)
     purchase = models.ForeignKey(Purchase, related_name='journal_entries', on_delete=models.CASCADE, null=True)
     sales = models.ForeignKey(Sales, related_name='journal_entries', on_delete=models.CASCADE, null=True)

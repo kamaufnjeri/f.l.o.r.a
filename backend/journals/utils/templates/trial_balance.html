@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ css_path }}">
+    <title>{{ report_title }}</title>
+</head>
+
+<body>
+
+<header>
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <h1>{{ organisation.org_name }}</h1>
+                    <h2>{{ report_title }}</h2>
+                </td>
+
+                <td style="text-align:right">
+                    <img src="{{ logo_path }}" alt="Logo">
+                </td>
+            </tr>
+
+            <tr>
+                <td></td>
+
+                <td style="text-align:right">
+                    <i><strong>{{ author_full }}</strong></i>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</header>
+
+
+<aside>
+
+    {% if search_filters %}
+<table>
+    <tbody>
+        <tr>
+            {% for key, value in search_filters.items() %}
+                <td>
+                    {% if "Name" in key or "Search" in key %}
+                        <strong>{{ key }}:</strong> "{{ value }}"
+                    {% else %}
+                        <strong>{{ key }}:</strong> {{ value }}
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+{% endif %}
+
+</aside>
+
+
+<section>
+
+<table>
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Debit ({{ organisation.currency }})</th>
+            <th>Credit ({{ organisation.currency }})</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for group in data.fixed_groups %}
+
+        <!-- FIXED GROUP -->
+
+        <tr style="background:#dbeafe;font-weight:bold;">
+            <td>{{ group.name }}</td>
+
+            <td style="text-align:right">
+                {% if group.balance_type == "debit" %}
+                    {{ group.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td style="text-align:right">
+                {% if group.balance_type == "credit" %}
+                    {{ group.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+        </tr>
+
+        {% for category in group.categories %}
+
+        <!-- CATEGORY -->
+
+        <tr style="background:#eef2ff;font-weight:bold;">
+            <td style="padding-left:18px;">
+                {{ category.name }}
+            </td>
+
+            <td style="text-align:right">
+                {% if category.balance_type == "debit" %}
+                    {{ category.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td style="text-align:right">
+                {% if category.balance_type == "credit" %}
+                    {{ category.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+        </tr>
+
+        {% for sub in category.sub_categories %}
+
+        <!-- SUB CATEGORY -->
+
+        <tr style="background:#f8fafc;">
+            <td style="padding-left:36px;font-weight:bold;">
+                {{ sub.name }}
+            </td>
+
+            <td style="text-align:right">
+                {% if sub.balance_type == "debit" %}
+                    {{ sub.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td style="text-align:right">
+                {% if sub.balance_type == "credit" %}
+                    {{ sub.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+        </tr>
+
+        {% for account in sub.accounts %}
+
+        <!-- ACCOUNT -->
+
+        <tr>
+
+            <td style="padding-left:60px;">
+                {{ account.name }}
+            </td>
+
+            <td style="text-align:right">
+                {% if account.balance_type == "debit" %}
+                    {{ account.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td style="text-align:right">
+                {% if account.balance_type == "credit" %}
+                    {{ account.amount }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+    {% endfor %}
+
+    <!-- TOTAL -->
+
+    <tr style="font-weight:bold;background:#d1d5db;">
+
+        <td style="text-align:right;">
+            Total
+        </td>
+
+        <td style="text-align:right;">
+            {{ data.totals.debit }}
+        </td>
+
+        <td style="text-align:right;">
+            {{ data.totals.credit }}
+        </td>
+
+    </tr>
+
+    {% if data.totals.debit != data.totals.credit %}
+
+    <tr style="background:#fef2f2;color:#991b1b;font-weight:bold;">
+
+        <td style="text-align:right;">
+            Difference
+        </td>
+
+        <td colspan="2" style="text-align:right;">
+            {{ (data.totals.debit - data.totals.credit)|abs }}
+        </td>
+
+    </tr>
+
+    {% endif %}
+
+    </tbody>
+
+</table>
+
+</section>
+
+
+<footer>
+
+<p>
+    &copy; Generated by
+    {{ user.first_name }}
+    {{ user.last_name }}
+    on {{ date }}
+    at {{ time }}
+</p>
+
+</footer>
+
+</body>
+</html>

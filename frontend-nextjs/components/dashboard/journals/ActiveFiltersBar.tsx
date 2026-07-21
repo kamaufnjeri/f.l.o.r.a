@@ -235,7 +235,7 @@ export default function ActiveFiltersBar({
                   hover:bg-gray-50
                 "
               >
-                Apply Filters
+                Open Filters
               </button>
             </div>
           </div>
@@ -252,23 +252,49 @@ export default function ActiveFiltersBar({
           >
             Reset all
           </button>
+           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 
-          <button
-            onClick={onOpen}
-            className="
-              rounded-xl
-              bg-primary
-              px-5 py-2.5
-              text-sm font-semibold
-              text-white
-              hover:bg-primary-dark
-              transition
-              cursor-pointer
-              active:scale-[0.98]
-            "
-          >
-            Open Filters
-          </button>
+              {/* Download (PRIMARY) */}
+              <button
+                onClick={handleDownload}
+                className="
+                  w-full sm:w-auto
+                  rounded-xl
+                  bg-primary
+                  px-5 py-2.5
+                  text-sm font-semibold
+                  text-white
+                  shadow-sm
+                  transition
+                  cursor-pointer
+                  hover:bg-primary-dark
+                  active:scale-[0.98]
+                "
+              >
+                Download PDF
+              </button>
+
+              {/* Open Filters (SECONDARY) */}
+              <button
+                onClick={onOpen}
+                className="
+                  w-full sm:w-auto
+                  rounded-xl
+                  border border-gray-200
+                  bg-white
+                  px-5 py-2.5
+                  text-sm font-medium
+                  text-gray-700
+                  transition
+                  cursor-pointer
+                  hover:bg-gray-50
+                "
+              >
+                Open Filters
+              </button>
+            </div>
+
+         
         </div>
       )}
     </div>

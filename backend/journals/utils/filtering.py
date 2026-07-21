@@ -100,6 +100,7 @@ from datetime import datetime
 def get_date_description_type_url(entry):
     entry_type, date, description, url, serial_number = '', '', '', '', ""
 
+    opening = getattr(entry, 'opening', None)
     journal = getattr(entry, 'journal', None)
     sales = getattr(entry, 'sales', None)
     purchase = getattr(entry, 'purchase', None)
@@ -153,6 +154,11 @@ def get_date_description_type_url(entry):
         entry_type = 'Service Income'
         serial_number = service_income.serial_number
         url = f"/service-income/{service_income.id}"
+    elif opening is not None:
+        date = opening.date
+        description = opening.description
+        entry_type = 'Opening Balance'
+        url = f"/accounts/{opening.account.id}"
 
     else:
         date = datetime.today().date()

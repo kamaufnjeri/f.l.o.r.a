@@ -57,15 +57,15 @@ class IsOrganisationMember(OrganisationPermission):
 
 
 class IsViewer(OrganisationPermission):
-    allowed_roles = ["viewer", "editor", "admin"]
+    allowed_roles = ["viewer", "editor", "admin", "super_admin"]
 
 
 class IsEditor(OrganisationPermission):
-    allowed_roles = ["editor", "admin"]
+    allowed_roles = ["editor", "admin", "super_admin"]
 
 
 class IsAdmin(OrganisationPermission):
-    allowed_roles = ["admin"]
+    allowed_roles = ["admin", "super_admin"]
 
 class IsSuperAdmin(OrganisationPermission):
     allowed_roles = ["super_admin"]
@@ -78,14 +78,14 @@ class OrganisationRolePermission(OrganisationPermission):
             return True
 
         if request.method in ["POST", "PUT", "PATCH"]:
-            if membership.role in ["editor", "admin"]:
+            if membership.role in ["editor", "admin", "super_admin"]:
                 return True
             raise PermissionDenied(
                 "Only editors and administrators can perform this action."
             )
 
         if request.method == "DELETE":
-            if membership.role == "admin":
+            if membership.role in ["admin", "super_admin"]:
                 return True
             raise PermissionDenied(
                 "Only administrators can delete resources."

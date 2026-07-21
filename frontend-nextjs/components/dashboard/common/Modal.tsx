@@ -41,7 +41,7 @@ export default function Modal({
 
       {/* Modal */}
       <div
-        className="relative z-10 w-fit max-w-[95vw] max-h-[90vh] overflow-y-auto rounded-xl bg-white pb-5 shadow-2xl"
+        className="relative z-10 w-fit max-w-[95vw] max-h-[90vh] p-5 overflow-y-auto rounded-xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

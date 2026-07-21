@@ -30,7 +30,8 @@ INITIAL_DATA = [
             {
                 "name": "Owner Investment",
                 "accounts": [
-                    {"name": "Capital"}
+                    {"name": "Capital"},
+                    {"name": "Opening Balance Equity"}
                 ]
             }
         ]
@@ -94,7 +95,7 @@ INITIAL_DATA = [
     }
 ]
 
-PERMANENT_ACCOUNTS = ('Cash', 'Bank', 'Capital', 'Purchase', 'Discount Allowed', 'Purchase Return', 'Sales', 'Sales Return', 'Service Income', 'Discount Received')
+PERMANENT_ACCOUNTS = ('Cash', 'Bank', 'Capital', 'Opening Balance Equity', 'Purchase', 'Discount Allowed', 'Purchase Return', 'Sales', 'Sales Return', 'Service Income', 'Discount Received')
 PERMANENT_SUBCATEGORIES = (
     "Cash and Cash Equivalents",
     "Accounts Receivable",

@@ -28,7 +28,7 @@ export default function FiltersSection({
   title: string;
   goToUrl: string;
   organisationId: string;
-   account?: boolean;
+  account?: boolean;
   stock?: boolean;
   service?: boolean;
   supplier?: boolean;

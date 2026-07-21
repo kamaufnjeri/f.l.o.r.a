@@ -24,6 +24,7 @@ ACCOUNT_STRUCTURE = {
         "owner_equity": [
             "retained_earnings",
             "owner_investment",
+            "opening_balance_equity"
             "drawings", 
             "additional_contributions"
         ],

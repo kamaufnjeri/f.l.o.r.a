@@ -21,6 +21,7 @@ from .generate_pdf import urlpatterns as generatepdfurls
 from .service import urlpatterns as service_urls
 from .service_income import urlpatterns as service_income_urls
 from .audit_trail import urlpatterns as audit_trails_urls
+from .reports import urlpatterns as reports_urls
 
 urlpatterns = [
     path('auth/', include(auth_urls)),
@@ -37,6 +38,7 @@ urlpatterns = [
     path('<organisation_id>/suppliers/', include(supplier_urls)),
     path('<organisation_id>/stocks/', include(stock_urls)),
     path('<organisation_id>/select-options/', include(select_options_urls)),
+    path('<organisation_id>/reports/', include(reports_urls)),
     path('<organisation_id>/', include(generatepdfurls)),
     path('organisations/', include(organisations_urls)),
     path('<organisation_id>/services/', include(service_urls)),

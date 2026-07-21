@@ -1,10 +1,12 @@
 from django.contrib import admin
-from .models import Account, Journal, JournalEntries, Stock, PurchaseEntries, PurchaseReturn
+from .models import Account, Journal, JournalEntries, Stock, PurchaseEntries, PurchaseReturn, Opening
+
 from .models import SalesEntries, SalesPurchasePrice, SalesReturn, Sales, Purchase, Customer, Invoice
 from .models import PurchaseReturnEntries, SalesReturnEntries, Bill, Supplier, Payment, FloraUser, ServiceIncome, ServiceIncomeEntry
 from .models import OrganisationMembership, Organisation, FixedGroup, Category, SubCategory, Service, AuditTrail
 # Register your models here.
 admin.site.register(Account)
+admin.site.register(Opening)
 admin.site.register(Stock)
 admin.site.register(Customer)
 admin.site.register(Invoice)

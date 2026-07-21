@@ -11,8 +11,7 @@ type Props = {
 };
 
 export default function DateFilter({ value, onChange }: Props) {
-  const isCustom = value.includes("to");
-
+  const isCustom = value.includes("to") && value !== "today";
   // derive from/to instead of syncing with useEffect
   const { initialFrom, initialTo } = useMemo(() => {
     if (isCustom) {

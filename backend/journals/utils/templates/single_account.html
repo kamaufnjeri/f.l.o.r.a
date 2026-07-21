@@ -32,31 +32,28 @@
             </tbody>
         </table>
     </header>
-    <aside>
-        <table>
-            {% if search_filters %}
+   <aside>
 
-            <tbody>
-                {% for key, value in search_filters.items() %}
-                <tr>
-                    <td>
-                        <ul>
-                            {% if key == 'Search Term' %}
-                            <li><strong>{{ key }}: </strong>'{{ value }}'</li>
+    {% if search_filters %}
+<table>
+    <tbody>
+        <tr>
+            {% for key, value in search_filters.items() %}
+                <td>
+                    {% if "Name" in key or "Search" in key %}
+                        <strong>{{ key }}:</strong> "{{ value }}"
+                    {% else %}
+                        <strong>{{ key }}:</strong> {{ value }}
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+{% endif %}
 
-                            {% else %}
-                            <li><strong>{{ key }}: </strong>{{ value }}</li>
-                            {% endif %}
+</aside>
 
-                        </ul>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-            {% endif %}
-        </table>
-    </aside>
     <aside>
         <table>
             <tbody>

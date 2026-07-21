@@ -1,4 +1,4 @@
-from .account import Account, FixedGroup, SubCategory, Category
+from .account import Account, FixedGroup, SubCategory, Category, Opening
 from .bill import Bill
 from .customer import Customer
 from .invoice import Invoice

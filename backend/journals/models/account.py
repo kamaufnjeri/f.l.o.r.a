@@ -45,5 +45,13 @@ class Account(BaseModel):
 
     def __str__(self):
         return self.name
+    
+class Opening(BaseModel):
+    date = models.DateField()
+    description = models.TextField()
+    account = models.OneToOneField('Account', related_name='account', on_delete=models.CASCADE)
 
+
+    def __str__(self):
+        return self.description
 

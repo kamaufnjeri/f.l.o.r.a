@@ -460,6 +460,7 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
+            raise e
             return Response({
                 'error': 'Internal Server Error',
                 'details': str(e)

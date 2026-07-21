@@ -71,8 +71,7 @@ class AccountUtils:
 
     def get_account_entries(self, before_date=None, after_date=None):
 
-        journal_entries = self.account.journal_entries.all()
-
+        journal_entries = self.account.journal_entries.exclude(type="opening_balance")
         if before_date:
             journal_entries = journal_entries.filter(
                 (Q(journal__date__lt=before_date) & Q(journal__date__isnull=False)) |
@@ -81,7 +80,9 @@ class AccountUtils:
                 (Q(purchase_return__date__lt=before_date) & Q(purchase_return__date__isnull=False)) |
                 (Q(sales_return__date__lt=before_date) & Q(sales_return__date__isnull=False)) |
                 (Q(payments__date__lt=before_date) & Q(payments__date__isnull=False)) |
-                (Q(service_income__date__lt=before_date) & Q(service_income__date__isnull=False))
+                (Q(service_income__date__lt=before_date) & Q(service_income__date__isnull=False)) |
+                (Q(opening__date__lt=before_date) & Q(opening__date__isnull=False))
+
             )
 
         if after_date:
@@ -92,7 +93,9 @@ class AccountUtils:
                 (Q(purchase_return__date__gte=after_date) & Q(purchase_return__date__isnull=False)) |
                 (Q(sales_return__date__gte=after_date) & Q(sales_return__date__isnull=False)) |
                 (Q(payments__date__gte=after_date) & Q(payments__date__isnull=False)) |
-                (Q(service_income__date__gte=after_date) & Q(service_income__date__isnull=False))
+                (Q(service_income__date__gte=after_date) & Q(service_income__date__isnull=False)) |
+                (Q(opening__date__gte=after_date) & Q(opening__date__isnull=False))
+
             )
 
         from journals.serializers import DetailedJournalEntryEntrySerializer
@@ -197,4 +200,48 @@ class AccountUtils:
 
     
 
-    
+    def get_account_balance(self):
+        """
+        Returns the account's natural balance.
+
+        Unlike the ledger's closing balance (Balance c/d),
+        this returns the side on which the account actually
+        has its balance.
+
+        Example:
+            Debit = 2,000
+            Credit = 1,500
+
+            Returns:
+            {
+                "amount": 500,
+                "balance_type": "debit"
+            }
+        """
+
+        start_date = self.get_start_date()
+        end_date = self.get_end_date() + timedelta(days=1)
+
+        _, debit_total, credit_total = self.get_account_entries(
+            after_date=start_date,
+            before_date=end_date,
+        )
+
+        opening = self.get_opening_balance()
+
+        if opening:
+            if opening["debit_credit"] == "debit":
+                debit_total += opening["amount"]
+            else:
+                credit_total += opening["amount"]
+
+        if debit_total >= credit_total:
+            return {
+                "amount": debit_total - credit_total,
+                "balance_type": "debit",
+            }
+
+        return {
+            "amount": credit_total - debit_total,
+            "balance_type": "credit",
+        }

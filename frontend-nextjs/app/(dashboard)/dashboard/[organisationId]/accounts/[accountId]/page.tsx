@@ -34,7 +34,7 @@ export default async function AccountsPage({
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
           <h2 className="font-semibold">Something went wrong</h2>
           <p className="text-sm mt-1">
-            Failed to load account. Please try again.
+            Failed to load account. {accountResponse.error} Please try again. 
           </p>
         </div>
       </div>

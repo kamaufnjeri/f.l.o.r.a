@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from journals.models import Account, JournalEntries, Organisation, FloraUser, SubCategory, Category, FixedGroup
+from journals.models import Account, Opening, JournalEntries, Organisation, FloraUser, SubCategory, Category, FixedGroup
 from django.db import models, transaction
 from .journal_entries import JournalEntrySerializer
 from journals.constants import ACCOUNT_STRUCTURE, GROUPS, CATEGORIES, SUB_CATEGORIES
 from journals.utils import AccountUtils
+from datetime import datetime
 
 
 class FixedGroupSerializer(serializers.ModelSerializer):
@@ -144,7 +145,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
     def get_account_balance(self, obj):
-        journal_entries = JournalEntries.objects.filter(account=obj)
+        journal_entries = JournalEntries.objects.filter(account=obj).exclude(type='opening_balance')
 
         
         debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
@@ -187,7 +188,22 @@ class AccountSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 account = Account.objects.create(**validated_data)
-                print(validated_data)
+                opening_balance = validated_data.get('opening_balance')
+                opening_balance_type = validated_data.get('opening_balance_type')
+
+                if opening_balance and opening_balance_type:
+                    date = datetime.now().date()
+                    organisation_id = validated_data.get('organisation')
+                    opening = Opening.objects.create(account=account, date=date, description=f'Opening balance for account {account.name}')
+
+                    JournalEntries.objects.create(account=account, opening=opening, amount=opening_balance, debit_credit=opening_balance_type, type='opening_balance')
+                    try:
+                        debit_credit = 'credit' if opening_balance_type == 'debit' else 'debit'
+                        opening_balance_account = Account.objects.get(name='Opening Balance Equity', organisation_id=organisation_id)
+                        JournalEntries.objects.create(account=opening_balance_account, opening=opening, amount=opening_balance, debit_credit=debit_credit, type='opening')
+                    except Account.DoesNotExist:
+                        raise serializers.ValidationError(f"Account Opening Balance Equity doesn't exists")
+
                 return account
         except Exception as e:
             raise Exception(str(e))
