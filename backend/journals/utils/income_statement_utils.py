@@ -126,20 +126,19 @@ class IncomeStatementUtils:
             lambda: {
                 "sub_categories": defaultdict(
                     lambda: {
-                        "accounts": [],
-                        "total": 0,
+                        "accounts": []
                     }
                 ),
                 "total": 0,
             }
         )
 
+
         other_income = defaultdict(
             lambda: {
                 "sub_categories": defaultdict(
                     lambda: {
-                        "accounts": [],
-                        "total": 0,
+                        "accounts": []
                     }
                 ),
                 "total": 0,
@@ -190,7 +189,6 @@ class IncomeStatementUtils:
                 else:
 
                     other_income[category]["sub_categories"][sub_category]["accounts"].append(balance)
-                    other_income[category]["sub_categories"][sub_category]["total"] += amount
                     other_income[category]["total"] += amount
                     total_other_income += amount
 
@@ -214,7 +212,6 @@ class IncomeStatementUtils:
                 else:
 
                     expenses[category]["sub_categories"][sub_category]["accounts"].append(balance)
-                    expenses[category]["sub_categories"][sub_category]["total"] += amount
                     expenses[category]["total"] += amount
                     total_expenses += amount
 
@@ -232,13 +229,13 @@ class IncomeStatementUtils:
 
         gross_profit = net_sales - cost_of_goods_sold
 
-        operating_profit = (
+        total_revenue = (
             gross_profit
             + total_service_income
             + total_other_income
         )
 
-        net_profit = operating_profit - total_expenses
+        net_profit = total_revenue - total_expenses
 
         return {
             "sales": {
@@ -283,7 +280,7 @@ class IncomeStatementUtils:
                "categories": dict(other_income),
                 "total": total_other_income,
             },
-            "operating_profit": operating_profit,
+            "total_revenue": total_revenue,
 
             "expenses": {
                 "categories": dict(expenses),
@@ -292,3 +289,4 @@ class IncomeStatementUtils:
 
             "net_profit": net_profit,
         }
+    

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,302 +10,234 @@
 
 <body>
 
-<header>
-    <table>
-        <tbody>
-            <tr>
-                <td>
-                    <h1>{{ organisation.org_name }}</h1>
-                    <h2>{{ report_title }}</h2>
-                </td>
+    <header>
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        <h1>{{ organisation.org_name }}</h1>
+                        <h2>{{ report_title }}</h2>
+                    </td>
 
-                <td style="text-align:right">
-                    <img src="{{ logo_path }}" alt="Logo">
-                </td>
-            </tr>
+                    <td style="text-align:right">
+                        <img src="{{ logo_path }}" alt="Logo">
+                    </td>
+                </tr>
 
-            <tr>
-                <td></td>
+                <tr>
+                    <td></td>
 
-                <td style="text-align:right">
-                    <i><strong>{{ author_full }}</strong></i>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</header>
+                    <td style="text-align:right">
+                        <i><strong>{{ author_full }}</strong></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </header>
 
 
-<aside>
+    <aside>
 
-    {% if search_filters %}
-<table>
-    <tbody>
-        <tr>
-            {% for key, value in search_filters.items() %}
-                <td>
-                    {% if "Name" in key or "Search" in key %}
+        {% if search_filters %}
+        <table>
+            <tbody>
+                <tr>
+                    {% for key, value in search_filters.items() %}
+                    <td>
+                        {% if "Name" in key or "Search" in key %}
                         <strong>{{ key }}:</strong> "{{ value }}"
-                    {% else %}
+                        {% else %}
                         <strong>{{ key }}:</strong> {{ value }}
-                    {% endif %}
-                </td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
-{% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
 
-</aside>
+    </aside>
 
-<section>
 
-<table>
+    <section>
 
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Debit ({{ organisation.currency }})</th>
-            <th>Credit ({{ organisation.currency }})</th>
-        </tr>
-    </thead>
+        <table>
 
-    <tbody>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Debit ({{ organisation.currency }})</th>
+                    <th>Credit ({{ organisation.currency }})</th>
+                </tr>
+            </thead>
 
-    <!-- SALES -->
+            <tbody>
 
-    <tr style="background:#dbeafe;font-weight:bold;">
-        <td>Sales</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.sales.total }}</td>
-    </tr>
+                {% for group in data.fixed_groups %}
 
-    {% for account in data.sales.accounts %}
-    <tr>
-        <td style="padding-left:40px;">{{ account.name }}</td>
-        <td style="text-align:right;">-</td>
-        <td style="text-align:right;">{{ account.credit }}</td>
-    </tr>
-    {% endfor %}
+                <!-- FIXED GROUP -->
 
-    <tr>
-        <td style="padding-left:20px;font-weight:bold;">Sales Return</td>
-        <td style="text-align:right;">{{ data.sales_return.debit }}</td>
-        <td>-</td>
-    </tr>
+                <tr style="background:#dbeafe;font-weight:bold;">
+                    <td>{{ group.name }}</td>
 
-    <tr style="background:#d1d5db;font-weight:bold;">
-        <td>Net Sales</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.net_sales }}</td>
-    </tr>
+                    <td style="text-align:right">
+                        {% if group.balance_type == "debit" %}
+                        {{ group.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <!-- COST OF GOODS SOLD -->
+                    <td style="text-align:right">
+                        {% if group.balance_type == "credit" %}
+                        {{ group.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <tr style="background:#dbeafe;font-weight:bold;">
-        <td>Opening Stock</td>
-        <td style="text-align:right;">{{ data.opening_stock.amount }}</td>
-        <td>-</td>
-    </tr>
+                </tr>
 
-    <tr style="background:#eef2ff;font-weight:bold;">
-        <td>Purchases</td>
-        <td style="text-align:right;">{{ data.purchases.total }}</td>
-        <td>-</td>
-    </tr>
+                {% for category in group.categories %}
 
-    {% for account in data.purchases.accounts %}
-    <tr>
-        <td style="padding-left:40px;">{{ account.name }}</td>
-        <td style="text-align:right;">{{ account.debit }}</td>
-        <td>-</td>
-    </tr>
-    {% endfor %}
+                <!-- CATEGORY -->
 
-    <tr>
-        <td style="padding-left:20px;font-weight:bold;">Purchase Return</td>
-        <td style="text-align:right;">{{ data.purchase_return.debit }}</td>
-        <td>-</td>
-    </tr>
+                <tr style="background:#eef2ff;font-weight:bold;">
+                    <td style="padding-left:18px;">
+                        {{ category.name }}
+                    </td>
 
-    <tr style="background:#d1d5db;font-weight:bold;">
-        <td>Net Purchases</td>
-        <td style="text-align:right;">{{ data.net_purchases }}</td>
-        <td>-</td>
-    </tr>
+                    <td style="text-align:right">
+                        {% if category.balance_type == "debit" %}
+                        {{ category.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <tr style="background:#d1d5db;font-weight:bold;">
-        <td>Goods Available for Sale</td>
-        <td style="text-align:right;">{{ data.goods_available_for_sale }}</td>
-        <td>-</td>
-    </tr>
+                    <td style="text-align:right">
+                        {% if category.balance_type == "credit" %}
+                        {{ category.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <!-- Closing Stock -->
+                </tr>
 
-    <tr style="background:#eef2ff;font-weight:bold;">
-        <td>Closing Stock</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.closing_stock.amount }}</td>
-    </tr>
+                {% for sub in category.sub_categories %}
 
-    {% for stock in data.closing_stock.stocks %}
-    <tr>
-        <td style="padding-left:40px;">
-            {{ stock.name }}
-            ({{ stock.quantity }} × {{ stock.rate }})
-        </td>
-        <td>-</td>
-        <td style="text-align:right;">{{ stock.amount }}</td>
-    </tr>
-    {% endfor %}
+                <!-- SUB CATEGORY -->
 
-    <tr style="background:#d1d5db;font-weight:bold;">
-        <td>Cost of Goods Sold</td>
-        <td style="text-align:right;">{{ data.cost_of_goods_sold }}</td>
-        <td>-</td>
-    </tr>
+                <tr style="background:#f8fafc;">
+                    <td style="padding-left:36px;font-weight:bold;">
+                        {{ sub.name }}
+                    </td>
 
-    <!-- GROSS PROFIT -->
+                    <td style="text-align:right">
+                        {% if sub.balance_type == "debit" %}
+                        {{ sub.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <tr style="background:#bbf7d0;font-weight:bold;font-size:14px;">
-        <td>Gross Profit</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.gross_profit }}</td>
-    </tr>
+                    <td style="text-align:right">
+                        {% if sub.balance_type == "credit" %}
+                        {{ sub.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <!-- SERVICE INCOME -->
+                </tr>
 
-    <tr style="background:#dbeafe;font-weight:bold;">
-        <td>Service Income</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.service_income.total }}</td>
-    </tr>
+                {% for account in sub.accounts %}
 
-    {% for account in data.service_income.accounts %}
-    <tr>
-        <td style="padding-left:40px;">{{ account.name }}</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ account.credit }}</td>
-    </tr>
-    {% endfor %}
+                <!-- ACCOUNT -->
 
-    <!-- OTHER INCOME -->
+                <tr>
 
-    <tr style="background:#dbeafe;font-weight:bold;">
-        <td>Other Income</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.other_income.total }}</td>
-    </tr>
+                    <td style="padding-left:60px;">
+                        {{ account.name }}
+                    </td>
 
-    {% for category_name, category in data.other_income.categories.items() %}
+                    <td style="text-align:right">
+                        {% if account.balance_type == "debit" %}
+                        {{ account.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-    <tr style="background:#eef2ff;font-weight:bold;">
-        <td style="padding-left:20px;">
-            {{ category_name }}
-        </td>
-        <td>-</td>
-        <td style="text-align:right;">{{ category.total }}</td>
-    </tr>
+                    <td style="text-align:right">
+                        {% if account.balance_type == "credit" %}
+                        {{ account.amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
 
-        {% for sub_name, sub in category.sub_categories.items() %}
+                </tr>
 
-        <tr style="background:#f8fafc;font-weight:bold;">
-            <td style="padding-left:40px;">
-                {{ sub_name }}
-            </td>
-            <td>-</td>
-            <td style="text-align:right;">{{ sub.total }}</td>
-        </tr>
+                {% endfor %}
+                {% endfor %}
+                {% endfor %}
+                {% endfor %}
 
-            {% for account in sub.accounts %}
-            <tr>
-                <td style="padding-left:60px;">
-                    {{ account.name }}
-                </td>
-                <td>-</td>
-                <td style="text-align:right;">{{ account.credit }}</td>
-            </tr>
-            {% endfor %}
+                <!-- TOTAL -->
 
-        {% endfor %}
+                <tr style="font-weight:bold;background:#d1d5db;">
 
-    {% endfor %}
+                    <td style="text-align:right;">
+                        Total
+                    </td>
 
-    <!-- OPERATING PROFIT -->
+                    <td style="text-align:right;">
+                        {{ data.totals.debit }}
+                    </td>
 
-    <tr style="background:#bbf7d0;font-weight:bold;font-size:14px;">
-        <td>Operating Profit</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.operating_profit }}</td>
-    </tr>
+                    <td style="text-align:right;">
+                        {{ data.totals.credit }}
+                    </td>
 
-    <!-- EXPENSES -->
+                </tr>
 
-    <tr style="background:#dbeafe;font-weight:bold;">
-        <td>Expenses</td>
-        <td style="text-align:right;">{{ data.expenses.total }}</td>
-        <td>-</td>
-    </tr>
+                {% if data.totals.debit != data.totals.credit %}
 
-    {% for category_name, category in data.expenses.categories.items() %}
+                <tr style="background:#fef2f2;color:#991b1b;font-weight:bold;">
 
-    <tr style="background:#eef2ff;font-weight:bold;">
-        <td style="padding-left:20px;">
-            {{ category_name }}
-        </td>
-        <td style="text-align:right;">{{ category.total }}</td>
-        <td>-</td>
-    </tr>
+                    <td style="text-align:right;">
+                        Difference
+                    </td>
 
-        {% for sub_name, sub in category.sub_categories.items() %}
+                    <td colspan="2" style="text-align:right;">
+                        {{ (data.totals.debit - data.totals.credit)|abs }}
+                    </td>
 
-        <tr style="background:#f8fafc;font-weight:bold;">
-            <td style="padding-left:40px;">
-                {{ sub_name }}
-            </td>
-            <td style="text-align:right;">{{ sub.total }}</td>
-            <td>-</td>
-        </tr>
+                </tr>
 
-            {% for account in sub.accounts %}
-            <tr>
-                <td style="padding-left:60px;">
-                    {{ account.name }}
-                </td>
-                <td style="text-align:right;">{{ account.debit }}</td>
-                <td>-</td>
-            </tr>
-            {% endfor %}
+                {% endif %}
 
-        {% endfor %}
+            </tbody>
 
-    {% endfor %}
+        </table>
 
-    <!-- NET PROFIT -->
+    </section>
 
-    <tr style="background:#86efac;font-size:16px;font-weight:bold;">
-        <td>Net Profit</td>
-        <td>-</td>
-        <td style="text-align:right;">{{ data.net_profit }}</td>
-    </tr>
 
-    </tbody>
+    <footer>
 
-</table>
+        <p>
+            &copy; Generated by
+            {{ user.first_name }}
+            {{ user.last_name }}
+            on {{ date }}
+            at {{ time }}
+        </p>
 
-</section>
-
-<footer>
-
-<p>
-    &copy; Generated by
-    {{ user.first_name }}
-    {{ user.last_name }}
-    on {{ date }}
-    at {{ time }}
-</p>
-
-</footer>
+    </footer>
 
 </body>
+
 </html>

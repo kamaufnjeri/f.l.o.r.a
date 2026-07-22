@@ -25,7 +25,7 @@ export async function getTrialBalance(orgId: string, params: { search?: string; 
 
   
     // 📊 FETCH JOURNALS
-    const accountRes = await fetch(
+    const reportRes = await fetch(
       `${backendURL}/${orgId}/reports/trial-balance/?${query.toString()}`,
       {
         method: "GET",
@@ -36,9 +36,9 @@ export async function getTrialBalance(orgId: string, params: { search?: string; 
       }
     );
 
-    const data = await accountRes.json();
+    const data = await reportRes.json();
 
-    if (!accountRes.ok) {
+    if (!reportRes.ok) {
       
       return {
         success: false,
@@ -88,8 +88,8 @@ export async function getIncomeStatement(orgId: string, params: { date?: string 
 
   
     // 📊 FETCH JOURNALS
-    const accountRes = await fetch(
-      `${backendURL}/${orgId}/reports/trial-balance/?${query.toString()}`,
+    const reportRes = await fetch(
+      `${backendURL}/${orgId}/reports/income-statement/?${query.toString()}`,
       {
         method: "GET",
         headers: {
@@ -99,9 +99,9 @@ export async function getIncomeStatement(orgId: string, params: { date?: string 
       }
     );
 
-    const data = await accountRes.json();
+    const data = await reportRes.json();
 
-    if (!accountRes.ok) {
+    if (!reportRes.ok) {
       
       return {
         success: false,
@@ -121,6 +121,68 @@ export async function getIncomeStatement(orgId: string, params: { date?: string 
     return {
       success: true,
       incomeStatement: data ?? [],
+    };
+  } catch (error) {
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}
+
+
+export async function getBalanceSheet(orgId: string, params: { date?: string }) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+
+    if (params.date) query.set("date", params.date);
+
+  
+    // 📊 FETCH JOURNALS
+    const reportRes = await fetch(
+      `${backendURL}/${orgId}/reports/balance-sheet/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    const data = await reportRes.json();
+
+    if (!reportRes.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+
+    // 🧾 EXPECTED BACKEND SHAPE:
+    // data = {
+    //   accounts: [],
+    //   totals: {},
+    //   next: "",
+    //   previous: ""
+    // }
+
+    return {
+      success: true,
+      balanceSheet: data ?? [],
     };
   } catch (error) {
 

@@ -1,20 +1,23 @@
 from django.http import HttpResponse
+
 from rest_framework import generics, status, serializers
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from journals.models import Account
+from journals.models import Account, Stock
 from journals.permissions import OrganisationRolePermission
 from journals.utils import flatten_errors
 from journals.utils.generate_pdfs import GenerateListsPDF
-from journals.utils.trial_balance_utils import TrialBalanceUtils
+from journals.utils.balance_sheet_utils import BalanceSheetUtils
 
 
-class DownloadTrialBalanceAPIView(generics.ListAPIView):
+class DownloadBalanceSheetAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, OrganisationRolePermission]
+
     queryset = Account.objects.all()
+
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["name"]
     filterset_fields = ["name"]
@@ -23,7 +26,7 @@ class DownloadTrialBalanceAPIView(generics.ListAPIView):
         try:
             organisation = request.user.current_org
 
-            queryset = self.filter_queryset(
+            accounts = self.filter_queryset(
                 self.get_queryset()
                 .filter(organisation=organisation)
                 .select_related(
@@ -33,22 +36,30 @@ class DownloadTrialBalanceAPIView(generics.ListAPIView):
                 )
             )
 
+            stocks = Stock.objects.filter(
+                organisation=organisation
+            )
+
             period = request.query_params.get("date")
             filter_data = request.query_params.dict()
 
-            title = request.data.get("title", "Trial Balance")
+            title = request.data.get(
+                "title",
+                "Balance Sheet",
+            )
 
-            data = TrialBalanceUtils(
-                queryset=queryset,
+            data = BalanceSheetUtils(
+                stocks=stocks,
+                accounts=accounts,
                 period=period,
-            ).get_trial_balance()
+            ).get_balance_sheet()
 
             pdf_generator = GenerateListsPDF(
                 title=title,
                 user=request.user,
                 data=data,
                 filters=filter_data,
-                filename="trial_balance.html",
+                filename="balance_sheet.html",
             )
 
             buffer = pdf_generator.create_pdf()
@@ -74,7 +85,7 @@ class DownloadTrialBalanceAPIView(generics.ListAPIView):
             )
 
         except Exception as e:
-            
+            raise e
             return Response(
                 {
                     "error": "Internal Server Error",
@@ -84,9 +95,11 @@ class DownloadTrialBalanceAPIView(generics.ListAPIView):
             )
 
 
-class TrialBalanceAPIView(generics.ListAPIView):
+class BalanceSheetAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, OrganisationRolePermission]
+
     queryset = Account.objects.all()
+
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["name"]
     filterset_fields = ["name"]
@@ -95,29 +108,35 @@ class TrialBalanceAPIView(generics.ListAPIView):
         try:
             organisation = request.user.current_org
 
-            queryset = self.filter_queryset(
-                self.get_queryset().filter(
-                    organisation=organisation
-                ).select_related(
+            accounts = self.filter_queryset(
+                self.get_queryset()
+                .filter(organisation=organisation)
+                .select_related(
                     "belongs_to",
                     "belongs_to__category",
                     "belongs_to__category__group",
                 )
             )
 
-            period = request.query_params.get("date")
-          
-
-            trial_balance = TrialBalanceUtils(
-                queryset=queryset,
-                period=period,
+            stocks = Stock.objects.filter(
+                organisation=organisation
             )
 
-            data = trial_balance.get_trial_balance()
+            period = request.query_params.get("date")
 
-            return Response(data, status=status.HTTP_200_OK)
+            data = BalanceSheetUtils(
+                stocks=stocks,
+                accounts=accounts,
+                period=period,
+            ).get_balance_sheet()
+
+            return Response(
+                data,
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
+            raise e
             return Response(
                 {
                     "error": "Internal Server Error",

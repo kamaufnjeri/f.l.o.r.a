@@ -1,47 +1,94 @@
-export interface StatementAccount {
-  id: string;
-  name: string;
-  amount: number;
-}
+export type Account = {
+  id:string;
+  name:string;
+  amount:number;
+};
 
-export interface StatementGroup {
-  name: string;
-  total: number;
-  categories: {
-    name: string;
-    total: number;
-    sub_categories: {
-      name: string;
-      total: number;
-      accounts: StatementAccount[];
-    }[];
-  }[];
-}
 
-export interface IncomeStatementData {
-  opening_stock: number;
-  closing_stock: number;
+export type IncomeCategory = {
+  total:number;
+  sub_categories:{
+    [key:string]:{
+      accounts:Account[];
+    }
+  }
+};
 
-  sales_accounts: StatementAccount[];
-  sales_returns_account: StatementAccount | null;
-  net_sales: number;
 
-  purchase_accounts: StatementAccount[];
-  purchase_returns_account: StatementAccount | null;
-  net_purchases: number;
+export type IncomeStatementResponse = {
 
-  goods_available: number;
-  cost_of_goods_sold: number;
-  gross_profit: number;
+  sales:{
+    accounts:Account[];
+    total:number;
+  };
 
-  service_income_accounts: StatementAccount[];
-  service_income_total: number;
+  sales_return:{
+    amount:number;
+  };
 
-  operating_income: number;
+  net_sales:number;
 
-  other_income_groups: StatementGroup[];
 
-  expenses_groups: StatementGroup[];
+  opening_stock:{
+    amount:number;
+  };
 
-  net_profit: number;
-}
+
+  purchases:{
+    accounts:Account[];
+    total:number;
+  };
+
+
+  purchase_return:{
+    amount:number;
+  };
+
+
+  goods_available_for_sale:number;
+
+
+  closing_stock:{
+    amount:number;
+    stocks:{
+      id:string;
+      name:string;
+      amount:number;
+      rate: number;
+      quantity: number;
+    }[]
+  };
+
+
+  cost_of_goods_sold:number;
+  gross_profit:number;
+
+
+  service_income:{
+    accounts:Account[];
+    total:number;
+  };
+
+
+  other_income:{
+    categories:{
+      [key:string]:IncomeCategory
+    };
+    total:number;
+  };
+
+
+  total_revenue:number;
+
+
+  expenses:{
+    categories:{
+      [key:string]:IncomeCategory
+    };
+    total:number;
+  };
+
+
+  net_profit:number;
+
+};

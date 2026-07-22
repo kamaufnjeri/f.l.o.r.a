@@ -71,7 +71,7 @@ section table {
 }
 
 section table, section th, section td {
-    border: 1px solid black;
+border: 1px solid #d1d5db;
 }
 
 section th {

@@ -1,5 +1,10 @@
 "use client";
 
+import { Dispatch, SetStateAction } from "react";
+import {
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
 import TrialBalanceNode from "./TrialBalanceNode";
 import TrialBalanceTotals from "./TrialBalanceTotals";
 import { TrialBalanceFixedGroup } from "./types";
@@ -13,19 +18,32 @@ type Props = {
       credit: number;
     };
   };
-
   showCategories: boolean;
+  setShowCategories: Dispatch<SetStateAction<boolean>>;
+
   showSubCategories: boolean;
+  setShowSubCategories: Dispatch<SetStateAction<boolean>>;
+
   showAccounts: boolean;
- expandedNodes: Set<string | number>;
-  setExpandedNodes: React.Dispatch<React.SetStateAction<Set<string | number>>>;};
+  setShowAccounts: Dispatch<SetStateAction<boolean>>;
+  allExpanded: boolean;
+  toggleExpandAll: () => void;
+
+  expandedNodes: Set<string | number>;
+  setExpandedNodes: React.Dispatch<React.SetStateAction<Set<string | number>>>;
+};
 
 export default function TrialBalanceTable({
   organisationId,
   data,
   showCategories,
+  setShowCategories,
   showSubCategories,
+  setShowSubCategories,
   showAccounts,
+  setShowAccounts,
+  allExpanded,
+  toggleExpandAll,
   expandedNodes,
   setExpandedNodes
 }: Props) {
@@ -37,10 +55,73 @@ export default function TrialBalanceTable({
           {/* Header */}
 
           <thead className="sticky top-0 z-20 bg-gray-50">
+            <tr>
+              <td colSpan={4} className="px-4 pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showCategories}
+                      onChange={(e) =>
+                        setShowCategories(e.target.checked)
+                      }
+                    />
+
+                    <span>Categories</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showSubCategories}
+                      onChange={(e) =>
+                        setShowSubCategories(e.target.checked)
+                      }
+                    />
+
+                    <span>Sub Categories</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showAccounts}
+                      onChange={(e) =>
+                        setShowAccounts(e.target.checked)
+                      }
+                    />
+
+                    <span>Accounts</span>
+                  </label>
+
+                  <button
+                    onClick={toggleExpandAll}
+                    className="flex items-center cursor-pointer gap-2 rounded-xl border px-4 py-2 hover:bg-gray-50"
+                  >
+                    {allExpanded ? (
+                      <>
+                        <FiChevronUp />
+                        Collapse All
+                      </>
+                    ) : (
+                      <>
+                        <FiChevronDown />
+                        Expand All
+                      </>
+                    )}
+                  </button>
+
+
+                </div>
+
+              </td>
+            </tr>
             <tr className="border-b">
 
-              <th className="p-4 text-left font-semibold text-gray-700">
-                Name
+              <th className="p-4 text-left font-semibold text-gray-700 ">
+                Description
+
               </th>
 
               <th className="w-44 p-4 text-right font-semibold text-gray-700">
@@ -78,7 +159,7 @@ export default function TrialBalanceTable({
             ))}
 
           </tbody>
-          <TrialBalanceTotals totals={data.totals}/>
+          <TrialBalanceTotals totals={data.totals} />
 
         </table>
       </div>

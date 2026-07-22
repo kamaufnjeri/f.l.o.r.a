@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ css_path }}">
+    <title>{{ report_title }}</title>
+</head>
+
+<body>
+
+    <header>
+
+        <table>
+            <tbody>
+
+                <tr>
+
+                    <td>
+                        <h1>{{ organisation.org_name }}</h1>
+                        <h2>{{ report_title }}</h2>
+                    </td>
+
+                    <td style="text-align:right;">
+                        <img src="{{ logo_path }}" alt="Logo">
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td></td>
+
+                    <td style="text-align:right;">
+                        <i><strong>{{ author_full }}</strong></i>
+                    </td>
+
+                </tr>
+
+            </tbody>
+        </table>
+
+    </header>
+
+
+    <aside>
+
+        {% if search_filters %}
+
+        <table>
+            <tbody>
+
+                <tr>
+
+                    {% for key, value in search_filters.items() %}
+
+                    <td>
+
+                        {% if "Name" in key or "Search" in key %}
+                        <strong>{{ key }}:</strong> "{{ value }}"
+                        {% else %}
+                        <strong>{{ key }}:</strong> {{ value }}
+                        {% endif %}
+
+                    </td>
+
+                    {% endfor %}
+
+                </tr>
+
+            </tbody>
+        </table>
+
+        {% endif %}
+
+    </aside>
+
+
+    <section>
+
+        <table>
+
+            <thead>
+
+                <tr style="background:#374151;color:white;">
+
+                    <th>
+                        Description
+                    </th>
+
+                    <th>
+                        Amount ({{ organisation.currency }})
+                    </th>
+
+                    <th>
+                        Total ({{ organisation.currency }})
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                <!-- ================================================= -->
+                <!-- ASSETS -->
+                <!-- ================================================= -->
+
+                <tr style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+
+                    <td colspan="3">
+                        Assets
+                    </td>
+
+                </tr>
+
+
+                <!-- ================================================= -->
+                <!-- NON CURRENT ASSETS -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Non-Current Assets
+                    </td>
+
+                </tr>
+
+                {% for sub_name, accounts in data.assets.non_current.items() %}
+
+                <tr>
+
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+                {% for account in accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% endfor %}
+
+                <tr style="background:#ecfdf5;font-weight:bold;">
+
+                    <td>
+                        Total Non-Current Assets (A)
+                    </td>
+
+                    <td style="border-top:2px solid black;">-</td>
+
+                    <td style="
+                        text-align:right;
+                    ">
+                        {{ "{:,.2f}".format(data.assets.total_non_current) }}
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="3" style="height:15px;"></td>
+                </tr>
+
+                <!-- ================================================= -->
+                <!-- CURRENT ASSETS -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Current Assets
+                    </td>
+
+                </tr>
+
+                {% for sub_name, accounts in data.assets.current.items() %}
+
+                {% if sub_name != "Inventory" %}
+
+                <tr>
+
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+                {% for account in accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% endif %}
+
+                {% endfor %}
+
+                <!-- ================================================= -->
+                <!-- Inventory -->
+                <!-- ================================================= -->
+                {% if data.assets.current.Inventory %}
+
+                <tr>
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        Inventory
+                    </td>
+                </tr>
+
+                {% for stock in data.assets.current.Inventory.stocks %}
+
+                <tr>
+                    <td style="padding-left:10px;">
+                        {{ stock.name }} -> {{ stock.quantity}} @ {{ stock.rate }} = {{ "{:,.2f}".format(stock.amount)
+                        }}
+
+
+                    </td>
+
+                    <td>-
+                    </td>
+
+                    <td>-</td>
+                </tr>
+
+                {% endfor %}
+                <tr >
+
+                    <td style="padding-left:25px;">
+                        Closing Stock - Opening Stock
+                    </td>
+
+                    <td >-</td>
+
+                    <td>-</td>
+
+                </tr>
+                <tr style="background:#fefce8">
+
+                    <td style="padding-left:25px;">
+                        {{ "{:,.2f}".format(data.assets.current.Inventory.closing_stock) }} -                       
+                        ({{ "{:,.2f}".format(data.assets.current.Inventory.opening_stock) }})
+
+
+                    </td>
+
+                    <td style="text-align:right;
+    ">
+                        {{ "{:,.2f}".format(data.assets.current.Inventory.inventory) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                
+
+                {% endif %}
+
+                <tr style="background:#ecfdf5;font-weight:bold;">
+
+                    <td >
+                        Total Current Assets (B)
+                    </td>
+
+                    <td style=" border-top:2px solid black;">-</td>
+
+                    <td style="
+                        text-align:right;
+                    ">
+                        {{ "{:,.2f}".format(data.assets.total_current) }}
+                    </td>
+
+                </tr>
+
+                <tr style="
+                        background:#166534;
+                        color:white;
+                        font-weight:bold;
+                        font-size:14px;
+                    ">
+
+                    <td >
+                        Total Assets (A + B)
+                    </td>
+
+                    <td>-</td>
+
+                    <td style="
+                        
+                        text-align:right;
+                       
+                        border-top:2px solid black;
+                        border-bottom:2px solid black;
+                    ">
+                        {{ "{:,.2f}".format(data.assets.total) }}
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="3" style="height:20px;"></td>
+                </tr>
+
+                <!-- LIABILITIES STARTS IN PART 2 -->
+                <!-- ================================================= -->
+                <!-- LIABILITIES -->
+                <!-- ================================================= -->
+
+                <tr style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+
+                    <td colspan="3">
+                        Liabilities
+                    </td>
+
+                </tr>
+
+
+                <!-- ================================================= -->
+                <!-- NON-CURRENT LIABILITIES -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Non-Current Liabilities
+                    </td>
+
+                </tr>
+
+                {% for sub_name, accounts in data.liabilities.non_current.items() %}
+
+                <tr>
+
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+                {% for account in accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% endfor %}
+
+                <tr style="background:#ecfdf5;font-weight:bold;">
+
+                    <td >
+                        Total Non-Current Liabilities (C)
+                    </td>
+
+                    <td style="                        border-top:2px solid black;
+">-</td>
+
+                    <td style="
+                        text-align:right;
+                   ">
+                        {{ "{:,.2f}".format(data.liabilities.total_non_current) }}
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="3" style="height:15px;"></td>
+                </tr>
+
+
+                <!-- ================================================= -->
+                <!-- CURRENT LIABILITIES -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Current Liabilities
+                    </td>
+
+                </tr>
+
+                {% for sub_name, accounts in data.liabilities.current.items() %}
+
+                <tr>
+
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+                {% for account in accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% endfor %}
+
+                <tr style="background:#ecfdf5;font-weight:bold;">
+
+                    <td >
+                        Total Current Liabilities (D)
+                    </td>
+
+                    <td style="                        border-top:2px solid black;
+">-</td>
+
+                    <td style="
+                        text-align:right;
+                    ">
+                        {{ "{:,.2f}".format(data.liabilities.total_current) }}
+                    </td>
+
+                </tr>
+
+
+                <tr  style="
+                        background:#58bb7c;
+                        color:white;
+                        font-weight:bold;
+                        font-size:14px;
+                    ">
+
+                    <td>
+                        Total Liabilities E = (C + D)
+                    </td>
+
+                    <td>-</td>
+
+                    <td style="
+                        
+                        text-align:right;
+                        border-top:2px solid black;
+                    ">
+                        {{ "{:,.2f}".format(data.liabilities.total) }}
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="3" style="height:20px;"></td>
+                </tr>
+
+                <!-- ================================================= -->
+                <!-- FINANCED BY -->
+                <!-- ================================================= -->
+
+                <tr style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+
+                    <td colspan="3">
+                        Financed By
+                    </td>
+
+                </tr>
+
+                <!-- CAPITAL STARTS IN PART 3 -->
+                <!-- ================================================= -->
+                <!-- CAPITAL -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Capital
+                    </td>
+
+                </tr>
+
+                {% for sub_name, accounts in data.capital.owner_equity.items() %}
+
+                <tr>
+
+                    <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+                {% for account in accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% endfor %}
+
+               
+
+                <!-- ================================================= -->
+                <!-- RETAINED EARNINGS -->
+                <!-- ================================================= -->
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Retained Earnings
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        Current Year Profit
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(data.capital.retained_earnings.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                
+                 
+                <tr  style="
+                        background:#58bb7c;
+                        color:white;
+                        font-weight:bold;
+                        font-size:14px;
+                    ">
+
+                    <td>
+                        Total Capital (F)
+                    </td>
+
+                    <td style="                        border-top:2px solid black;
+">-</td>
+
+                    <td style="
+                        
+                        text-align:right;
+                    ">
+                        {{ "{:,.2f}".format(data.capital.total) }}
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="3" style="height:20px;"></td>
+                </tr>
+                
+
+                <tr style="
+                        background:#166534;
+                        color:white;
+                        font-weight:bold;
+                        font-size:14px;
+                    ">
+
+                    <td >
+                        Total Liabilities &amp; Capital (E + F)
+                    </td>
+
+                    <td>-</td>
+
+                    <td style="
+                        
+                        text-align:right;
+                        border-top:2px solid black;
+                        border-bottom:2px solid black;
+                    ">
+                        {{ "{:,.2f}".format(data.liabilities.total + data.capital.total) }}
+                    </td>
+
+                </tr>
+                
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+    <footer>
+
+        <p>
+            &copy; Generated by
+            {{ user.first_name }}
+            {{ user.last_name }}
+            on {{ date }}
+            at {{ time }}
+        </p>
+
+    </footer>
+
+</body>
+
+</html>

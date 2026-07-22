@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import TrialBalanceToolbar from "./TrialBalanceToolbar";
 import TrialBalanceTable from "./TrialBalanceTable";
 import { TrialBalanceResponse } from "./types";
 
@@ -59,7 +58,10 @@ const toggleExpandAll = () => {
 };
   return (
     <div className="space-y-5">
-      <TrialBalanceToolbar
+     
+      <TrialBalanceTable
+        organisationId={organisationId}
+        data={data}
         showCategories={showCategories}
         setShowCategories={setShowCategories}
         showSubCategories={showSubCategories}
@@ -68,14 +70,6 @@ const toggleExpandAll = () => {
         setShowAccounts={setShowAccounts}
         allExpanded={allExpanded}
         toggleExpandAll={toggleExpandAll}
-      />
-
-      <TrialBalanceTable
-        organisationId={organisationId}
-        data={data}
-        showCategories={showCategories}
-        showSubCategories={showSubCategories}
-        showAccounts={showAccounts}
         expandedNodes={expandedNodes}
         setExpandedNodes={setExpandedNodes}
       />

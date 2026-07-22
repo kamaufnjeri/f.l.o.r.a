@@ -1,5 +1,9 @@
 INITIAL_DATA = [
     {
+        "category": {"name": "Non-Current Asset", "group": "Asset"},
+        "sub_categories": []
+    },
+    {
         "category": {"name": "Current Asset", "group": "Asset"},
         "sub_categories": [
             {
@@ -14,6 +18,10 @@ INITIAL_DATA = [
                 "accounts": []
             }
         ]
+    },
+    {
+        "category": {"name": "Non-Current Liability", "group": "Liability"},
+        "sub_categories": []
     },
     {
         "category": {"name": "Current Liability", "group": "Liability"},
@@ -112,7 +120,9 @@ PERMANENT_SUBCATEGORIES = (
 
 PERMANENT_CATEGORIES = (
     "Current Asset",
+    "Non-Current Asset",
     "Current Liability",
+    "Non-Current Liability",
     "Owner Equity",
     "Operating Expense",
     "Operating Income",

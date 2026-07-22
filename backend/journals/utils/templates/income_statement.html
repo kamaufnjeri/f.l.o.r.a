@@ -1,160 +1,722 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ css_path }}">
     <title>{{ report_title }}</title>
-    
+
 </head>
 
 <body>
 
-<header>
-    <table>
-        <tbody>
-            <tr>
-                <td>
-                    <h1>{{ organisation.org_name }}</h1>
-                    <h2>{{ report_title }}</h2>
-                </td>
+    <header>
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        <h1>{{ organisation.org_name }}</h1>
+                        <h2>{{ report_title }}</h2>
+                    </td>
 
-                <td style="text-align:right">
-                    <img src="{{ logo_path }}" alt="Logo">
-                </td>
-            </tr>
+                    <td style="text-align:right">
+                        <img src="{{ logo_path }}" alt="Logo">
+                    </td>
+                </tr>
 
-            <tr>
-                <td></td>
+                <tr>
+                    <td></td>
 
-                <td style="text-align:right">
-                    <i><strong>{{ author_full }}</strong></i>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</header>
+                    <td style="text-align:right">
+                        <i><strong>{{ author_full }}</strong></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </header>
 
 
-<aside>
+    <aside>
 
-    {% if search_filters %}
-<table>
-    <tbody>
-        <tr>
-            {% for key, value in search_filters.items() %}
-                <td>
-                    {% if "Name" in key or "Search" in key %}
+        {% if search_filters %}
+        <table>
+            <tbody>
+                <tr>
+                    {% for key, value in search_filters.items() %}
+                    <td>
+                        {% if "Name" in key or "Search" in key %}
                         <strong>{{ key }}:</strong> "{{ value }}"
-                    {% else %}
+                        {% else %}
                         <strong>{{ key }}:</strong> {{ value }}
-                    {% endif %}
-                </td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
-{% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
 
-</aside>
-<section>
+    </aside>
+    <section>
 
- <table>
+        <table>
 
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Amount ({{ organisation.currency }})</th>
-            <th>Total ({{ organisation.currency }})</th>
-        </tr>
-    </thead>
-    <tbody>
+            <thead>
+                <tr style=" background:#374151; color:white; ">
+                    <th>
+                        Description
+                    </th>
 
-<!-- =========================
+                    <th>
+                        Amount ({{ organisation.currency }})
+                    </th>
+
+                    <th>
+                        Total ({{ organisation.currency }})
+                    </th>
+                </tr>
+            </thead>
+
+
+            <tbody>
+                <!-- =========================
      REVENUE
 ========================== -->
 
-<tr style="background:#dbeafe;color:#1e3a8a;font-weight:bold;">
-    <td>Revenue</td>
-    <td></td>
-    <td></td>
-</tr>
-<!-- SALES ACCOUNTS -->
 
-{% for account in data.sales.accounts %}
+                <tr style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+                    <td colspan="3">
+                        Revenue
+                    </td>
 
-<tr style="font-style:italic;">
+                </tr>
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+                    <td colspan="3">
+                        Product Sales
+                    </td>
 
-    <td style="padding-left:20px;">
-        {{ account.name }} - {{ account.amount }}
-    </td>
+                </tr>
+                {% for account in data.sales.accounts %}
 
-    <td>
-        
-    </td>
+                <tr>
 
-    <td >
-    
-    </td>
+                    <td style="padding-left:25px;font-style:italic;">
+                        {{ account.name }}
+                    </td>
 
-
-</tr>
-
-
-{% endfor %}
-<!-- SALES RETURN -->
-
-<tr style="background:#eef2ff;font-weight:bold;">
-
-    <td>
-        Less: Sales Return
-    </td>
-    <td></td>
-
-    <td style="text-align:right;">
-        {{ data.sales_return.debit }}
-    </td>
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+                    <td>-</td>
 
 
+                </tr>
 
-</tr>
+                {% endfor %}
+
+
+                <tr>
+
+                    <td style="background:#e0f2fe;font-weight:bold;">
+                        Total Sales (A)
+                    </td>
+
+                    <td style="background:#e0f2fe;text-align:right;font-weight:bold;border-top:2px solid #000;">
+                        {{ "{:,.2f}".format(data.sales.total) }}
+                    </td>
+
+                    <td style="background:#e0f2fe;">-</td>
+
+                </tr>
+                <tr>
+
+                    <td style="background:#fefce8;color:#854d0e;font-weight:bold;">
+                        Less: Sales Return (B)
+                    </td>
+
+                    <td style="background:#fef3c7;text-align:right;color:#92400e;font-weight:bold;">
+                        ({{ "{:,.2f}".format(data.sales_return.amount) }})
+                    </td>
+
+                    <td style="background:#fef3c7;">-</td>
+
+                </tr>
 
 
 
-<!-- NET SALES -->
+                <tr>
 
-<tr style="background:#e5e7eb;font-weight:bold;">
+                    <td style="
+        background:#ecfdf5;
+        color:#166534;
+        font-weight:bold;
+        ;
+        ">
+                        Net Sales (A-B)
+                    </td>
 
-    <td>
-        Net Sales
-    </td>
+                    <td style="background:#ecfdf5;        border-top:2px solid #000;
+">-</td>
 
-    <td></td>
+                    <td style="
+        background:#ecfdf5;
+        text-align:right;
+        color:#166534;
+        font-weight:bold;
+       ">
+                        {{ "{:,.2f}".format(data.net_sales) }}
+                    </td>
 
-    <td></td>
+                </tr>
 
-    <td style="text-align:right;">
-        {{ data.net_sales }}
-    </td>
 
-</tr>
 
-    </tbody>
-    </table>
+                <tr>
+                    <td colspan="3" style="height:15px;"></td>
+                </tr>
 
-</section>
-   
-<footer>
 
-<p>
-    &copy; Generated by
-    {{ user.first_name }}
-    {{ user.last_name }}
-    on {{ date }}
-    at {{ time }}
-</p>
+                <!-- =========================
+     COST OF GOODS SOLD
+========================== -->
 
-</footer>
+
+                <tr style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+
+                    <td colspan="3">
+                        Cost of Goods Sold
+                    </td>
+
+                </tr>
+
+
+
+                <tr>
+
+                    <td style="background:#f1f5f9;font-weight:bold;">
+                        Opening Stock (A)
+                    </td>
+
+                    <td style="background:#f1f5f9;text-align:right;font-weight:bold;">
+                        {{ "{:,.2f}".format(data.opening_stock.amount) }}
+                    </td>
+
+                    <td style="background:#f1f5f9;">-</td>
+
+                </tr>
+
+
+
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td colspan="3">
+                        Purchases
+                    </td>
+
+                </tr>
+
+
+
+                {% for account in data.purchases.accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;font-style:italic;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+
+
+
+                <tr>
+
+                    <td style="background:#e0f2fe;font-weight:bold;">
+                        Total Purchases (B)
+                    </td>
+
+                    <td style="background:#e0f2fe;text-align:right;font-weight:bold; border-top:2px solid #000;">
+                        {{ "{:,.2f}".format(data.purchases.total) }}
+                    </td>
+
+                    <td style="background:#e0f2fe;">-</td>
+
+                </tr>
+
+
+
+
+                <tr>
+
+                    <td style="background:#fefce8;color:#854d0e;font-weight:bold;">
+                        Less: Purchase Return (C)
+                    </td>
+
+                    <td style="background:#fef3c7;text-align:right;font-weight:bold;">
+                        ({{ "{:,.2f}".format(data.purchase_return.amount) }})
+                    </td>
+
+                    <td style="background:#fef3c7;">-</td>
+
+                </tr>
+
+
+
+
+                <tr>
+
+                    <td style="background:#f1f5f9;font-weight:bold;">
+                        Goods Available for Sale D = (A+B-C)
+                    </td>
+
+                    <td style="font-weight:bold;background:#f1f5f9;text-align:right; border-top:2px solid #000;">
+                        {{ "{:,.2f}".format(data.goods_available_for_sale) }}
+                    </td>
+
+                    <td style="background:#f1f5f9;">-</td>
+
+                </tr>
+
+
+
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+
+                    <td>
+                        Closing Stock
+                    </td>
+
+                    <td>-</td>
+
+                    <td>-</td>
+
+                </tr>
+
+
+
+                {% for stock in data.closing_stock.stocks %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ stock.name }} -> {{ stock.quantity}} @ {{ stock.rate }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(stock.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+
+
+
+                <tr>
+
+                    <td style="background:#fefce8;color:#854d0e;font-weight:bold;">
+                        Less: Closing Stock (E)
+                    </td>
+
+                    <td style="background:#fef3c7;text-align:right;font-weight:bold;">
+                        ({{ "{:,.2f}".format(data.closing_stock.amount) }})
+                    </td>
+
+                    <td style="background:#fef3c7;">-</td>
+
+                </tr>
+
+
+
+
+                <tr>
+
+                    <td style="background:#ecfdf5;font-weight:bold;">
+                        Cost of Goods Sold (D - E)
+                    </td>
+
+                    <td style="background:#ecfdf5;border-top: 2px solid #000;">-</td>
+
+                    <td style="background:#ecfdf5;text-align:right;font-weight:bold;">
+                        ({{ "{:,.2f}".format(data.cost_of_goods_sold) }})
+                    </td>
+
+                </tr>
+                <tr>
+
+                    <td style="background:#dcfce7;font-weight:bold;font-size:13px;">
+                        Gross Profit
+                    </td>
+
+                    <td style="background:#dcfce7;">-</td>
+
+                    <td
+                        style="background:#dcfce7;text-align:right;font-weight:bold;font-size:13px;border-top: 2px solid black;">
+                        {{ "{:,.2f}".format(data.gross_profit) }}
+                    </td>
+
+                </tr>
+                <!-- =========================
+     SERVICE INCOME
+========================== -->
+
+
+                {% if data.service_income.total > 0 %}
+
+                <tr>
+                    <td colspan="3" style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+                        Service Income
+                    </td>
+                </tr>
+
+
+                {% for account in data.service_income.accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;font-style:italic;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+                {% endfor %}
+
+
+
+                <tr>
+
+                    <td style="background:#ecfdf5;font-weight:bold;">
+                        Total Service Income
+                    </td>
+
+                    <td style="background:#ecfdf5;border-top: 2px solid black;">-</td>
+
+                    <td style="background:#ecfdf5;text-align:right;font-weight:bold;">
+                        {{ "{:,.2f}".format(data.service_income.total) }}
+                    </td>
+
+                </tr>
+
+
+
+                {% endif %}
+
+                <!-- =========================
+     OTHER INCOME
+========================== -->
+
+
+                {% if data.other_income.total > 0 %}
+
+
+
+                {% for category_name, category in data.other_income.categories.items() %}
+
+
+                <tr>
+
+                    <td colspan="3" style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+                        {{ category_name }}
+                    </td>
+
+                </tr>
+
+
+
+                {% for sub_name, sub in category.sub_categories.items() %}
+
+
+                <tr>
+
+                    <td colspan="3" style="background:#f1f5f9;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+
+
+                {% for account in sub.accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+
+                {% endfor %}
+
+
+
+
+
+
+                {% endfor %}
+
+
+
+                <tr>
+
+                    <td style="background:#ecfdf5;font-weight:bold;">
+                        Total {{ category_name }}
+                    </td>
+
+
+                    <td style="background:#ecfdf5;text-align:right;font-weight:bold;border-top: 2px solid black">
+                        {{ "{:,.2f}".format(category.total) }}
+                    </td>
+                    <td>-</td>
+
+
+                </tr>
+
+
+                {% endfor %}
+
+
+                <tr>
+
+                    <td style="background:#ecfdf5;font-weight:bold;">
+                        Total
+                    </td>
+
+                    <td style="background:#ecfdf5;border-top: 2px solid black;">-</td>
+
+                    <td style="background:#ecfdf5;text-align:right;font-weight:bold;">
+                        {{ "{:,.2f}".format(data.other_income.total) }}
+                    </td>
+
+                </tr>
+
+
+
+
+
+
+                {% endif %}
+                <!-- =========================
+     REVENUE
+========================== -->
+
+
+                <tr style="
+background:#dcfce7;
+font-weight:bold;
+font-size:13px;
+">
+
+                    <td>
+                        Total Revenue
+                    </td>
+
+
+                    <td>-</td>
+
+
+                    <td style="
+border-top:2px solid black;text-align:right;
+">
+                        {{ "{:,.2f}".format(data.total_revenue) }}
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+
+
+
+                <!-- =========================
+     Expenses
+========================== -->
+
+
+                {% if data.other_income.total > 0 %}
+
+
+
+                {% for category_name, category in data.expenses.categories.items() %}
+
+
+                <tr>
+
+                    <td colspan="3" style="background:#64748b;color:white;font-weight:bold;font-size:14px;">
+                        {{ category_name }}
+                    </td>
+
+                </tr>
+
+
+
+                {% for sub_name, sub in category.sub_categories.items() %}
+
+
+                <tr>
+
+                    <td colspan="3" style="background:#f1f5f9;color:#1e3a8a;font-weight:bold;">
+                        {{ sub_name }}
+                    </td>
+
+                </tr>
+
+
+
+                {% for account in sub.accounts %}
+
+                <tr>
+
+                    <td style="padding-left:25px;">
+                        {{ account.name }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(account.amount) }}
+                    </td>
+
+                    <td>-</td>
+
+                </tr>
+
+
+                {% endfor %}
+
+
+
+
+
+
+                {% endfor %}
+
+
+
+                <tr style="background:#ecfdf5;font-weight:bold;">
+
+                    <td>
+                        Total {{ category_name }}
+                    </td>
+
+
+                    <td style="border-top: 2px solid black;text-align:right;">
+                        {{ "{:,.2f}".format(category.total) }}
+                    </td>
+                    <td>-</td>
+
+
+                </tr>
+
+
+                {% endfor %}
+
+
+                <tr>
+
+                    <td style="background:#ecfdf5;font-weight:bold;">
+                        Total
+                    </td>
+
+                    <td style="background:#ecfdf5;border-top: 2px solid black;">-</td>
+
+                    <td style="background:#ecfdf5;text-align:right;font-weight:bold;">
+                        ({{ "{:,.2f}".format(data.expenses.total) }})
+                    </td>
+
+                </tr>
+
+
+
+
+
+
+                {% endif %}
+
+
+
+
+
+
+
+
+                <tr style="
+background:#166534;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td>
+                        Net Profit
+                    </td>
+
+
+                    <td>-</td>
+
+
+                    <td style=" border-top:2px solid black;text-align: right; border-bottom:2px solid black;
+
+                    ">
+                        {{ "{:,.2f}".format(data.net_profit) }}
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+    <footer>
+
+        <p>
+            &copy; Generated by
+            {{ user.first_name }}
+            {{ user.last_name }}
+            on {{ date }}
+            at {{ time }}
+        </p>
+
+    </footer>
 
 </body>
+
 </html>
