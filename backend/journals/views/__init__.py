@@ -24,3 +24,4 @@ from .trial_balance import TrialBalanceAPIView, DownloadTrialBalanceAPIView
 from .income_statement import IncomeStatementAPIView, DownloadIncomeStatementAPIView
 from .balance_sheet import BalanceSheetAPIView, DownloadBalanceSheetAPIView
 from .cash_flow import CashFlowAPIView, DownloadCashFlowAPIView
+from .dashboard import DashboardAPIView

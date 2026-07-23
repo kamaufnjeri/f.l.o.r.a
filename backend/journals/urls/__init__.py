@@ -22,6 +22,8 @@ from .service import urlpatterns as service_urls
 from .service_income import urlpatterns as service_income_urls
 from .audit_trail import urlpatterns as audit_trails_urls
 from .reports import urlpatterns as reports_urls
+from .dashboard import urlpatterns as dashboard_urls
+
 
 urlpatterns = [
     path('auth/', include(auth_urls)),
@@ -43,7 +45,9 @@ urlpatterns = [
     path('organisations/', include(organisations_urls)),
     path('<organisation_id>/services/', include(service_urls)),
     path('<organisation_id>/service-income/', include(service_income_urls)),
-    path('audit_trails/', include(audit_trails_urls)),
+    path('<organisation_id>/dashboard/', include(dashboard_urls)),
+
+    path('<organisation_id>/audit-trails/', include(audit_trails_urls)),
     path('', include(custom_404)),
 
 ]

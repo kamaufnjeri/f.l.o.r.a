@@ -104,7 +104,7 @@ export const sidebarIcons = [
   {
     name: "Dashboard",
     icon: FaHome,
-    url: "",
+    url: "/",
     lists: null,
   },
 

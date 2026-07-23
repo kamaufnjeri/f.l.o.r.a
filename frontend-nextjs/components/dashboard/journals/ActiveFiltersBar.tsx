@@ -120,6 +120,7 @@ export default function ActiveFiltersBar({
         <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
           {title} ({currentOrg?.currency})
         </h2>
+        
         <span className="flex flex-row items-center justify-center gap-2">
            <p className="mt-1 sm:mt-2 text-sm text-gray-500">
           {reportDate}
