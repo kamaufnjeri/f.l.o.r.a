@@ -211,6 +211,8 @@ export const sidebarIcons = [
       { name: "Trial Balance", url: "reports/trial-balance" },
       { name: "Income Statement", url: "reports/income-statement" },
       { name: "Balance Sheet", url: "reports/balance-sheet" },
+      { name: "Cash Flow Statement", url: "reports/cash-flow" },
+
     ],
   },
 

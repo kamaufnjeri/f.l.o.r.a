@@ -192,3 +192,65 @@ export async function getBalanceSheet(orgId: string, params: { date?: string }) 
     };
   }
 }
+
+
+export async function getCashFlow(orgId: string, params: { date?: string }) {
+  try {
+    if (!orgId) {
+      return {
+        success: false,
+        error: "Organization ID is required",
+      };
+    }
+    const cookieStore = await cookies();
+
+    // 🧠 BUILD QUERY PARAMS
+    const query = new URLSearchParams();
+
+
+    if (params.date) query.set("date", params.date);
+
+  
+    // 📊 FETCH JOURNALS
+    const reportRes = await fetch(
+      `${backendURL}/${orgId}/reports/cash-flow/?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      }
+    );
+
+    const data = await reportRes.json();
+
+    if (!reportRes.ok) {
+      
+      return {
+        success: false,
+        error: formatApiError(data),
+      };
+    }
+
+
+    // 🧾 EXPECTED BACKEND SHAPE:
+    // data = {
+    //   accounts: [],
+    //   totals: {},
+    //   next: "",
+    //   previous: ""
+    // }
+
+    return {
+      success: true,
+      cashFlow: data ?? [],
+    };
+  } catch (error) {
+
+    return {
+      success: false,
+      error: formatApiError(error),
+    };
+  }
+}

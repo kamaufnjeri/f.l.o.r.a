@@ -631,6 +631,56 @@
                     </td>
 
                 </tr>
+                {% if data.totals.balanced %}
+
+
+                <tr style="
+background:#dcfce7;
+color:#166534;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+
+                        ✓ Balance Sheet balances
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% else %}
+
+
+
+                <tr style="
+background:#fee2e2;
+color:#991b1b;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+
+                        ✗ Balance Sheet does not balance
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% endif %}
+
+
                 
 
             </tbody>

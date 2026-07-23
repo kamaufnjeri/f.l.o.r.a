@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="{{ css_path }}">
+
+    <title>{{ report_title }}</title>
+
+</head>
+
+
+<body>
+
+
+    <header>
+
+        <table>
+
+            <tbody>
+
+                <tr>
+
+                    <td>
+
+                        <h1>{{ organisation.org_name }}</h1>
+
+                        <h2>{{ report_title }}</h2>
+
+                    </td>
+
+
+                    <td style="text-align:right;">
+
+                        <img src="{{ logo_path }}" alt="Logo">
+
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td></td>
+
+
+                    <td style="text-align:right;">
+
+                        <i>
+                            <strong>{{ author_full }}</strong>
+                        </i>
+
+                    </td>
+
+
+                </tr>
+
+
+            </tbody>
+
+        </table>
+
+
+    </header>
+
+
+
+    <aside>
+
+
+        {% if search_filters %}
+
+
+        <table>
+
+            <tbody>
+
+                <tr>
+
+
+                    {% for key,value in search_filters.items() %}
+
+
+                    <td>
+
+
+                        {% if "Name" in key or "Search" in key %}
+
+                        <strong>{{ key }}:</strong> "{{ value }}"
+
+
+                        {% else %}
+
+
+                        <strong>{{ key }}:</strong> {{ value }}
+
+
+                        {% endif %}
+
+
+                    </td>
+
+
+                    {% endfor %}
+
+
+
+                </tr>
+
+
+            </tbody>
+
+        </table>
+
+
+        {% endif %}
+
+
+
+    </aside>
+
+
+
+
+
+    <section>
+
+
+        <table>
+
+
+
+            <thead>
+
+
+                <tr style="background:#374151;color:white;">
+
+
+                    <th>
+                        Description
+                    </th>
+
+
+                    <th>
+                        Amount ({{ organisation.currency }})
+                    </th>
+
+
+                    <th>
+                        Total ({{ organisation.currency }})
+                    </th>
+
+
+
+                </tr>
+
+
+            </thead>
+
+
+
+
+
+            <tbody>
+
+
+
+
+
+                <!-- ================================================= -->
+                <!-- OPERATING ACTIVITIES -->
+                <!-- ================================================= -->
+
+
+
+                <tr style="
+background:#64748b;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td colspan="3">
+
+                        Cash Flows from Operating Activities
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                {% for line_item, section in data.operating.entries.items() %}
+
+
+
+
+
+                <tr style="
+background:#e2e8f0;
+color:#334155;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+                        {{ line_item }}
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                {% for entry in section.entries %}
+
+
+
+
+
+                <tr>
+
+
+                    <td style="padding-left:25px;">
+
+
+                        {{ entry.date }}
+
+                        -
+
+                        {{ entry.description }}
+
+                        <br>
+
+
+                        <span style="font-style:italic;color:#475569;">
+
+
+                            {{ entry.cash_account }}
+
+
+                        </span>
+
+
+
+                    </td>
+
+
+
+
+
+                    <td style="text-align:right;">
+
+
+                        {% if entry.cash_out > 0 %}
+
+
+                        ({{ "{:,.2f}".format(entry.amount) }})
+
+
+                        {% else %}
+
+
+                        {{ "{:,.2f}".format(entry.amount) }}
+
+
+                        {% endif %}
+
+
+
+                    </td>
+
+
+
+
+
+                    <td>
+
+                        -
+
+
+                    </td>
+
+
+
+                </tr>
+
+
+
+
+
+                {% endfor %}
+
+
+
+
+
+
+                <tr style="
+background:#ecfdf5;
+font-weight:bold;
+">
+
+
+                    <td>
+
+
+                        Total {{ line_item }}
+
+
+                    </td>
+
+
+
+                    <td style="
+border-top:2px solid black;
+">
+
+
+
+
+                    </td>
+
+
+                    <td style="text-align:right;
+">
+
+{% if section.total < 0 %}
+
+({{ "{:,.2f}".format(section.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(section.total) }}
+
+{% endif %}
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+
+                {% endfor %}
+
+
+
+
+
+                <!-- ================================================= -->
+                <!-- OPERATING TOTAL -->
+                <!-- ================================================= -->
+
+
+
+                <tr style="
+background:#166534;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td>
+
+                        Net Cash from Operating Activities (A)
+
+
+                    </td>
+
+
+
+                    <td>
+
+                        -
+
+                    </td>
+
+
+
+                    <td style="
+text-align:right;
+border-top:2px solid black;
+border-bottom:2px solid black;
+">
+
+
+
+{% if data.operating.total < 0 %}
+
+({{ "{:,.2f}".format(data.operating.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(data.operating.total) }}
+
+{% endif %}
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                <tr>
+
+
+                    <td colspan="3" style="height:20px;"></td>
+
+
+                </tr>
+
+
+
+
+
+                <!-- PART 2 CONTINUES -->
+                <!-- ================================================= -->
+                <!-- INVESTING ACTIVITIES -->
+                <!-- ================================================= -->
+
+
+                <tr style="
+background:#64748b;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td colspan="3">
+
+                        Cash Flows from Investing Activities
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                {% if data.investing.entries %}
+
+
+
+                {% for line_item, section in data.investing.entries.items() %}
+
+
+
+                <tr style="
+background:#e2e8f0;
+color:#334155;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+                        {{ line_item }}
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                {% for entry in section.entries %}
+
+
+
+
+
+                <tr>
+
+
+                    <td style="padding-left:25px;">
+
+
+                        {{ entry.date }}
+
+                        -
+
+                        {{ entry.description }}
+
+
+                        <br>
+
+
+                        <span style="font-style:italic;color:#475569;">
+
+
+                            {{ entry.cash_account }}
+
+
+                        </span>
+
+
+
+                    </td>
+
+
+
+                    <td style="text-align:right;">
+
+
+                        {% if entry.cash_out > 0 %}
+
+
+                        ({{ "{:,.2f}".format(entry.amount) }})
+
+
+                        {% else %}
+
+
+                        {{ "{:,.2f}".format(entry.amount) }}
+
+
+                        {% endif %}
+
+
+                    </td>
+
+
+
+                    <td>
+
+                        -
+
+                    </td>
+
+
+
+                </tr>
+
+
+
+
+                {% endfor %}
+
+
+
+
+
+                <tr style="
+background:#ecfdf5;
+font-weight:bold;
+">
+
+
+                    <td>
+
+
+                        Total {{ line_item }}
+
+
+                    </td>
+
+
+                            <td style="
+border-top:2px solid black;
+">
+
+
+
+
+                    </td>
+
+
+                    <td style="text-align:right;
+">
+
+{% if section.total < 0 %}
+
+({{ "{:,.2f}".format(section.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(section.total) }}
+
+{% endif %}
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+                {% endfor %}
+
+
+
+
+                {% else %}
+
+
+
+                <tr>
+
+
+                    <td colspan="3" style="padding-left:25px;font-style:italic;">
+
+
+                        No investing activities
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% endif %}
+
+
+
+
+
+                <tr style="
+background:#166534;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td>
+
+
+                        Net Cash from Investing Activities (B)
+
+
+                    </td>
+
+
+                    <td>
+
+                        -
+
+                    </td>
+
+
+
+                   <td style="
+text-align:right;
+border-top:2px solid black;
+border-bottom:2px solid black;
+">
+
+{% if data.investing.total < 0 %}
+
+({{ "{:,.2f}".format(data.investing.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(data.investing.total) }}
+
+{% endif %}
+
+</td>
+
+
+                </tr>
+
+
+
+
+
+                <tr>
+
+                    <td colspan="3" style="height:20px;"></td>
+
+                </tr>
+
+
+
+
+
+
+                <!-- ================================================= -->
+                <!-- FINANCING ACTIVITIES -->
+                <!-- ================================================= -->
+
+
+
+                <tr style="
+background:#64748b;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td colspan="3">
+
+                        Cash Flows from Financing Activities
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+
+                {% if data.financing.entries %}
+
+
+
+                {% for line_item, section in data.financing.entries.items() %}
+
+
+
+
+
+                <tr style="
+background:#e2e8f0;
+color:#334155;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+                        {{ line_item }}
+
+                    </td>
+
+
+                </tr>
+
+
+
+
+
+
+                {% for entry in section.entries %}
+
+
+
+
+                <tr>
+
+
+                    <td style="padding-left:25px;">
+
+
+                        {{ entry.date }}
+
+                        -
+
+                        {{ entry.description }}
+
+
+
+                        <br>
+
+
+                        <span style="font-style:italic;color:#475569;">
+
+
+                            {{ entry.cash_account }}
+
+
+                        </span>
+
+
+
+                    </td>
+
+
+
+
+
+                    <td style="text-align:right;">
+
+
+                        {% if entry.cash_out > 0 %}
+
+
+                        ({{ "{:,.2f}".format(entry.amount) }})
+
+
+                        {% else %}
+
+
+                        {{ "{:,.2f}".format(entry.amount) }}
+
+
+                        {% endif %}
+
+
+
+                    </td>
+
+
+
+                    <td>
+
+                        -
+
+                    </td>
+
+
+
+                </tr>
+
+
+
+
+                {% endfor %}
+
+
+
+
+
+                <tr style="
+background:#ecfdf5;
+font-weight:bold;
+">
+
+
+                    <td>
+
+
+                        Total {{ line_item }}
+
+
+                    </td>
+
+
+                             <td style="
+border-top:2px solid black;
+">
+
+
+
+
+                    </td>
+
+
+                    <td style="text-align:right;
+">
+
+{% if section.total < 0 %}
+
+({{ "{:,.2f}".format(section.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(section.total) }}
+
+{% endif %}
+                    </td>
+
+                </tr>
+
+
+
+
+                {% endfor %}
+
+
+
+
+                {% else %}
+
+
+
+                <tr>
+
+
+                    <td colspan="3" style="padding-left:25px;font-style:italic;">
+
+
+                        No financing activities
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% endif %}
+
+
+
+
+
+
+                <tr style="
+background:#166534;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+
+                    <td>
+
+
+                        Net Cash from Financing Activities (C)
+
+
+                    </td>
+
+
+                    <td>
+
+                        -
+
+                    </td>
+
+
+                    <td style="
+text-align:right;
+border-top:2px solid black;
+border-bottom:2px solid black;
+">
+
+{% if data.financing.total < 0 %}
+
+({{ "{:,.2f}".format(data.financing.total | abs) }})
+
+{% else %}
+
+{{ "{:,.2f}".format(data.financing.total) }}
+
+{% endif %}
+
+</td>
+
+
+                </tr>
+
+
+
+
+
+
+
+                <tr>
+
+                    <td colspan="3" style="height:25px;"></td>
+
+                </tr>
+
+
+
+
+
+
+
+              <!-- ================================================= -->
+<!-- CASH RECONCILIATION -->
+<!-- ================================================= -->
+
+
+<tr style="
+background:#64748b;
+color:white;
+font-weight:bold;
+font-size:14px;
+">
+
+    <td colspan="3">
+
+        Cash and Cash Equivalents Reconciliation
+
+    </td>
+
+</tr>
+
+
+
+<tr>
+
+    <td style="font-weight:bold;">
+
+        Net Increase in Cash (A+B+C)
+
+    </td>
+
+
+    <td style="text-align:right;">
+
+        -
+
+    </td>
+
+
+    <td style="text-align:right;">
+
+        {% if data.net_cash_flow < 0 %}
+
+        ({{ "{:,.2f}".format(data.net_cash_flow | abs) }})
+
+        {% else %}
+
+        {{ "{:,.2f}".format(data.net_cash_flow) }}
+
+        {% endif %}
+
+    </td>
+
+
+</tr>
+
+
+
+
+<tr>
+
+    <td style="font-weight:bold;">
+
+        Cash and Cash Equivalents at Beginning
+
+    </td>
+
+
+    <td style="text-align:right;">
+
+        -
+
+    </td>
+
+
+    <td style="text-align:right;">
+
+        {% if data.opening_cash < 0 %}
+
+        ({{ "{:,.2f}".format(data.opening_cash | abs) }})
+
+        {% else %}
+
+        {{ "{:,.2f}".format(data.opening_cash) }}
+
+        {% endif %}
+
+    </td>
+
+
+</tr>
+
+
+
+
+<tr style="
+background:#166534;
+color:white;
+font-weight:bold;
+">
+
+
+    <td>
+
+        Cash and Cash Equivalents at End of Period
+
+    </td>
+
+
+    <td>
+
+        -
+
+    </td>
+
+
+    <td style="
+text-align:right;
+border-top:2px solid black;
+border-bottom:2px solid black;
+">
+
+
+        {% if data.closing_cash < 0 %}
+
+        ({{ "{:,.2f}".format(data.closing_cash | abs) }})
+
+        {% else %}
+
+        {{ "{:,.2f}".format(data.closing_cash) }}
+
+        {% endif %}
+
+
+    </td>
+
+
+</tr>
+
+
+
+
+
+                <tr>
+
+
+                    <td colspan="3" style="height:15px;"></td>
+
+
+                </tr>
+
+
+
+
+
+
+
+
+                {% if data.reconciles %}
+
+
+                <tr style="
+background:#dcfce7;
+color:#166534;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+
+                        ✓ Cash Flow reconciles with Cash Balance
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% else %}
+
+
+
+                <tr style="
+background:#fee2e2;
+color:#991b1b;
+font-weight:bold;
+">
+
+
+                    <td colspan="3">
+
+
+                        ✗ Cash Flow does not reconcile
+
+
+                    </td>
+
+
+                </tr>
+
+
+
+                {% endif %}
+
+
+
+
+
+
+
+            </tbody>
+
+
+        </table>
+
+
+
+    </section>
+
+
+
+
+
+
+
+    <footer>
+
+
+        <p>
+
+
+            &copy; Generated by
+
+            {{ user.first_name }}
+
+            {{ user.last_name }}
+
+            on {{ date }}
+
+            at {{ time }}
+
+
+
+        </p>
+
+
+    </footer>
+
+
+
+
+
+</body>
+
+
+</html>

@@ -152,9 +152,17 @@ export default function BalanceSheetTable({
                       key={stock.id}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      <td className="px-10 py-2 italic text-gray-700">
-                        {stock.name} → {stock.quantity} @ {stock.rate} ={" "}
-                        {stock.amount.toLocaleString()}
+                      <td className="px-10 py-2 italic text-gray-700 flex flex-wrap gap-3 justify-between">
+                        <span>{stock.name} → {stock.quantity} @ {stock.rate}</span>
+                        <span>={" "}={" "}</span>
+                        <span>{stock.amount.toLocaleString()}</span>
+                         <Link
+                          href={`/dashboard/${organisationId}/stocks/${stock.id}`}
+                          className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50"
+                        >
+                          <FiEye />
+                          View
+                        </Link>
                       </td>
 
                       <td className="text-right">-</td>
@@ -332,6 +340,8 @@ export default function BalanceSheetTable({
             />
 
             <Spacer />
+          
+
 
           </tbody>
 
@@ -354,7 +364,44 @@ export default function BalanceSheetTable({
               </td>
 
             </tr>
+  {data.totals.balanced ? (
 
+<tr className="bg-green-100 text-green-800 font-bold">
+
+
+  <td
+    colSpan={3}
+    className="px-6 py-3"
+  >
+
+    ✓ Balance Sheet balances
+
+  </td>
+
+
+</tr>
+
+
+) : (
+
+
+<tr className="bg-red-100 text-red-800 font-bold">
+
+
+  <td
+    colSpan={3}
+    className="px-6 py-3"
+  >
+
+    ✗ Balance Sheet does not balance
+
+  </td>
+
+
+</tr>
+
+
+)}
           </tfoot>
 
         </table>
