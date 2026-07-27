@@ -1,5 +1,7 @@
 "use client";
 
+import { formatAmount } from "@/lib/utils";
+
 type Props = {
   totals: {
     debit: number;
@@ -23,14 +25,14 @@ export default function TrialBalanceTotals({ totals }: Props) {
 
               <td className="p-3 text-right tabular-nums text-green-700">
 
-                {totals.debit.toLocaleString()}
+                {formatAmount(totals.debit)}
 
               </td>
 
 
         <td className="p-3 text-right tabular-nums text-red-700">
 
-                {totals.credit.toLocaleString()}
+                {formatAmount(totals.credit)}
 
               </td>
 
@@ -64,7 +66,7 @@ export default function TrialBalanceTotals({ totals }: Props) {
                     text-red-700
                     "
                   >
-                    Difference {difference.toLocaleString()}
+                    Difference {formatAmount(difference)}
                   </span>
 
                 )}

@@ -117,7 +117,7 @@ class SupplierUtils:
         opening_balance = self.get_opening_balance()
         supplier_bills, amount_due, amount_paid = self.get_supplier_bills_data()
 
-        sorted_supplier_bills = sorted(supplier_bills, key=lambda x: x.get('date'))
+        sorted_supplier_bills = sorted(supplier_bills, key=lambda x:  x.get('details').get('date'))
 
         if opening_balance:
             sorted_supplier_bills.insert(0, opening_balance)

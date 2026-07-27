@@ -1,3 +1,4 @@
+import { formatAmount } from "@/lib/utils";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
 
@@ -54,7 +55,7 @@ export default function SuppliersTable({
                
 
                 <td className="p-3 text-right tabular-nums text-gray-900">
-                    {supplier.amount_due}
+                    {formatAmount(supplier.amount_due)}
                 </td>
                 {/* DESCRIPTION ROW */}
                 <td className="text-right">
@@ -90,7 +91,7 @@ export default function SuppliersTable({
               </td>
               
               <td className="p-3 text-right tabular-nums">
-                {totals.amount_due}
+                {formatAmount(totals.amount_due)}
               </td>
             </tr>
           </tbody>

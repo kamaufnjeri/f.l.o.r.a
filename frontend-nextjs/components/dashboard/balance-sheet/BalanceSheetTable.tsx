@@ -4,6 +4,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
 import { Account, BalanceSheetResponse } from "./types";
+import { formatAmount } from "@/lib/utils";
 
 type Props = {
   organisationId: string;
@@ -155,7 +156,7 @@ export default function BalanceSheetTable({
                       <td className="px-10 py-2 italic text-gray-700 flex flex-wrap gap-3 justify-between">
                         <span>{stock.name} → {stock.quantity} @ {stock.rate}</span>
                         <span>={" "}={" "}</span>
-                        <span>{stock.amount.toLocaleString()}</span>
+                        <span>{formatAmount(stock.amount)}</span>
                          <Link
                           href={`/dashboard/${organisationId}/stocks/${stock.id}`}
                           className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50"
@@ -180,14 +181,14 @@ export default function BalanceSheetTable({
                 <tr className="bg-amber-50">
 
                   <td className="px-10 py-3 font-medium text-slate-700">
-                    {data.assets.current.Inventory.closing_stock.toLocaleString()}
+                    {formatAmount(data.assets.current.Inventory.closing_stock)}
                     {" - ("}
-                    {data.assets.current.Inventory.opening_stock.toLocaleString()}
+                    {formatAmount(data.assets.current.Inventory.opening_stock)}
                     {")"}
                   </td>
 
                   <td className="px-6 py-3 text-right font-semibold">
-                    {data.assets.current.Inventory.inventory.toLocaleString()}
+                    {formatAmount(data.assets.current.Inventory.inventory)}
                   </td>
 
                   <td></td>
@@ -360,7 +361,7 @@ export default function BalanceSheetTable({
               <td></td>
 
               <td className="border-y-2 border-black px-6 py-5 text-right">
-                {(data.liabilities.total + data.capital.total).toLocaleString()}
+                {formatAmount(data.liabilities.total + data.capital.total)}
               </td>
 
             </tr>
@@ -496,7 +497,7 @@ function AccountRow({
       </td>
 
       <td className="px-6 py-2 text-right">
-        {amount.toLocaleString()}
+        {formatAmount(amount)}
       </td>
 
       <td></td>
@@ -528,7 +529,7 @@ function AmountRow({
       </td>
 
       <td className="px-6 py-3 text-right font-semibold">
-        {amount === 0 ? "-" : amount.toLocaleString()}
+        {formatAmount(amount)}
       </td>
 
       <td></td>
@@ -554,7 +555,7 @@ function TotalRow({
       <td className="border-t-2 border-black"></td>
 
       <td className="px-6 py-3 text-right font-bold text-emerald-700">
-        {total.toLocaleString()}
+        {formatAmount(total)}
       </td>
 
     </tr>
@@ -578,7 +579,7 @@ function GrandTotalRow({
       <td></td>
 
       <td className="border-y-2 border-black px-6 py-4 text-right text-base font-bold">
-        {total.toLocaleString()}
+        {formatAmount(total)}
       </td>
 
     </tr>
@@ -612,7 +613,7 @@ function SubGrandTotalRow({
           border === "last" ? "border-t-2 border-black" : ""
         }`}
       >
-        {total.toLocaleString()}
+        {formatAmount(total)}
       </td>
 
     </tr>

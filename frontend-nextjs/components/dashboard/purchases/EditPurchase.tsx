@@ -8,7 +8,7 @@ import InputField from "../journals/InputField";
 import TextAreaField from "../journals/TextAreaField";
 import PurchaseEntries from "./PurchaseEntries";
 import { usePurchase } from "@/hooks/usePurchase";
-import { groupEntries } from "@/lib/utils";
+import { formatAmount, groupEntries } from "@/lib/utils";
 import { Purchase } from "@/types";
 import BalanceStatus from "./BalanceStatus";
 
@@ -210,10 +210,7 @@ export default function EditPurchase({ purchase }: Props) {
 
                     {/* RIGHT */}
                     <div className="text-lg font-semibold text-gray-900">
-                        {purchaseTotal.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        })}
+                        {formatAmount(purchaseTotal)}
                     </div>
                 </div>
                 <BalanceStatus currency={currentOrg?.currency} difference={difference}/>

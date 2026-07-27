@@ -2,6 +2,68 @@ from datetime import timedelta, datetime
 from django.db import models
 
 
+
+def created_at_filtering(queryset, date_filter):
+    today = datetime.now().date()
+
+    if date_filter == "today":
+        queryset = queryset.filter(created_at__date=today)
+
+    elif date_filter == "yesterday":
+        yesterday = today - timedelta(days=1)
+        queryset = queryset.filter(created_at__date=yesterday)
+
+    elif date_filter == "this_week":
+        start_week = today - timedelta(days=today.weekday())
+        queryset = queryset.filter(
+            created_at__date__gte=start_week,
+            created_at__date__lte=today
+        )
+
+    elif date_filter == "this_month":
+        start_month = today.replace(day=1)
+        queryset = queryset.filter(
+            created_at__date__gte=start_month,
+            created_at__date__lte=today
+        )
+
+    elif "to" in date_filter:
+        try:
+            start_date_str, end_date_str = date_filter.split('to')
+
+            start_date = datetime.strptime(
+                start_date_str,
+                "%Y-%m-%d"
+            ).date()
+
+            end_date = datetime.strptime(
+                end_date_str,
+                "%Y-%m-%d"
+            ).date()
+
+            queryset = queryset.filter(
+                created_at__date__gte=start_date,
+                created_at__date__lte=end_date
+            )
+
+        except ValueError:
+            raise ValueError(
+                "Invalid date format: Expected 'YYYY-MM-DDtoYYYY-MM-DD'"
+            )
+
+    elif date_filter == "all":
+        queryset = queryset
+
+    else:
+        raise ValueError(
+            "Invalid options: Expected options "
+            "'today', 'yesterday', 'this_week', 'this_month' "
+            "and 'YYYY-MM-DDtoYYYY-MM-DD'"
+        )
+
+    return queryset
+
+
 def date_filtering(queryset, date_filter):
     today = datetime.now().date()
 

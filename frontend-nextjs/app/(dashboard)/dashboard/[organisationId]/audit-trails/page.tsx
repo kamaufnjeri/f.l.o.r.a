@@ -1,15 +1,16 @@
-import Link from "next/link";
-
-import { getServiceIncomes } from "@/app/actions/service-income-actions";
-import ServiceIncomesTable from "@/components/dashboard/serviceIncome/ServiceIncomesTable";
+import { getAuditTrails } from "@/app/actions/audit-trails";
+import AuditTable from "@/components/dashboard/audit-trails/AuditTable";
 import FiltersSection from "@/components/dashboard/journals/FiltersSection";
 import Pagination from "@/components/dashboard/journals/Pagination";
-import { SalesType } from "@/types";
+import Link from "next/link";
 
+// import AuditTrailTable from "@/components/dashboard/audit trails/AuditTrailTable";
+// import FiltersSection from "@/components/dashboard/audit trails/FiltersSection";
+// import Pagination from "@/components/dashboard/audit trails/Pagination";
 
 type SearchParams = {
-  search?: string;
-  service_income?: SalesType;
+  action?: string;
+  model_name?: string;
   date?: string;
   sort_by?: string;
   page?: string;
@@ -21,22 +22,22 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
-export default async function ServiceIncomesPage({
+export default async function AuditTrailsPage({
   params,
   searchParams,
 }: Props) {
   const organisationId = (await params).organisationId;
   const {
-    search = "",
-    service_income = "",
+    action = "",
+    model_name = "",
     date = "",
     sort_by = "",
     page = "1",
   } = await searchParams ?? {};
 
-  const response = await getServiceIncomes(organisationId, {
-    search,
-    service_income,
+  const response = await getAuditTrails(organisationId, {
+    action,
+    model_name,
     date,
     sort_by,
     page,
@@ -49,50 +50,50 @@ export default async function ServiceIncomesPage({
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
           <h2 className="font-semibold">Something went wrong</h2>
           <p className="text-sm mt-1">
-            Failed to load service incomes. Please try again.
+            Failed to load audit trails. {response.error}. Please try again.
           </p>
         </div>
       </div>
     );
   }
 
-  const serviceIncomes = response.serviceIncomes || [];
+  const auditTrails = response.auditTrails || [];
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 px-4">
       {/* FILTERS */}
-      <FiltersSection title='Service Incomes' goToUrl={'service-income'} filters={{ search, service_income, sort_by, date, page }} organisationId={organisationId} />
+      <FiltersSection title='Audit Trails' goToUrl={'audit-trails'} filters={{ action, model_name, sort_by, date, page }} organisationId={organisationId}/>
 
       {/* EMPTY STATE */}
-      {serviceIncomes.length === 0 ? (
+      {auditTrails.length === 0 ? (
         <div className="bg-white border rounded-xl p-10 text-center space-y-4">
           <h2 className="text-lg font-semibold text-gray-800">
-            No service incomes found
+            No audit trails found
           </h2>
 
           <p className="text-sm text-gray-500">
-            Create your first service income to get started.
+            Create your first journal entry to get started.
           </p>
 
           <Link
-            href="service-income/record"
+            href="journals/record"
             className="inline-block bg-black text-white px-5 py-2 rounded-lg text-sm hover:bg-gray-800 transition"
           >
-            + Add Service Income
+            + Add Journal
           </Link>
         </div>
       ) : (
         <>
           {/* TABLE */}
-          <ServiceIncomesTable
-            serviceIncomes={serviceIncomes}
-            totals={response.totals}
-          />
+          <AuditTable
+          organisationId={organisationId}
+            audits={auditTrails}
+          /> 
 
           {/* PAGINATION */}
           {response.pagination && (
             <Pagination
-            goToUrl={'service-income'}
+            goToUrl={'audit-trails'}
               organisationId={organisationId}
               pagination={response.pagination}
             />

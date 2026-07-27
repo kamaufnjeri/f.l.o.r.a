@@ -7,7 +7,7 @@ class SalesEntriesSerializer(serializers.ModelSerializer):
     sales = serializers.CharField(write_only=True, required=False)
     remaining_quantity = serializers.IntegerField(read_only=True)
     stock_name = serializers.SerializerMethodField(read_only=True)
-    quantity = serializers.SerializerMethodField(read_only=True)
+    stock_unit_alias = serializers.SerializerMethodField(read_only=True)
     total_sales_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -17,8 +17,10 @@ class SalesEntriesSerializer(serializers.ModelSerializer):
     def get_stock_name(self, obj):
         return obj.stock.name
     
-    def get_quantity(self, obj):
-        return f"{obj.sold_quantity} {obj.stock.unit_alias}"
+    def get_stock_unit_alias(self, obj):
+        return obj.stock.unit_alias
+
+    
     def get_total_sales_price(self, obj):
         return float(obj.sold_quantity) * float(obj.sales_price)
     

@@ -2,6 +2,7 @@ import { AccountDetails } from "@/types"
 import Link from "next/link"
 import { FiEye } from "react-icons/fi"
 import AccountDropDown from "./AccountDropDown";
+import { formatAmount } from "@/lib/utils";
 
 type Props = {
     organisationId: string;
@@ -69,11 +70,11 @@ export function SingleAccount({ account, organisationId, date }: Props) {
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {entry.debit_credit === "debit" ? entry.amount : "-"}
+                {entry.debit_credit === "debit" ? formatAmount(entry.amount) : "-"}
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {entry.debit_credit === "credit" ? entry.amount : "-"}
+                {entry.debit_credit === "credit" ? formatAmount(entry.amount) : "-"}
               </td>
                <td className="text-right">
                 {entry.details.url && <Link
@@ -108,10 +109,10 @@ export function SingleAccount({ account, organisationId, date }: Props) {
                   Total
                 </td>
                 <td className="p-3 text-right tabular-nums">
-                  {account.account_data.totals.debit}
+                  {formatAmount(account.account_data.totals.debit)}
                 </td>
                 <td className="p-3 text-right tabular-nums">
-                  {account.account_data.totals.credit}
+                  {formatAmount(account.account_data.totals.credit)}
                 </td>
               </tr>
 
@@ -123,7 +124,7 @@ export function SingleAccount({ account, organisationId, date }: Props) {
                 {account.account_data.totals.closing.debit_credit === "debit" ? (
                   <>
                     <td className="p-3 text-right tabular-nums text-gray-900">
-                      {account.account_data.totals.closing.amount}
+                      {formatAmount(account.account_data.totals.closing.amount)}
                     </td>
                     <td className="p-3 text-right">-</td>
                   </>
@@ -131,7 +132,7 @@ export function SingleAccount({ account, organisationId, date }: Props) {
                   <>
                     <td className="p-3 text-right">-</td>
                     <td className="p-3 text-right tabular-nums text-gray-900">
-                      {account.account_data.totals.closing.amount}
+                      {formatAmount(account.account_data.totals.closing.amount)}
                     </td>
                   </>
                 )}

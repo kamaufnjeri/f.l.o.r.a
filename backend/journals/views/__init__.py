@@ -19,7 +19,7 @@ from .select_options import SelectOptionsAPIView
 from .generate_pdf import GeneratePDFAPIView
 from .service import ServiceAPIView,  DownloadServiceAPIView, DownloadServiceDetailAPIView, ServiceDetailAPIView
 from .service_income import ServiceIncomeAPIView, ServiceIncomeDetailAPIView, DownloadServiceIncomeAPIView
-from .audit_trail import AuditTrailAPIView
+from .audit_trail import AuditTrailAPIView, DownloadAuditTrailAPIView
 from .trial_balance import TrialBalanceAPIView, DownloadTrialBalanceAPIView
 from .income_statement import IncomeStatementAPIView, DownloadIncomeStatementAPIView
 from .balance_sheet import BalanceSheetAPIView, DownloadBalanceSheetAPIView

@@ -3,7 +3,7 @@
 import { useServiceIncome } from "@/hooks/useServiceIncome";
 import InputField from "../journals/InputField";
 import TextAreaField from "../journals/TextAreaField";
-import { groupEntries } from "@/lib/utils";
+import { formatAmount, groupEntries } from "@/lib/utils";
 import { ServiceIncome } from "@/types";
 import PurchaseSalesAccountField, { Entry } from "../purchases/PurchaseSalesAccountField";
 import ServiceIncomeEntries from "./ServiceIncomeEntries";
@@ -209,10 +209,8 @@ export default function EditServiceIncome({ serviceIncome }: Props) {
 
                     {/* RIGHT */}
                     <div className="text-lg font-semibold text-gray-900">
-                        {serviceIncomeTotal.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        })}
+                                                {formatAmount(serviceIncomeTotal)}
+                        
                     </div>
                 </div>
                                 <BalanceStatus currency={currentOrg?.currency} difference={difference}/>

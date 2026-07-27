@@ -60,6 +60,28 @@ export const dueDaysOptions: OptionType[] = [
   { name: "Overdue", value: "overdue" },
 ];
 
+export const auditActionOptions: OptionType[] = [
+  { name: "All", value: "all" },
+  { name: "Added", value: "ADD" },
+  { name: "Edited", value: "EDIT" },
+  { name: "Deleted", value: "DELETE" },
+];
+
+export const auditModelOptions: OptionType[] = [
+  { name: "All", value: "all" },
+  { name: "Account", value: "Account" },
+  { name: "Customer", value: "Customer" },
+  { name: "Supplier", value: "Supplier" },
+  { name: "Journal", value: "Journal" },
+  { name: "Sales", value: "Sales" },
+  { name: "Purchase", value: "Purchase" },
+  { name: "Service", value: "Service" },
+  { name: "Service Income", value: "ServiceIncome" },
+  { name: "Sales Return", value: "SalesReturn" },
+  { name: "Purchase Return", value: "PurchaseReturn" },
+  { name: "Payment", value: "Payment" },
+];
+
 export const statusOptions: OptionType[] = [
   { name: "All", value: "all" },
   { name: "Paid", value: "paid" },
@@ -214,6 +236,12 @@ export const sidebarIcons = [
       { name: "Cash Flow Statement", url: "reports/cash-flow" },
 
     ],
+  },
+  {
+    name: "Audit Trails",
+    icon: IoMdSettings,
+    url: "audit-trails",
+    lists: null,
   },
 
   {

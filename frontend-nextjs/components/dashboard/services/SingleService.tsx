@@ -2,6 +2,7 @@ import { ServiceDetails } from "@/types"
 import Link from "next/link"
 import { FiEye } from "react-icons/fi"
 import ServiceDropDown from "./ServiceDropDown";
+import { formatAmount, formatQuantity } from "@/lib/utils";
 
 type Props = {
     organisationId: string;
@@ -95,15 +96,15 @@ export function SingleService({ service, organisationId, date }: Props) {
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {entry.quantity}
+                {formatQuantity(entry.quantity)}
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {entry.price}
+                {formatAmount(entry.price)}
               </td>
 
               <td className="p-3 text-right tabular-nums font-medium text-gray-900">
-                {entry.details.total}
+                {formatAmount(entry.details.total)}
               </td>
 
               <td className="p-3 text-right">
@@ -140,7 +141,7 @@ export function SingleService({ service, organisationId, date }: Props) {
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {service.service_data?.total}
+              {formatAmount(service.service_data?.total)}
             </td>
 
             <td />

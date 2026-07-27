@@ -126,6 +126,7 @@ class PurchaseReturnAPIView(generics.ListCreateAPIView):
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            raise e
             print(f"Internal Error: {e}") 
             return Response({
                 'error': 'Internal server error',

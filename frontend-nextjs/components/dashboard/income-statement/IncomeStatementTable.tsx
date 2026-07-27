@@ -4,6 +4,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import { IncomeStatementResponse } from "./types";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
+import { formatAmount } from "@/lib/utils";
 
 type Props = {
   organisationId: string;
@@ -420,7 +421,7 @@ function AccountRow({
       </td>
 
       <td className="px-6 py-2 text-right">
-        {amount}
+        {formatAmount(amount)}
       </td>
 
       <td></td>
@@ -457,8 +458,8 @@ function AmountRow({
 
       <td className={`${borderTop ? "border-t-2 border-black" : ""} px-6 py-3 text-right font-semibold`}>
         {negative
-          ? `(${amount})`
-          : amount}
+          ? `(${formatAmount(amount)})`
+          : formatAmount(amount)}
       </td>
 
       <td></td>
@@ -485,7 +486,7 @@ function TotalRow({
       <td className="border-t-2 border-black"></td>
 
       <td className=" px-6 py-3 text-right font-bold text-emerald-700 ">
-        {less ? `(${total})`: total}
+        {less ? `(${formatAmount(total)})`: formatAmount(total)}
       </td>
     </tr>
   );
@@ -507,7 +508,7 @@ function GrandTotalRow({
       <td></td>
 
       <td className="border-t-2 border-black px-6 py-4 text-right text-base font-bold text-green-800">
-        {total}
+        {formatAmount(total)}
       </td>
     </tr>
   );

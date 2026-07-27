@@ -6,7 +6,7 @@ export interface ReturnEntry {
   purchase_entry?: string;
   sales_entry?: string;
   return_price?: number;
-  quantity?: number;
+  stock_unit_alias?: string;
   return_quantity: number;
 }
 

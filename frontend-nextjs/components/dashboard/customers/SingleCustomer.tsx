@@ -2,7 +2,7 @@ import { CustomerDetails } from "@/types"
 import Link from "next/link"
 import { FiEye } from "react-icons/fi"
 import CustomerDropDown from "./CustomerDropDown";
-import { normalizeWord } from "@/lib/utils";
+import { formatAmount, normalizeWord } from "@/lib/utils";
 
 type Props = {
     organisationId: string;
@@ -105,11 +105,11 @@ export function SingleCustomer({ customer, organisationId, date }: Props) {
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {invoice.amount_paid}
+                {formatAmount(invoice.amount_paid)}
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {invoice.amount_due}
+                {formatAmount(invoice.amount_due)}
               </td>
 
               <td className="p-3 text-right">
@@ -141,16 +141,16 @@ export function SingleCustomer({ customer, organisationId, date }: Props) {
           {/* TOTALS */}
           {customer.customer_data?.totals && (
             <tr className="bg-gray-100 font-semibold">
-              <td colSpan={7} className="p-3 text-gray-800">
+              <td colSpan={6} className="p-3 text-gray-800">
                 Totals
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {customer.customer_data.totals.amount_paid}
+                {formatAmount(customer.customer_data.totals.amount_paid)}
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {customer.customer_data.totals.amount_due}
+                {formatAmount(customer.customer_data.totals.amount_due)}
               </td>
 
               <td />

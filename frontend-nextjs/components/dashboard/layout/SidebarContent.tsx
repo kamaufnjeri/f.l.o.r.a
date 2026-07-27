@@ -13,6 +13,7 @@ export default function SidebarContent({
   activeDropdown,
   setActiveDropdown,
   currentOrg,
+  user
 }: SidebarContentProps) {
     const openModal = useModalStore((s) => s.openModal);
   return (

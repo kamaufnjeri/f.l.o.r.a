@@ -1,6 +1,6 @@
 'use client'
 
-import { capitalizeFirstLetter } from "@/lib/utils";
+import { capitalizeFirstLetter, formatAmount } from "@/lib/utils";
 import { PaymentDetails, PaymentFormData, PaymentTotals } from "@/types";
 import { Fragment, useState } from "react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
@@ -135,13 +135,13 @@ const selectPayment = (payment: PaymentDetails) => {
 
           <td className="p-3 text-right tabular-nums">
             {entry.debit_credit === "debit"
-              ? entry.amount.toLocaleString()
+              ? formatAmount(entry.amount)
               : "—"}
           </td>
 
           <td className="p-3 text-right tabular-nums">
             {entry.debit_credit === "credit"
-              ? entry.amount.toLocaleString()
+              ? formatAmount(entry.amount)
               : "—"}
           </td>
 
@@ -185,15 +185,15 @@ const selectPayment = (payment: PaymentDetails) => {
   </td>
 
   <td className="p-3 text-right tabular-nums">
-    {Number(
+    {formatAmount(
       payment.journal_entries_total.debit_total
-    ).toLocaleString()}
+    )}
   </td>
 
   <td className="p-3 text-right tabular-nums">
-    {Number(
+    {formatAmount(
       payment.journal_entries_total.credit_total
-    ).toLocaleString()}
+    )}
   </td>
 </tr>}
     </Fragment>
@@ -208,9 +208,9 @@ const selectPayment = (payment: PaymentDetails) => {
    
                
                 <td className="p-3 text-right tabular-nums">
-                 {Number(
+                 {formatAmount(
                    totals.amount_paid
-                 ).toLocaleString()}
+                 )}
                </td>
    
                <td />

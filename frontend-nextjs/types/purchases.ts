@@ -1,8 +1,9 @@
 export interface PurchaseEntry {
   id?: string;
   stock_name: string;
+  stock_unit_alias: string;
   purchase_price: number;
-  quantity: number;
+  purchased_quantity: number;
   total_purchase_price: number;
 }
 

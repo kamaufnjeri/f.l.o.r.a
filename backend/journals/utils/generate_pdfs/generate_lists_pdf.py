@@ -73,6 +73,10 @@ class GenerateListsPDF:
             for key, value in self.filters.items():
                 if key == 'search' and value:
                     new_filters['Search'] = value
+                elif key == 'action' and value:
+                        new_filters['Action'] = value
+                elif key == 'model_name' and value:
+                    new_filters['Model'] = value
                 elif key == 'name' and value:
                     new_filters['Name'] = value
                 elif key in ('purchases', 'sales', 'journals', "type") and value:

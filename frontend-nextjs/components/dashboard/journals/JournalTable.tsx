@@ -1,3 +1,4 @@
+import { formatAmount } from "@/lib/utils";
 import Link from "next/link";
 import { Fragment } from "react";
 import { FiEye } from "react-icons/fi";
@@ -84,13 +85,13 @@ export default function JournalTable({
 
           <td className="p-3 text-right tabular-nums">
             {entry.debit_credit === "debit"
-              ? entry.amount.toLocaleString()
+              ? formatAmount(entry.amount)
               : "—"}
           </td>
 
           <td className="p-3 text-right tabular-nums">
             {entry.debit_credit === "credit"
-              ? entry.amount.toLocaleString()
+              ?  formatAmount(entry.amount)
               : "—"}
           </td>
 
@@ -130,11 +131,11 @@ export default function JournalTable({
     </td>
 
     <td className="p-3 text-right">
-      {totals.debit_total.toLocaleString()}
+      {formatAmount(totals.debit_total)}
     </td>
 
     <td className="p-3 text-right">
-      {totals.credit_total.toLocaleString()}
+      {formatAmount(totals.credit_total)}
     </td>
 
     <td />

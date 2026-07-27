@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, normalizeWord } from "@/lib/utils";
+import { capitalizeFirstLetter, formatAmount, normalizeWord } from "@/lib/utils";
 import { InvoiceOverview, BillInvoiceTotals } from "@/types";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
@@ -87,20 +87,20 @@ export default function InvoicesTable({
             </td>
 
             <td className="p-3 text-right tabular-nums font-medium">
-              {Number(
+              {formatAmount(
                 invoice.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 invoice.amount_due
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right flex flex-wrap gap-2">
               <Link
-                href={`/dasboard/${organisationId}${invoice.details.url}`}
+                href={`/dashboard/${organisationId}${invoice.details.url}`}
                 className="
                   inline-flex
                   items-center
@@ -119,7 +119,7 @@ export default function InvoicesTable({
                 <span>View</span>
               </Link>
               {invoice.status !== 'unpaid' && <Link
-                href={`/dasboard/${organisationId}/invoices/${invoice.id}/payments`}
+                href={`/dashboard/${organisationId}/invoices/${invoice.id}/payments`}
                 className="
                   inline-flex
                   items-center
@@ -148,15 +148,15 @@ export default function InvoicesTable({
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_due
-              ).toLocaleString()}
+              )}
             </td>
 
             <td />

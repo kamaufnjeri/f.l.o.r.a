@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, normalizeWord } from "@/lib/utils";
+import { capitalizeFirstLetter, formatAmount, normalizeWord } from "@/lib/utils";
 import { BillOverview, BillInvoiceTotals } from "@/types";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
@@ -87,20 +87,20 @@ export default function BillsTable({
             </td>
 
             <td className="p-3 text-right tabular-nums font-medium">
-              {Number(
+              {formatAmount(
                 bill.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 bill.amount_due
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right flex flex-wrap gap-2 ">
               <Link
-                href={`/dasboard/${organisationId}${bill.details.url}`}
+                href={`/dashboard/${organisationId}${bill.details.url}`}
                 className="
                   inline-flex
                   items-center
@@ -119,7 +119,7 @@ export default function BillsTable({
                 <span>View</span>
               </Link>
               {bill.status !== 'unpaid' && <Link
-                href={`/dasboard/${organisationId}/bills/${bill.id}/payments`}
+                href={`/dasbhoard/${organisationId}/bills/${bill.id}/payments`}
                 className="
                   inline-flex
                   items-center
@@ -148,15 +148,15 @@ export default function BillsTable({
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_due
-              ).toLocaleString()}
+              )}
             </td>
 
             <td />

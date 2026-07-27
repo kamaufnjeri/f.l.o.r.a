@@ -90,6 +90,8 @@ export interface SidebarContentProps {
   activeDropdown: string | null;
   setActiveDropdown: (value: string | null | ((prev: string | null) => string | null)) => void;
   currentOrg: Organisation;
+  user: User;
+
 }
 
 export interface SidebarShellProps {

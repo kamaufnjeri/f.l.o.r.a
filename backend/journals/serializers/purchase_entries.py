@@ -8,7 +8,9 @@ class PurchaseEntriesSerializer(serializers.ModelSerializer):
     remaining_quantity = serializers.IntegerField(read_only=True)
     cogs = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     stock_name = serializers.SerializerMethodField(read_only=True)
-    quantity = serializers.SerializerMethodField(read_only=True)
+    stock_unit_alias = serializers.SerializerMethodField(read_only=True)
+    total_purchase_price = serializers.SerializerMethodField(read_only=True)
+
 
     class Meta:
         model = PurchaseEntries
@@ -17,8 +19,13 @@ class PurchaseEntriesSerializer(serializers.ModelSerializer):
     def get_stock_name(self, obj):
         return obj.stock.name
     
-    def get_quantity(self, obj):
-        return f"{obj.purchased_quantity} {obj.stock.unit_alias}"
+    def get_stock_unit_alias(self, obj):
+        return obj.stock.unit_alias
+
+    def get_total_purchase_price(self, obj):
+        total_purchase_price = float(obj.purchase_price) * float(obj.purchased_quantity)
+        return total_purchase_price
+    
     
 
 class DetailedPurchaseEntriesSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FiChevronDown, FiChevronRight, FiEye } from "react-icons/fi";
 import { TrialBalanceAccount, TrialBalanceCategory, TrialBalanceFixedGroup, TrialBalanceSubCategory } from "./types";
+import { formatAmount } from "@/lib/utils";
 
 type Props = {
   item: TrialBalanceCategory | TrialBalanceSubCategory | TrialBalanceAccount | TrialBalanceFixedGroup;
@@ -125,7 +126,7 @@ const toggleExpand = () => {
         <td className="p-3 text-right tabular-nums text-green-700">
 
           {item.balance_type === "debit"
-            ? Number(item.amount).toLocaleString()
+            ? formatAmount(item.amount)
             : "-"}
 
         </td>
@@ -135,7 +136,7 @@ const toggleExpand = () => {
         <td className="p-3 text-right tabular-nums text-red-700">
 
           {item.balance_type === "credit"
-            ? Number(item.amount).toLocaleString()
+            ? formatAmount(item.amount)
             : "-"}
 
         </td>

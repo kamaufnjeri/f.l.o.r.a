@@ -8,6 +8,7 @@ import ReturnModal from "./ReturnModal";
 import { deleteReturn } from "@/app/actions/returns-actions";
 import toast from "react-hot-toast";
 import JournalEntriesModal from "../sales/JournalEntriesModal";
+import { formatAmount, formatQuantity } from "@/lib/utils";
 
 
 function PurchaseSalesReturns( {  organisationId,
@@ -95,8 +96,11 @@ const handleDelete = async () => {
         {returns.map(
           (purchase_return) => (
             <Fragment key={purchase_return.id}>
-              {purchase_return.return_entries.map((entry, index) => (
-                <tr
+              {purchase_return.return_entries.map((entry, index) => {
+                const total =
+                  Number(entry.return_quantity) * Number(entry.return_price);
+
+                return (<tr
                   key={`${purchase_return.id}-${index}`}
                 
                   className="cursor-pointer transition hover:bg-gray-50"
@@ -139,17 +143,15 @@ const handleDelete = async () => {
                   </td>
 
                   <td className="p-3 text-right tabular-nums">
-                    {Number(entry.return_price).toLocaleString()}
+                    {formatAmount(entry.return_price)}
                   </td>
 
                   <td className="p-3 text-right tabular-nums">
-                    {entry.quantity}
+                    {formatQuantity(entry.return_quantity)} {entry.stock_unit_alias}
                   </td>
 
                   <td className="p-3 text-right tabular-nums">
-                    {entry.return_price && Number(
-                      entry.return_quantity * entry.return_price
-                    ).toLocaleString()}
+                    {formatAmount(total)}
                   </td>
 
                   {index === 0 && (
@@ -187,7 +189,7 @@ const handleDelete = async () => {
                     </td>
                   )}
                 </tr>
-              ))}
+                )})}
 
               <tr className="bg-slate-50 font-medium">
                 <td
@@ -205,17 +207,17 @@ const handleDelete = async () => {
                 </td>
 
                 <td className="p-3 text-right tabular-nums">
-                  {Number(
+                  {formatQuantity(
                     purchase_return.details.total_quantity
-                  ).toLocaleString()}
+                  )}
                 </td>
 
                 <td
                   className="p-3 text-right tabular-nums"
                 >
-                  {Number(
+                  {formatAmount(
                     purchase_return.details.total_amount
-                  ).toLocaleString()}
+                  )}
                 </td>
               </tr>
             </Fragment>
@@ -229,15 +231,15 @@ const handleDelete = async () => {
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatQuantity(
                 totals.quantity
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount
-              ).toLocaleString()}
+              )}
             </td>
 
             <td />

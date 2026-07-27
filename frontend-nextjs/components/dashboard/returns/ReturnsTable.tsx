@@ -1,3 +1,4 @@
+import { formatAmount, formatQuantity } from "@/lib/utils";
 import { ReturnOverview } from "@/types";
 import Link from "next/link";
 import { Fragment } from "react";
@@ -42,7 +43,11 @@ export default function ReturnTable({
             {returns.map((purchaseReturn) => (
               <Fragment key={purchaseReturn.id}>
                 {/* RETURN ENTRIES */}
-                {purchaseReturn.return_entries.map((entry, index) => (
+                {purchaseReturn.return_entries.map((entry, index) => {
+                  const total =
+                    Number(entry.return_quantity) * Number(entry.return_price);
+
+                return (
                   <tr
                     key={`${purchaseReturn.id}-${index}`}
                     className="hover:bg-gray-50 transition"
@@ -70,18 +75,15 @@ export default function ReturnTable({
                     </td>
 
                     <td className="p-3 text-right tabular-nums">
-                      {Number(entry.return_price).toLocaleString()}
+                      {formatAmount(entry.return_price)}
                     </td>
 
                     <td className="p-3 text-right tabular-nums">
-                      {Number(entry.return_quantity).toLocaleString()}
+                      {formatQuantity(entry.return_quantity)}
                     </td>
 
                     <td className="p-3 text-right tabular-nums font-medium">
-                      {(
-                        Number(entry.return_quantity) *
-                        Number(entry.return_price)
-                      ).toLocaleString()}
+                      {formatAmount(total)}
                     </td>
 
                     {index === 0 && (
@@ -112,7 +114,7 @@ export default function ReturnTable({
                       </td>
                     )}
                   </tr>
-                ))}
+                )})}
 
                 {/* DESCRIPTION + SUBTOTAL */}
                 <tr>
@@ -124,15 +126,15 @@ export default function ReturnTable({
                   </td>
 
                   <td className="px-3 py-2 text-right font-medium">
-                    {Number(
+                    {formatQuantity(
                       purchaseReturn.details.total_quantity
-                    ).toLocaleString()}
+                    )}
                   </td>
 
                   <td className="px-3 py-2 text-right font-medium">
-                    {Number(
+                    {formatAmount(
                       purchaseReturn.details.total_amount
-                    ).toLocaleString()}
+                    )}
                   </td>
 
                   <td />
@@ -147,11 +149,11 @@ export default function ReturnTable({
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {totals.quantity.toLocaleString()}
+                {formatQuantity(totals.quantity)}
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {totals.amount.toLocaleString()}
+                {formatAmount(totals.amount)}
               </td>
 
               <td />

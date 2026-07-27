@@ -1,15 +1,15 @@
-import { SalesDetail } from "@/types/sales";
-import SalesDropDown from "./SalesDropDown";
-import { normalizeWord } from "@/lib/utils";
+import { SaleDetail } from "@/types/sales";
+import SaleDropDown from "./SaleDropDown";
+import { formatAmount, formatQuantity, normalizeWord } from "@/lib/utils";
 import PurchaseHeader from "../purchases/PurchaseHeader";
 
 type Props = {
   organisationId: string;
-  sales: SalesDetail;
+  sale: SaleDetail;
 };
 
-export default function SingleSales({
-  sales,
+export default function SingleSale({
+  sale,
   organisationId,
 }: Props) {
   return (
@@ -18,11 +18,10 @@ export default function SingleSales({
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b bg-gradient-to-r from-slate-50 to-white p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <PurchaseHeader title='Sales' description={sales.description} serialNumber={sales.serial_number}/>
-
+            <PurchaseHeader title='Sale' serialNumber={sale.serial_number} description={sale.description}/>
             <div className="flex justify-start lg:justify-end">
-              <SalesDropDown
-                sales={sales}
+              <SaleDropDown
+                sale={sale}
                 organisationId={organisationId}
               />
             </div>
@@ -36,7 +35,7 @@ export default function SingleSales({
               Date
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-900">
-              {sales.date}
+              {sale.date}
             </p>
           </div>
 
@@ -45,7 +44,7 @@ export default function SingleSales({
               Type
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-900">
-              {normalizeWord(sales.details.type)}
+              {normalizeWord(sale.details.type)}
             </p>
           </div>
 
@@ -54,7 +53,7 @@ export default function SingleSales({
               Total Quantity
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-900">
-              {sales.details.total_quantity}
+              {formatQuantity(sale.details.total_quantity)}
             </p>
           </div>
 
@@ -63,22 +62,22 @@ export default function SingleSales({
               Total Amount
             </p>
             <p className="mt-2 text-lg font-semibold text-emerald-600">
-              {sales.details.total_amount}
+              {formatAmount(sale.details.total_amount)}
             </p>
           </div>
         </div>
 
-        {sales.invoice && (
+        {sale.invoice && (
           <div className="border-t p-6">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Invoice Information
+              Bill Information
             </h3>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <p className="text-xs text-slate-500">Customer</p>
                 <p className="font-medium text-slate-900">
-                  {sales.invoice.customer_name}
+                  {sale.invoice.customer_name}
                 </p>
               </div>
 
@@ -88,29 +87,29 @@ export default function SingleSales({
                   className={`
                     inline-flex rounded-full px-3 py-1 text-xs font-medium
                     ${
-                      sales.invoice.status === "paid"
+                      sale.invoice.status === "paid"
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     }
                   `}
                 >
-                  {normalizeWord(sales.invoice.status)}
+                  {normalizeWord(sale.invoice.status)}
                 </span>
               </div>
 
-              {sales.invoice.amount_due > 0 && (
+              {sale.invoice.amount_due > 0 && (
                 <>
                   <div>
                     <p className="text-xs text-slate-500">Due Date</p>
                     <p className="font-medium text-slate-900">
-                      {sales.invoice.due_date}
+                      {sale.invoice.due_date}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-xs text-slate-500">Amount Due</p>
                     <p className="font-semibold text-red-600">
-                      {sales.invoice.amount_due}
+                      {formatAmount(sale.invoice.amount_due)}
                     </p>
                   </div>
                 </>
@@ -124,7 +123,7 @@ export default function SingleSales({
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b px-6 py-4">
           <h2 className="font-semibold text-slate-900">
-            Sales Items
+            Sale Items
           </h2>
         </div>
 
@@ -149,7 +148,7 @@ export default function SingleSales({
             </thead>
 
             <tbody>
-              {sales.sales_entries?.map((entry, index) => (
+              {sale.sales_entries?.map((entry, index) => (
                 <tr
                   key={index}
                   className="
@@ -167,19 +166,38 @@ export default function SingleSales({
                   </td>
 
                   <td className="px-6 py-4 text-right tabular-nums">
-                    {entry.sales_price}
+                    {formatAmount(entry.sales_price)}
                   </td>
 
                   <td className="px-6 py-4 text-right tabular-nums">
-                    {entry.quantity}
+                    {formatQuantity(entry.sold_quantity)} {entry.stock_unit_alias}
                   </td>
 
                   <td className="px-6 py-4 text-right font-medium tabular-nums">
-                    {entry.total_sales_price}
+                    {formatAmount(entry.total_sales_price)}
                   </td>
                 </tr>
               ))}
             </tbody>
+           <tfoot>
+  <tr className="border-t bg-slate-50 font-semibold">
+    <td
+      colSpan={3}
+      className="px-6 py-4 text-right text-slate-600"
+    >
+      Total
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-slate-900">
+      {formatQuantity(sale.details.total_quantity)}
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-emerald-600">
+      {formatAmount(sale.details.total_amount)}
+    </td>
+  </tr>
+</tfoot>
+
           </table>
         </div>
 
@@ -192,27 +210,15 @@ export default function SingleSales({
               </p>
 
               <p className="mt-2 text-slate-800">
-                {sales.description}
+                {sale.description}
               </p>
             </div>
 
             <div className="w-full max-w-md space-y-2">
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Quantity</span>
-                <span className="font-semibold">
-                  {sales.details.total_quantity}
-                </span>
-              </div>
+             
 
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Amount</span>
-                <span className="font-semibold">
-                  {sales.details.total_amount}
-                </span>
-              </div>
-
-              {sales.details.footer_data &&
-                Object.entries(sales.details.footer_data).map(
+              {sale.details.footer_data &&
+                Object.entries(sale.details.footer_data).map(
                   ([key, value]) => (
                     <div
                       key={key}
@@ -231,7 +237,7 @@ export default function SingleSales({
                       `}
                     >
                       <span>{key}</span>
-                      <span>{value}</span>
+                      <span>{formatAmount(value)}</span>
                     </div>
                   )
                 )}

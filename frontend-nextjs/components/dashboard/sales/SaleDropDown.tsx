@@ -9,7 +9,7 @@ import { CgMoreVertical } from 'react-icons/cg';
 import ConfirmModal from '../common/ConfirmationModal';
 import { downloadPdf } from '@/app/actions/download-actions';
 import { saveFile } from '@/lib/utils';
-import { SalesDetail } from '@/types/sales';
+import { SaleDetail } from '@/types/sales';
 import { deleteSale } from '@/app/actions/sale-actions';
 import JournalEntriesModal from './JournalEntriesModal';
 import PaymentModal from '../payments/PaymentModal';
@@ -17,12 +17,12 @@ import ReturnModal from '../returns/ReturnModal';
 
 type Props = {
   organisationId: string;
-  sales: SalesDetail;
+  sale: SaleDetail;
 };
 
-export default function SalesDropDown({
+export default function SaleDropDown({
   organisationId,
-  sales,
+  sale,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -57,10 +57,10 @@ export default function SalesDropDown({
         toast.error("Organisation id required", { id: toastId });
         return;
       }
-      const title = `Sales ${sales.serial_number}`
+      const title = `Sale ${sale.serial_number}`
       const res = await downloadPdf(
         organisationId,
-        sales,
+        sale,
         title,
       );
 
@@ -83,11 +83,11 @@ export default function SalesDropDown({
     try {
       const res = await deleteSale(
         organisationId,
-        sales.id
+        sale.id
       );
 
       if (res.success) {
-        toast.success('Sales deleted');
+        toast.success('Sale deleted');
 
         router.push(
           `/dashboard/${organisationId}/sales`
@@ -130,12 +130,12 @@ export default function SalesDropDown({
             </button>
             
             <Link
-              href={`/dashboard/${organisationId}/sales/${sales.id}/edit`}
+              href={`/dashboard/${organisationId}/sales/${sale.id}/edit`}
               className="block px-4 py-2 text-sm hover:bg-gray-50"
             >
               Edit
             </Link>
-            {(sales.journal_entries && sales?.journal_entries.length > 0) && (
+            {(sale.journal_entries && sale?.journal_entries.length > 0) && (
               <button
                 onClick={() => {
                   setShowJournalEntriesModal(true);
@@ -147,11 +147,11 @@ export default function SalesDropDown({
               </button>
             )}
 
-            {sales.details.type === 'invoice' &&
-              sales.invoice?.status &&
-              sales.invoice.status !== 'unpaid' && (
+            {sale.details.type === 'invoice' &&
+              sale.invoice?.status &&
+              sale.invoice.status !== 'unpaid' && (
                 <Link
-                  href={`/dashboard/${organisationId}/invoices/${sales.invoice.id}/payments`}
+                  href={`/dashboard/${organisationId}/invoices/${sale.invoice.id}/payments`}
                   className="block px-4 py-2 text-sm hover:bg-gray-50"
                 >
                   Payments
@@ -165,20 +165,20 @@ export default function SalesDropDown({
               }}
               className="w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-gray-50"
             >
-              Return Sales
+              Return Sale
             </button>
           
 
-             {sales.details.has_returns && (
+             {sale.details.has_returns && (
               <Link
-                href={`/dashboard/${organisationId}/sales/${sales.id}/returns`}
+                href={`/dashboard/${organisationId}/sales/${sale.id}/returns`}
                 className="block px-4 py-2 text-sm hover:bg-gray-50"
               >
-                Sales Returns
+                Sale Returns
               </Link>
             )}
 
-            {(sales.invoice && sales?.invoice?.amount_due > 0) && (
+            {(sale.invoice && sale?.invoice?.amount_due > 0) && (
               <button
                 onClick={() => {
                   setShowPaymentModal(true);
@@ -215,18 +215,18 @@ export default function SalesDropDown({
       {showJournalEntriesModal && <JournalEntriesModal
         open={showJournalEntriesModal}
         onClose={() => setShowJournalEntriesModal(false)}
-       journalEntries={sales.journal_entries}
-       journalTotals={sales?.journal_entries_total}
+       journalEntries={sale.journal_entries}
+       journalTotals={sale?.journal_entries_total}
       />}
-      {(sales.invoice && showPaymentModal) &&
-        <PaymentModal debitCreditType='debit' invoiceId={sales?.invoice?.id} open={showPaymentModal} onClose={() => setShowPaymentModal(false)} revalidateUrl={`sales/${sales.id}`}/>
+      {(sale.invoice && showPaymentModal) &&
+        <PaymentModal debitCreditType='debit' invoiceId={sale?.invoice?.id} open={showPaymentModal} onClose={() => setShowPaymentModal(false)} revalidateUrl={`sale/${sale.id}`}/>
       }
-        {(sales && showReturnModal) &&
+        {(sale && showReturnModal) &&
           <ReturnModal
-            stocks={sales.sales_entries.map((entry) => ({ id: entry?.id as string, name: entry.stock_name }))}
-            salesId={sales.id}
+            stocks={sale.sales_entries.map((entry) => ({ id: entry?.id as string, name: entry.stock_name }))}
+            salesId={sale.id}
             
-            type='sales' open={showReturnModal} onClose={() => setShowReturnModal(false)} revalidateUrl={`sales/${sales.id}`}/>
+            type='sales' open={showReturnModal} onClose={() => setShowReturnModal(false)} revalidateUrl={`sale/${sale.id}`}/>
       }
     </>
   );

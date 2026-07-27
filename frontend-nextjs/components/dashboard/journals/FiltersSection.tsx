@@ -23,6 +23,7 @@ export default function FiltersSection({
     customer = false,
     supplier = false,
     accountGroups = false,
+    noDownload = false,
 }: {
   filters: Filters;
   title: string;
@@ -34,6 +35,7 @@ export default function FiltersSection({
   supplier?: boolean;
   customer?: boolean;
   accountGroups?: boolean;
+  noDownload?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -71,6 +73,7 @@ export default function FiltersSection({
         resetFilters={resetFilters}
         removeFilter={removeFilter}
         downloadType={goToUrl}
+        noDownload={noDownload}
         modalButtons={actions
                     .filter((a) => a.show)
                     .map((action) => (

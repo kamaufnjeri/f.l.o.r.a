@@ -2,6 +2,7 @@ import { StockDetails } from "@/types"
 import Link from "next/link"
 import { FiEye } from "react-icons/fi"
 import StockDropDown from "./StockDropDown";
+import { formatAmount, formatQuantity } from "@/lib/utils";
 
 type Props = {
     organisationId: string;
@@ -83,17 +84,17 @@ export function SingleStock({ stock, organisationId, date }: Props) {
               {entry.details.description}
             </td>
 
-            <td className="p-3 text-right tabular-nums text-gray-900">
+            <td className={`p-3 text-right tabular-nums text-gray-900 ${entry.details.type === 'Closing Stock' ? 'font-bold border-t-2 border-b-2' : ''}`}>
               {(entry.details.type === "Sales" || entry.details.type === "Purchase Return") ? "(-)" : ""}
-              {entry.details.quantity}
+              {formatQuantity(entry.details.quantity)}
             </td>
 
             <td className="p-3 text-right tabular-nums text-gray-900">
-              {entry.details.rate}
+              {formatAmount(entry.details.rate)}
             </td>
 
             <td className="p-3 text-right tabular-nums text-gray-900">
-              {entry.details.total}
+              {formatAmount(entry.details.total)}
             </td>
             <td className="p-3 text-right">
               {entry.details?.url && (
@@ -144,12 +145,14 @@ export function SingleStock({ stock, organisationId, date }: Props) {
               {entry.name}
             </td>
 
-            <td className="p-3 text-right tabular-nums text-gray-900">
-            {entry.quantity}
+            <td className={`p-3 text-right tabular-nums text-gray-900 ${entry.name === 'Closing Stock' ? 'font-bold border-t-2 border-b-2' : ''}`}>
+            {(entry.name === "Sales" || entry.name === "Purchase Returns") ? "(-)" : ""}
+
+            {formatQuantity(entry.quantity)}
             </td>
 
             <td className="p-3 text-right tabular-nums text-gray-900">
-              {entry.amount}
+              {formatAmount(entry.amount)}
             </td>
             
           </tr>))}

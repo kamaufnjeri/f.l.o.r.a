@@ -16,6 +16,7 @@ type Props = {
   resetFilters: () => void;
   removeFilter: (key: string) => void;
   modalButtons: ReactNode;
+  noDownload?: boolean;
 };
 
 // function formatDate(date: string) {
@@ -41,6 +42,8 @@ export default function ActiveFiltersBar({
   downloadType,
   onOpen,
   resetFilters,
+      noDownload = false,
+
   modalButtons,
 }: Props) {
   const { currentOrg } = useAuthStore();
@@ -201,7 +204,7 @@ export default function ActiveFiltersBar({
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 
               {/* Download (PRIMARY) */}
-              <button
+              {!noDownload && <button
                 onClick={handleDownload}
                 className="
                   w-full sm:w-auto
@@ -219,7 +222,7 @@ export default function ActiveFiltersBar({
               >
                 Download PDF
               </button>
-
+}
               {/* Open Filters (SECONDARY) */}
               <button
                 onClick={onOpen}
@@ -256,7 +259,7 @@ export default function ActiveFiltersBar({
            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 
               {/* Download (PRIMARY) */}
-              <button
+             {!noDownload && <button
                 onClick={handleDownload}
                 className="
                   w-full sm:w-auto
@@ -274,7 +277,7 @@ export default function ActiveFiltersBar({
               >
                 Download PDF
               </button>
-
+}
               {/* Open Filters (SECONDARY) */}
               <button
                 onClick={onOpen}

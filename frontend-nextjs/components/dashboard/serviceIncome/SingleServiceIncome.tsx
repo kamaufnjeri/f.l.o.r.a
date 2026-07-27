@@ -1,6 +1,6 @@
 import { ServiceIncomeDetail } from "@/types/service-income";
 import ServiceIncomeDropDown from "./ServiceIncomeDropDown";
-import { normalizeWord } from "@/lib/utils";
+import { formatAmount, formatQuantity, normalizeWord } from "@/lib/utils";
 import PurchaseHeader from "../purchases/PurchaseHeader";
 
 type Props = {
@@ -53,7 +53,7 @@ export default function SingleServiceIncome({
               Total Quantity
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-900">
-              {serviceIncome.details.total_quantity}
+              {formatQuantity(serviceIncome.details.total_quantity)}
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function SingleServiceIncome({
               Total Amount
             </p>
             <p className="mt-2 text-lg font-semibold text-emerald-600">
-              {serviceIncome.details.total_amount}
+              {formatAmount(serviceIncome.details.total_amount)}
             </p>
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function SingleServiceIncome({
                       Amount Due
                     </p>
                     <p className="font-semibold text-red-600">
-                      {serviceIncome.invoice.amount_due}
+                      {formatAmount(serviceIncome.invoice.amount_due)}
                     </p>
                   </div>
                 </>
@@ -175,20 +175,38 @@ export default function SingleServiceIncome({
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      {entry.price}
+                      {formatAmount(entry.price)}
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      {entry.quantity}
+                      {formatQuantity(entry.quantity)}
                     </td>
 
                     <td className="px-6 py-4 text-right font-medium">
-                      {entry.service_income_total}
+                      {formatAmount(entry.service_income_total)}
                     </td>
                   </tr>
                 )
               )}
             </tbody>
+                <tfoot>
+  <tr className="border-t bg-slate-50 font-semibold">
+    <td
+      colSpan={3}
+      className="px-6 py-4 text-right text-slate-600"
+    >
+      Total
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-slate-900">
+      {formatQuantity(serviceIncome.details.total_quantity)}
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-emerald-600">
+      {formatAmount(serviceIncome.details.total_amount)}
+    </td>
+  </tr>
+</tfoot>
           </table>
         </div>
 
@@ -206,19 +224,7 @@ export default function SingleServiceIncome({
             </div>
 
             <div className="w-full max-w-md space-y-2">
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Quantity</span>
-                <span className="font-semibold">
-                  {serviceIncome.details.total_quantity}
-                </span>
-              </div>
-
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Amount</span>
-                <span className="font-semibold">
-                  {serviceIncome.details.total_amount}
-                </span>
-              </div>
+              
 
               {serviceIncome.details.footer_data &&
                 Object.entries(
@@ -241,7 +247,7 @@ export default function SingleServiceIncome({
                     `}
                   >
                     <span>{key}</span>
-                    <span>{value}</span>
+                    <span>{formatAmount(value)}</span>
                   </div>
                 ))}
             </div>

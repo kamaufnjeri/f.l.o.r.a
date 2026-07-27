@@ -209,3 +209,39 @@ export function groupEntries(entries: JournalEntry[]) {
     }
   );
 }
+
+export function formatAmount(amount: number | string | null | undefined) {
+  if (amount === null || amount === undefined) {
+    return "0.00";
+  }
+
+  const value = Number(amount);
+
+  if (value < 0) {
+    return `(${Math.abs(value).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })})`;
+  }
+
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export function formatQuantity(value?: number | string | null) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  const quantity = Number(value);
+
+  if (Number.isNaN(quantity)) {
+    return "-";
+  }
+
+  return quantity.toLocaleString("en-US", {
+    maximumFractionDigits: 0,
+  });
+}

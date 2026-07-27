@@ -17,18 +17,18 @@ class PurchaseReturnEntriesSerializer(serializers.ModelSerializer):
     purchase_return = serializers.CharField(write_only=True, required=False)
     stock_name = serializers.SerializerMethodField(read_only=True)
     return_price = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    quantity = serializers.SerializerMethodField(read_only=True)
+    stock_unit_alias = serializers.SerializerMethodField(read_only=True)
     purchase_entry = serializers.UUIDField()
 
     class Meta:
-        fields = ['purchase_return', 'purchase_entry', 'stock_name', 'return_price', 'quantity', 'return_quantity', 'id']
+        fields = ['purchase_return', 'purchase_entry', 'stock_name', 'return_price', 'stock_unit_alias', 'return_quantity', 'id']
         model = PurchaseReturnEntries
     
     def get_stock_name(self, obj):
         return obj.stock.name
     
-    def get_quantity(self, obj):
-        return f"{obj.return_quantity} {obj.stock.unit_alias}"
+    def get_stock_unit_alias(self, obj):
+        return obj.stock.unit_alias
     
 class DetailedPurchaseReturnEntriesSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -70,7 +70,7 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
         
         if purchase:
             serial_number = purchase.serial_number
-            url = f'purchases/{purchase.id}'
+            url = f'/purchases/{purchase.id}'
             
            
             stocks = [

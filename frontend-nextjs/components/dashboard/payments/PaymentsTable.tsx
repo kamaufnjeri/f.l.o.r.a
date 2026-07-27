@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, normalizeWord } from "@/lib/utils";
+import { capitalizeFirstLetter, formatAmount, normalizeWord } from "@/lib/utils";
 import { PaymentOverview, PaymentTotals } from "@/types";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
@@ -63,14 +63,14 @@ export default function PaymentsTable({
             </td>
 
             <td className="p-3 text-right tabular-nums font-medium">
-              {Number(
+              {formatAmount(
                 payment.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right">
               <Link
-                href={`/dashboard/${organisationId}${payment.details.url}`}
+                href={`/dashbhoard/${organisationId}${payment.details.url}`}
                 className="
                   inline-flex
                   items-center
@@ -94,14 +94,14 @@ export default function PaymentsTable({
 
         {totals && (
           <tr className="bg-gray-100 font-semibold">
-            <td colSpan={5} className="p-3 text-gray-800">
+            <td colSpan={4} className="p-3 text-gray-800">
               Totals
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_paid
-              ).toLocaleString()}
+              )}
             </td>
 
             <td />

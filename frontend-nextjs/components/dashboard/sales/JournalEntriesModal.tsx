@@ -4,6 +4,7 @@ import { JournalTotals } from "@/types/sales";
 import Modal from "../common/Modal";
 import ModalHeader from "../common/ModalHeader";
 import { JournalEntry } from "@/types/purchases";
+import { formatAmount } from "@/lib/utils";
 
 
 type Props = {
@@ -41,7 +42,7 @@ export default function JournalEntriesModal({
               </p>
 
               <p className="mt-2 text-2xl font-bold text-emerald-700">
-                {journalTotals.debit_total}
+                {formatAmount(journalTotals.debit_total)}
               </p>
             </div>
 
@@ -51,7 +52,7 @@ export default function JournalEntriesModal({
               </p>
 
               <p className="mt-2 text-2xl font-bold text-blue-700">
-                {journalTotals.credit_total}
+                {formatAmount(journalTotals.credit_total)}
               </p>
             </div>
           </div>
@@ -87,11 +88,11 @@ export default function JournalEntriesModal({
                       </td>
 
                       <td className="px-4 py-3 text-right tabular-nums text-emerald-600">
-                        {entry.debit_credit === "debit" ? entry.amount: "-"}
+                        {entry.debit_credit === "debit" ? formatAmount(entry.amount) : "-"}
                       </td>
 
                       <td className="px-4 py-3 text-right tabular-nums text-blue-600">
-                        {entry.debit_credit === "credit" ? entry.amount: "-"}
+                        {entry.debit_credit === "credit" ? formatAmount(entry.amount) : "-"}
                       </td>
                     </tr>
                   ))}
@@ -102,11 +103,11 @@ export default function JournalEntriesModal({
                     <td className="px-4 py-3">Total</td>
 
                     <td className="px-4 py-3 text-right text-emerald-700">
-                      {journalTotals.debit_total}
+                      {formatAmount(journalTotals.debit_total)}
                     </td>
 
                     <td className="px-4 py-3 text-right text-blue-700">
-                      {journalTotals.credit_total}
+                      {formatAmount(journalTotals.credit_total)}
                     </td>
                   </tr>
                 </tfoot>

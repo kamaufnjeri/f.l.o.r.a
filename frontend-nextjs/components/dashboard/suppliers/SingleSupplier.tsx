@@ -2,7 +2,7 @@ import { SupplierDetails } from "@/types"
 import Link from "next/link"
 import { FiEye } from "react-icons/fi"
 import SupplierDropDown from "./SupplierDropDown";
-import { normalizeWord } from "@/lib/utils";
+import { formatAmount, normalizeWord } from "@/lib/utils";
 
 type Props = {
     organisationId: string;
@@ -105,11 +105,11 @@ export function SingleSupplier({ supplier, organisationId, date }: Props) {
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {bill.amount_paid}
+                {formatAmount(bill.amount_paid)}
               </td>
 
               <td className="p-3 text-right tabular-nums text-gray-900">
-                {bill.amount_due}
+                {formatAmount(bill.amount_due)}
               </td>
 
               <td className="p-3 text-right">
@@ -141,16 +141,16 @@ export function SingleSupplier({ supplier, organisationId, date }: Props) {
           {/* TOTALS */}
           {supplier.supplier_data?.totals && (
             <tr className="bg-gray-100 font-semibold">
-              <td colSpan={7} className="p-3 text-gray-800">
+              <td colSpan={6} className="p-3 text-gray-800">
                 Totals
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {supplier.supplier_data.totals.amount_paid}
+                {formatAmount(supplier.supplier_data.totals.amount_paid)}
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {supplier.supplier_data.totals.amount_due}
+                {formatAmount(supplier.supplier_data.totals.amount_due)}
               </td>
 
               <td />

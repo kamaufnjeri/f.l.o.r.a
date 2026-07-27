@@ -473,21 +473,37 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
             data = request.data.copy()
             data['organisation'] = kwargs.get('organisation_id')
             instance = self.get_object()
-            if instance.name.strip().lower() not in map(str.lower, PERMANENT_ACCOUNTS) and \
-            instance.belongs_to.name.strip().lower() not in ('accounts receivable', 'accounts payable'):
+            account_name = instance.name.strip().lower()
+            sub_category_name = instance.belongs_to.name.strip().lower()
+
+            if sub_category_name in ('accounts receivable', 'accounts payable'):
+                raise serializers.ValidationError(
+                    f"Cannot update {instance.name}. This account is linked to "
+                    f"{'customers' if sub_category_name == 'accounts receivable' else 'suppliers'}."
+                )
+
+            if account_name not in map(str.lower, PERMANENT_ACCOUNTS):
                 serializer = self.get_serializer(instance, data=data, partial=partial)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
 
-                return Response({
-                    "message": "Account updated successfully.",
-                    "account": serializer.data,
-                    "select_options": select_options_data
-                } , status=status.HTTP_200_OK)
+                select_options_data = select_options.get_specific_select_options(
+                    organisation=request.user.current_org,
+                    add_accounts=True
+                )
+
+                return Response(
+                    {
+                        "message": "Account updated successfully.",
+                        "select_options": select_options_data
+                    },
+                    status=status.HTTP_200_OK
+                )
+
             else:
-                raise serializers.ValidationError("Cannot update account, it's a permanent account") 
-
+                raise serializers.ValidationError(
+                    "Cannot update account, it's a permanent account."
+                )
         except Account.DoesNotExist:
             return Response({
                 'error': 'Not Found',
@@ -524,16 +540,40 @@ class AccountDetailAPIView(generics.RetrieveAPIView):
                     break
 
             if not has_entries:
-                if instance.name.strip().lower() not in map(str.lower, PERMANENT_ACCOUNTS) and \
-                instance.belongs_to.name.strip().lower() not in ('accounts receivable', 'accounts payable'):
-                    instance.delete() 
-                    select_options_data =select_options.get_specific_select_options(organisation=request.user.current_org, add_accounts=True)
-            
-                    return Response({"message": "Account deleted successfully.", "select_options": select_options_data}, status=status.HTTP_200_OK)
+                account_name = instance.name.strip().lower()
+                sub_category_name = instance.belongs_to.name.strip().lower()
+
+                if sub_category_name in ('accounts receivable', 'accounts payable'):
+                    raise serializers.ValidationError(
+                        f"Cannot delete {instance.name}. This account is linked to "
+                        f"{'customers' if sub_category_name == 'accounts receivable' else 'suppliers'}."
+                    )
+
+                if account_name not in map(str.lower, PERMANENT_ACCOUNTS):
+                    instance.delete()
+
+                    select_options_data = select_options.get_specific_select_options(
+                        organisation=request.user.current_org,
+                        add_accounts=True
+                    )
+
+                    return Response(
+                        {
+                            "message": "Account deleted successfully.",
+                            "select_options": select_options_data
+                        },
+                        status=status.HTTP_200_OK
+                    )
+
                 else:
-                    raise serializers.ValidationError("Cannot delete account, it's a permanent account")
+                    raise serializers.ValidationError(
+                        "Cannot delete account, it's a permanent account."
+                    )
+
             else:
-                raise serializers.ValidationError("Cannot delete account with associated entries or non-zero closing balance.")
+                raise serializers.ValidationError(
+                    "Cannot delete account with associated entries or non-zero closing balance."
+    )
 
         except Account.DoesNotExist:
             return Response({

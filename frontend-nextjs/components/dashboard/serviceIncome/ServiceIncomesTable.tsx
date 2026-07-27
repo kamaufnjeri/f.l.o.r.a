@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter } from "@/lib/utils";
+import { capitalizeFirstLetter, formatAmount, formatQuantity } from "@/lib/utils";
 import { SalesOverview, SalesTotal } from "@/types";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
@@ -70,16 +70,16 @@ export default function ServiceIncomesTable({
               </td>
 
               <td className="p-3 text-right tabular-nums font-medium">
-                {Number(serviceIncome.details.total_amount).toLocaleString()}
+                {formatAmount(serviceIncome.details.total_amount)}
               </td>
 
               <td className="p-3 text-right tabular-nums">
-                {Number(serviceIncome.details.total_quantity).toLocaleString()}
+                {formatQuantity(serviceIncome.details.total_quantity)}
               </td>
 
               <td className="p-3 text-right tabular-nums">
                 {Number(serviceIncome.details.amount_due) > 0
-                  ? Number(serviceIncome.details.amount_due).toLocaleString()
+                  ? formatAmount(serviceIncome.details.amount_due)
                   : "—"}
               </td>
               
@@ -118,21 +118,21 @@ export default function ServiceIncomesTable({
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatQuantity(
                 totals.quantity
-              ).toLocaleString()}
+              )}
             </td>
 
             <td className="p-3 text-right tabular-nums">
-              {Number(
+              {formatAmount(
                 totals.amount_due
-              ).toLocaleString()}
+              )}
             </td>
           </tr>
         )}

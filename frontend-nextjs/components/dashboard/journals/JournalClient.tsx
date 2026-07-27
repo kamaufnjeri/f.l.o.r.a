@@ -10,7 +10,7 @@ import JournalEntries from "./JournalEntries";
 import { deleteJournal } from "@/app/actions/journal-actions";
 import { Journal } from "@/types";
 import { downloadPdf } from "@/app/actions/download-actions";
-import { saveFile } from "@/lib/utils";
+import { formatAmount, saveFile } from "@/lib/utils";
 import ConfirmModal from "../common/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useJournal } from "@/hooks/useJournal";
@@ -260,10 +260,10 @@ const handleDelete = async () => {
 
         <div className="flex gap-6 font-semibold">
           <span className="text-green-600">
-            Debit: {original?.journal_entries_total?.debit_total}
+            Debit: {formatAmount(original?.journal_entries_total?.debit_total)}
           </span>
           <span className="text-red-600">
-            Credit: {original?.journal_entries_total?.credit_total}
+            Credit: {formatAmount(original?.journal_entries_total?.credit_total)}
           </span>
         </div>
       </div>

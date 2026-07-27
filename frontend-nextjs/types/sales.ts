@@ -1,8 +1,9 @@
-export interface SalesEntry {
+export interface SaleEntry {
   id?: string;
   stock_name: string;
+  stock_unit_alias: string;
   sales_price: number;
-  quantity: number;
+  sold_quantity: number;
   total_sales_price: number;
 }
 
@@ -20,7 +21,7 @@ export interface InvoiceInfo {
   amount_due: number;
 }
 
-export interface SalesDetails {
+export interface SaleDetails {
   type: string;
   total_quantity: number;
   total_amount: number;
@@ -33,17 +34,17 @@ export interface JournalTotals {
   credit_total: number;
 }
 
-export interface SalesDetail {
+export interface SaleDetail {
   id: string;
   serial_number: string;
   date: string;
   description: string;
 
-  details: SalesDetails;
+  details: SaleDetails;
 
   invoice?: InvoiceInfo;
 
-  sales_entries: SalesEntry[];
+  sales_entries: SaleEntry[];
 
   journal_entries: JournalEntry[];
 

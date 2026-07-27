@@ -6,7 +6,7 @@ from .purchase_return_entries import PurchaseReturnEntriesManager
 from .flatten_error import flatten_errors
 from .email_sending import send_email
 from .get_serial_number import serial_numbers
-from .filtering import date_filtering, sort_filtering, due_days_filtering, status_filtering, get_date_description_type_url
+from .filtering import date_filtering, sort_filtering, due_days_filtering, status_filtering, get_date_description_type_url, created_at_filtering
 from .token import token_uid
 from .service_income_entries import ServiceIncomeEntriesManager
 from .stock_utils import StockUtils

@@ -8,7 +8,7 @@ import ModalHeader from "../common/ModalHeader";
 import DateFilter from "./DateFilter";
 import SortFilter from "./SortFilter";
 import InputField from "./InputField";
-import { dueDaysOptions, paymentTypes, purchaseType, salesType, sortOptions, statusOptions } from "@/constants";
+import { auditActionOptions, auditModelOptions, dueDaysOptions, paymentTypes, purchaseType, salesType, sortOptions, statusOptions } from "@/constants";
 import SelectFilter from "./SelectFilter";
 
 type Filters = Record<string, string>;
@@ -158,6 +158,22 @@ export default function FiltersModal({
                     name={key}
                     options={statusOptions}
                     placeholder='Select Status'
+                  />
+                ) : includesAny(key, ['action']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={auditActionOptions}
+                    placeholder='Select Action'
+                  />
+                ) : includesAny(key, ['model_name']) ? (
+                  <SelectFilter 
+                    value={value} 
+                    onChange={(v) => setField(key, v)} 
+                    name={key}
+                    options={auditModelOptions}
+                    placeholder='Select Model'
                   />
                 ) : (
                    <InputField

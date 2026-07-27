@@ -69,7 +69,8 @@ export default function Sidebar() {
         activeDropdown={activeDropdown}
         setActiveDropdown={setActiveDropdown}
         currentOrg={currentOrg}
-        
+        user={user}
+
       />
     </SidebarShell>
   );

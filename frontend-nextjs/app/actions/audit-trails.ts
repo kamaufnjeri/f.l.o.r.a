@@ -5,7 +5,7 @@ import { formatApiError } from "@/lib/utils";
 
 const backendURL = process.env.BACKEND_URL;
 
-export async function getAuditTrails(orgId: string, params: { page?: string }) {
+export async function getAuditTrails(orgId: string, params: { page?: string, date?: string, action?: string, sort_by?: string, model_name?: string }) {
   try {
     if (!orgId) {
       return {
@@ -21,6 +21,20 @@ export async function getAuditTrails(orgId: string, params: { page?: string }) {
     query.set("paginate", "true");
 
     if (params.page) query.set("page", params.page);
+    if (params.page) query.set("page", params.page);
+
+    if (params.action && params.action !== "all") {
+      query.set("action", params.action);
+    }
+
+    if (params.model_name && params.model_name !== "all") {
+      query.set("model_name", params.model_name);
+    }
+
+
+    if (params.date) query.set("date", params.date);
+
+    if (params.sort_by) query.set("sort_by", params.sort_by);
 
   
 

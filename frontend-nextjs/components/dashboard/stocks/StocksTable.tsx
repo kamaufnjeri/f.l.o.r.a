@@ -1,3 +1,4 @@
+import { formatQuantity } from "@/lib/utils";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
 
@@ -54,7 +55,7 @@ export default function StocksTable({
                
 
                 <td className="p-3 text-right tabular-nums text-gray-900">
-                    {stock.total_quantity}
+                    {formatQuantity(stock.total_quantity)}
                 </td>
                 {/* DESCRIPTION ROW */}
                 <td className="text-right">
@@ -90,7 +91,7 @@ export default function StocksTable({
               </td>
               
               <td className="p-3 text-right tabular-nums">
-                {totals.quantity}
+                {formatQuantity(totals.quantity)}
               </td>
             </tr>
           </tbody>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
 import { AccountItem as Account } from "@/types";
+import { formatAmount } from "@/lib/utils";
 
 
 
@@ -52,7 +53,7 @@ export default function AccountTable({
                 </td>
 
                 <td className="p-3 text-right tabular-nums text-gray-900">
-                    {account.account_balance}
+                    {formatAmount(account.account_balance)}
                 </td>
                 {/* DESCRIPTION ROW */}
                 <td className="text-right">
@@ -88,7 +89,7 @@ export default function AccountTable({
               </td>
               
               <td className="p-3 text-right tabular-nums">
-                {totals.balance}
+                {formatAmount(totals.balance)}
               </td>
             </tr>
           </tbody>

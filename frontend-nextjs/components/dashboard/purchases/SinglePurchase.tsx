@@ -1,6 +1,6 @@
 import { PurchaseDetail } from "@/types/purchases";
 import PurchaseDropDown from "./PurchaseDropDown";
-import { normalizeWord } from "@/lib/utils";
+import { formatAmount, formatQuantity, normalizeWord } from "@/lib/utils";
 import PurchaseHeader from "./PurchaseHeader";
 
 type Props = {
@@ -53,7 +53,7 @@ export default function SinglePurchase({
               Total Quantity
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-900">
-              {purchase.details.total_quantity}
+              {formatQuantity(purchase.details.total_quantity)}
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function SinglePurchase({
               Total Amount
             </p>
             <p className="mt-2 text-lg font-semibold text-emerald-600">
-              {purchase.details.total_amount}
+              {formatAmount(purchase.details.total_amount)}
             </p>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function SinglePurchase({
                   <div>
                     <p className="text-xs text-slate-500">Amount Due</p>
                     <p className="font-semibold text-red-600">
-                      {purchase.bill.amount_due}
+                      {formatAmount(purchase.bill.amount_due)}
                     </p>
                   </div>
                 </>
@@ -166,19 +166,38 @@ export default function SinglePurchase({
                   </td>
 
                   <td className="px-6 py-4 text-right tabular-nums">
-                    {entry.purchase_price}
+                    {formatAmount(entry.purchase_price)}
                   </td>
 
                   <td className="px-6 py-4 text-right tabular-nums">
-                    {entry.quantity}
+                    {formatQuantity(entry.purchased_quantity)} {entry.stock_unit_alias}
                   </td>
 
                   <td className="px-6 py-4 text-right font-medium tabular-nums">
-                    {entry.total_purchase_price}
+                    {formatAmount(entry.total_purchase_price)}
                   </td>
                 </tr>
               ))}
             </tbody>
+           <tfoot>
+  <tr className="border-t bg-slate-50 font-semibold">
+    <td
+      colSpan={3}
+      className="px-6 py-4 text-right text-slate-600"
+    >
+      Total
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-slate-900">
+      {formatQuantity(purchase.details.total_quantity)}
+    </td>
+
+    <td className="px-6 py-4 text-right tabular-nums text-emerald-600">
+      {formatAmount(purchase.details.total_amount)}
+    </td>
+  </tr>
+</tfoot>
+
           </table>
         </div>
 
@@ -196,19 +215,7 @@ export default function SinglePurchase({
             </div>
 
             <div className="w-full max-w-md space-y-2">
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Quantity</span>
-                <span className="font-semibold">
-                  {purchase.details.total_quantity}
-                </span>
-              </div>
-
-              <div className="flex justify-between rounded-xl bg-white p-3">
-                <span>Total Amount</span>
-                <span className="font-semibold">
-                  {purchase.details.total_amount}
-                </span>
-              </div>
+             
 
               {purchase.details.footer_data &&
                 Object.entries(purchase.details.footer_data).map(
@@ -230,7 +237,7 @@ export default function SinglePurchase({
                       `}
                     >
                       <span>{key}</span>
-                      <span>{value}</span>
+                      <span>{formatAmount(value)}</span>
                     </div>
                   )
                 )}
