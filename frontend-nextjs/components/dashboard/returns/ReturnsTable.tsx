@@ -79,7 +79,7 @@ export default function ReturnTable({
                     </td>
 
                     <td className="p-3 text-right tabular-nums">
-                      {formatQuantity(entry.return_quantity)}
+                      {formatQuantity(entry.return_quantity)} {entry.stock_unit_alias}
                     </td>
 
                     <td className="p-3 text-right tabular-nums font-medium">

@@ -618,6 +618,7 @@ export interface ReturnOverview {
   return_entries: {
     return_price: string | number;
     return_quantity: string | number;
+    stock_unit_alias: string;
     stock_name: string;
   }[];
 }

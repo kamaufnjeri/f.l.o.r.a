@@ -26,6 +26,7 @@ export default function CreateOrgModal({
 }: {
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [resetKey, setResetKey] = useState(0);
 
@@ -55,6 +56,10 @@ export default function CreateOrgModal({
         // if your action returns the created org
         if (res.data) {
           const user = res.data;
+          if (user.current_organisation?.id) {
+            router.push(`/dashboard/${user.current_organisation.id}`);
+          }
+
           setUser(user);
           setCurrentOrg(user.current_organisation ?? null);
           setUserOrgs(user.user_organisations ?? []);

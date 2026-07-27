@@ -1,5 +1,6 @@
 "use client";
 
+import { User } from "@/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -11,7 +12,10 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function Header() {
+type Props = {
+  user: User | null;
+}
+export default function Header({ user }: Props) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -53,20 +57,36 @@ export default function Header() {
 
         {/* CTA */}
         <div className="hidden md:flex gap-3">
-          <Link
-            href="/sign-in"
-            className="px-4 py-2 rounded-xl border border-border hover:border-primary transition"
-          >
-            Sign In
-          </Link>
+  {user ? (
+    <Link
+      href={
+        user.current_organisation?.id
+          ? `/dashboard/${user.current_organisation.id}`
+          : "/dashboard/organisation-create"
+      }
+      className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition"
+    >
+      Dashboard
+    </Link>
+  ) : (
+    <>
+      <Link
+        href="/sign-in"
+        className="px-4 py-2 rounded-xl border border-border hover:border-primary transition"
+      >
+        Sign In
+      </Link>
 
-          <Link
-            href="/sign-up"
-            className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition"
-          >
-            Get Started
-          </Link>
-        </div>
+      <Link
+        href="/sign-up"
+        className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition"
+      >
+        Get Started
+      </Link>
+    </>
+  )}
+</div>
+
 
         {/* MOBILE BUTTON */}
         <button
@@ -100,19 +120,36 @@ export default function Header() {
           })}
 
           <div className="pt-3 flex gap-2">
-            <Link
-              href="/sign-in"
-              className="flex-1 text-center px-3 py-2 border rounded-lg"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-lg"
-            >
-              Start
-            </Link>
-          </div>
+  {user ? (
+    <Link
+      href={
+        user.current_organisation?.id
+          ? `/dashboard/${user.current_organisation.id}`
+          : "/dashboard/organisation-create"
+      }
+      className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-lg"
+    >
+      Dashboard
+    </Link>
+  ) : (
+    <>
+      <Link
+        href="/sign-in"
+        className="flex-1 text-center px-3 py-2 border rounded-lg"
+      >
+        Sign In
+      </Link>
+
+      <Link
+        href="/sign-up"
+        className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-lg"
+      >
+        Start
+      </Link>
+    </>
+  )}
+</div>
+
         </div>
       )}
     </header>
