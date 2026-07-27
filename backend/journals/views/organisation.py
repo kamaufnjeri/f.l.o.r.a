@@ -87,14 +87,14 @@ class OrganisationApiView(generics.CreateAPIView):
         try:
             serializer_data = request.data.copy()
             serializer_data['organisation'] = kwargs.get('organisation_id')
-            serializer_data['user'] = request.user.id
-            serializer = self.serializer_class(data=serializer_data)
+            serializer = self.get_serializer(data=serializer_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             
             user_data = FloraUserSerializer(request.user).data
             return Response(user_data, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
+            raise e
             errors = flatten_errors(e.detail)
             print(f"Validation Error: {e.detail}") 
             return Response({

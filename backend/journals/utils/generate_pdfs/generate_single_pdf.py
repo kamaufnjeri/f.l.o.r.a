@@ -36,7 +36,9 @@ class GenerateSinglePDF:
             'data': self.data,
             'date': self.generated_date,
             'time': self.generated_time,
-            "css_path": self.css_path
+            "css_path": self.css_path,
+            "format_amount": self.format_amount,
+            "format_quantity": self.format_quantity,
         }
 
         html_content = template.render(context)
@@ -92,5 +94,28 @@ class GenerateSinglePDF:
     
     def capitalize(self, name):
         return name.title().replace('_', ' ')
-    
+
+    def format_amount(self, value):
+        if value is None:
+            return "-"
+
+        value = float(value)
+
+        if value < 0:
+            return f"({abs(value):,.2f})"
+
+        return f"{value:,.2f}"
+
+
+    def format_quantity(self, value):
+        if value is None:
+            return "-"
+
+        value = float(value)
+
+        # no decimals for quantities
+        return f"{value:,.0f}"
+
+            
+
    

@@ -59,171 +59,171 @@
     </aside>
 
 
-    <section>
+   <section>
 
-        <table>
+    <table>
 
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Debit ({{ organisation.currency }})</th>
-                    <th>Credit ({{ organisation.currency }})</th>
-                </tr>
-            </thead>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Debit ({{ organisation.currency }})</th>
+                <th>Credit ({{ organisation.currency }})</th>
+            </tr>
+        </thead>
 
-            <tbody>
+        <tbody>
 
-                {% for group in data.fixed_groups %}
+            {% for group in data.fixed_groups %}
 
-                <!-- FIXED GROUP -->
+            <!-- FIXED GROUP -->
 
-                <tr style="background:#dbeafe;font-weight:bold;">
-                    <td>{{ group.name }}</td>
+            <tr style="background:#dbeafe;font-weight:bold;">
+                <td>{{ group.name }}</td>
 
-                    <td style="text-align:right">
-                        {% if group.balance_type == "debit" %}
-                        {{ group.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if group.balance_type == "debit" %}
+                    {{ format_amount(group.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if group.balance_type == "credit" %}
-                        {{ group.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if group.balance_type == "credit" %}
+                    {{ format_amount(group.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% for category in group.categories %}
+            {% for category in group.categories %}
 
-                <!-- CATEGORY -->
+            <!-- CATEGORY -->
 
-                <tr style="background:#eef2ff;font-weight:bold;">
-                    <td style="padding-left:18px;">
-                        {{ category.name }}
-                    </td>
+            <tr style="background:#eef2ff;font-weight:bold;">
+                <td style="padding-left:18px;">
+                    {{ category.name }}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if category.balance_type == "debit" %}
-                        {{ category.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if category.balance_type == "debit" %}
+                    {{ format_amount(category.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if category.balance_type == "credit" %}
-                        {{ category.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if category.balance_type == "credit" %}
+                    {{ format_amount(category.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% for sub in category.sub_categories %}
+            {% for sub in category.sub_categories %}
 
-                <!-- SUB CATEGORY -->
+            <!-- SUB CATEGORY -->
 
-                <tr style="background:#f8fafc;">
-                    <td style="padding-left:36px;font-weight:bold;">
-                        {{ sub.name }}
-                    </td>
+            <tr style="background:#f8fafc;">
+                <td style="padding-left:36px;font-weight:bold;">
+                    {{ sub.name }}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if sub.balance_type == "debit" %}
-                        {{ sub.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if sub.balance_type == "debit" %}
+                    {{ format_amount(sub.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if sub.balance_type == "credit" %}
-                        {{ sub.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if sub.balance_type == "credit" %}
+                    {{ format_amount(sub.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% for account in sub.accounts %}
+            {% for account in sub.accounts %}
 
-                <!-- ACCOUNT -->
+            <!-- ACCOUNT -->
 
-                <tr>
+            <tr>
 
-                    <td style="padding-left:60px;">
-                        {{ account.name }}
-                    </td>
+                <td style="padding-left:60px;">
+                    {{ account.name }}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if account.balance_type == "debit" %}
-                        {{ account.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if account.balance_type == "debit" %}
+                    {{ format_amount(account.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                    <td style="text-align:right">
-                        {% if account.balance_type == "credit" %}
-                        {{ account.amount }}
-                        {% else %}
-                        -
-                        {% endif %}
-                    </td>
+                <td style="text-align:right">
+                    {% if account.balance_type == "credit" %}
+                    {{ format_amount(account.amount) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% endfor %}
-                {% endfor %}
-                {% endfor %}
-                {% endfor %}
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
 
-                <!-- TOTAL -->
+            <!-- TOTAL -->
 
-                <tr style="font-weight:bold;background:#d1d5db;">
+            <tr style="font-weight:bold;background:#d1d5db;">
 
-                    <td style="text-align:right;">
-                        Total
-                    </td>
+                <td style="text-align:right;">
+                    Total
+                </td>
 
-                    <td style="text-align:right;">
-                        {{ data.totals.debit }}
-                    </td>
+                <td style="text-align:right;">
+                    {{ format_amount(data.totals.debit) }}
+                </td>
 
-                    <td style="text-align:right;">
-                        {{ data.totals.credit }}
-                    </td>
+                <td style="text-align:right;">
+                    {{ format_amount(data.totals.credit) }}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% if data.totals.debit != data.totals.credit %}
+            {% if data.totals.debit != data.totals.credit %}
 
-                <tr style="background:#fef2f2;color:#991b1b;font-weight:bold;">
+            <tr style="background:#fef2f2;color:#991b1b;font-weight:bold;">
 
-                    <td style="text-align:right;">
-                        Difference
-                    </td>
+                <td style="text-align:right;">
+                    Difference
+                </td>
 
-                    <td colspan="2" style="text-align:right;">
-                        {{ (data.totals.debit - data.totals.credit)|abs }}
-                    </td>
+                <td colspan="2" style="text-align:right;">
+                    {{ format_amount((data.totals.debit - data.totals.credit)|abs) }}
+                </td>
 
-                </tr>
+            </tr>
 
-                {% endif %}
+            {% endif %}
 
-            </tbody>
+        </tbody>
 
-        </table>
+    </table>
 
-    </section>
+</section>
 
 
     <footer>

@@ -20,7 +20,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'error': 'Request context not available'})
             user = request.user
 
-            organisation = Organisation.objects.create(org_admin=user, **validated_data)
+            organisation = Organisation.objects.create(super_admin=user, **validated_data)
 
 
             for data in INITIAL_DATA:

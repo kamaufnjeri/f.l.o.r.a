@@ -66,12 +66,12 @@
             <tbody>
                 {% for payment in data.get('payments') %}
                 {% set col = loop.index %}
-                {%set row_span = payment.get('journal_entries') | length + 1 %}
+                {%set row_span = payment.get('journal_entries') | length %}
 
                 {% for entry in payment.get('journal_entries') %}
                 <tr>
                     {% if loop.index == 1 %}
-                    <td rowspan="{{ row_span }}">{{ col }}</td>
+                    <td rowspan="{{ row_span + 1}}">{{ col }}</td>
                     <td rowspan="{{ row_span }}">{{ payment.get('date') }}</td>
                     <td rowspan="{{ row_span }}">{{ payment.get('details').get('type').title() }}</td>
 
@@ -98,16 +98,26 @@
                         -
                         {% endif %}
                     </td>
-                    {% if loop.index == 1 %}
-
-                    <td rowspan="{{ row_span }}" style="text-align: right;">{{ payment.get('amount_paid' )}}</td>
-
-                    {% endif %}
+                    
                 </tr>
                 {% endfor %}
+                 <tr style="font-weight: bold; ">
+                    <td colspan="4" style="text-align: center;background-color: #eceef1;"><i>({{ payment.get('description') }})</i></td>
+
+                   
+                    <td style="text-align: right;background-color: #eceef1;">
+                        {{ format_amount(payment.get('journal_entries_total').get('debit_total')) }}
+                    </td>
+                <td style="text-align: right;background-color: #eceef1;">
+                    {{ format_amount(payment.get('journal_entries_total').get('credit_total')) }}
+                </td>
+                 <td style="text-align: right;background-color: #eceef1;">
+                    {{ format_amount(payment.get('amount_paid')) }}
+                </td>
+            </tr>
+
                 <tr >
 
-                    <td colspan="4" style="text-align: center;"><i>({{ payment.get('description') }})</i></td>
 
                 </tr>
 

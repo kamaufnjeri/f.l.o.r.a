@@ -68,59 +68,115 @@
     </aside>
 
     <section>
-        <table>
-            <thead>
-                <tr>
-                    <th>No #</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th colspan="2">Details</th>
-                    <th>Debit ({{ organisation.currency }})</th>
-                    <th>Credit ({{ organisation.currency }})</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if data.get('account_data').get('entries')%}
-                {% for entry in data.get('account_data').get('entries') %}
-                
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ entry.get('details').get('date') }}</td>
-                    <td>{{ entry.get('details').get('type') }}</td>
-                    <td colspan="2">{{ entry.get('details').get('description')}} </td>
+    <table>
+        <thead>
+            <tr>
+                <th>No #</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th colspan="2">Details</th>
+                <th>Debit ({{ organisation.currency }})</th>
+                <th>Credit ({{ organisation.currency }})</th>
+            </tr>
+        </thead>
 
-                    {% if entry.get('debit_credit') == 'debit' %}
-                    <td style="text-align: right;">{{ entry.get('amount') }}</td>
-                    <td style="text-align: right;">-</td>
-                    {% else %}
-                    <td style="text-align: right;">-</td>
-                    <td style="text-align: right;">{{ entry.get('amount') }}</td>
-                    {% endif %}  
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% set totals = data.get('account_data').get('totals') %}
+        <tbody>
 
-                {% if totals %}
-                <tr style="font-weight: bold; background-color: #d1d5db;">
-                    <td colspan="5" style="text-align: right;">Total</td>
-                    <td style="text-align: right;">{{ totals.get('debit') }}</td>
-                    <td style="text-align: right;">{{ totals.get('credit') }}</td>
-                </tr>
-                <tr style="font-weight: bold; background-color: #60A5FA;">
-                    <td colspan="5" style="text-align: right;">Balance</td>
-                    {% if totals.get('closing').get('debit_credit') == 'debit' %}
-                    <td style="text-align: right;">{{ totals.get('closing').get('amount') }}</td>
-                    <td style="text-align: right;">&nbsp;</td>
-                    {% else %}
-                    <td style="text-align: right;">&nbsp;</td>
-                    <td style="text-align: right;">{{ totals.get('closing').get('amount') }}</td>
-                    {% endif %}
-                </tr>
+            {% if data.get('account_data').get('entries')%}
+
+            {% for entry in data.get('account_data').get('entries') %}
+
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ entry.get('details').get('date') }}</td>
+                <td>{{ entry.get('details').get('type') }}</td>
+                <td colspan="2">{{ entry.get('details').get('description')}}</td>
+
+                {% if entry.get('debit_credit') == 'debit' %}
+
+                <td style="text-align: right;">
+                    {{ format_amount(entry.get('amount')) }}
+                </td>
+
+                <td style="text-align: right;">-</td>
+
+                {% else %}
+
+                <td style="text-align: right;">-</td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(entry.get('amount')) }}
+                </td>
+
                 {% endif %}
-            </tbody>
-        </table>
-    </section>
+
+            </tr>
+
+            {% endfor %}
+
+            {% endif %}
+
+
+            {% set totals = data.get('account_data').get('totals') %}
+
+
+            {% if totals %}
+
+            <tr style="font-weight: bold; background-color: #d1d5db;">
+
+                <td colspan="5" style="text-align: right;">
+                    Total
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(totals.get('debit')) }}
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(totals.get('credit')) }}
+                </td>
+
+            </tr>
+
+
+            <tr style="font-weight: bold; background-color: #60A5FA;">
+
+                <td colspan="5" style="text-align: right;">
+                    Balance
+                </td>
+
+
+                {% if totals.get('closing').get('debit_credit') == 'debit' %}
+
+                <td style="text-align: right;">
+                    {{ format_amount(totals.get('closing').get('amount')) }}
+                </td>
+
+                <td style="text-align: right;">
+                    &nbsp;
+                </td>
+
+
+                {% else %}
+
+                <td style="text-align: right;">
+                    &nbsp;
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(totals.get('closing').get('amount')) }}
+                </td>
+
+                {% endif %}
+
+            </tr>
+
+            {% endif %}
+
+        </tbody>
+    </table>
+</section>
+
    
     <footer>
         <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>

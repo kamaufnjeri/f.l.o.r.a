@@ -46,66 +46,87 @@
 
 </aside>
 
-    <section>
-        <table>
-            <thead>
+ <section>
+    <table>
+        <thead>
+            <tr>
+                <th>Journal #</th>
+                <th>Date</th>
+                <th colspan="2">Description</th>
+                <th>Debit ({{ organisation.currency }})</th>
+                <th>Credit ({{ organisation.currency }})</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for journal in data.get('journals') %}
+            {% set row_span = journal.get('journal_entries') | length + 1 %}
+
+                {% for entry in journal.get('journal_entries') %}
                 <tr>
-                    <th>Journal #</th>
-                    <th>Date</th>
-                    <th colspan="2">Description</th>
-                    <th>Debit ({{ organisation.currency }})</th>
-                    <th>Credit ({{ organisation.currency }})</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for journal in data.get('journals') %}
-                {%set row_span = journal.get('journal_entries') | length + 1 %}
+                    {% if loop.index == 1 %}
+                        <td rowspan="{{ row_span }}">
+                            {{ journal.get('serial_number') }}
+                        </td>
 
-                    {% for entry in journal.get('journal_entries') %}
-                    <tr>
-                        {% if loop.index == 1 %}
-                            <td rowspan="{{ row_span }}">{{ journal.get('serial_number') }}</td>
-                            <td rowspan="{{ row_span }}">{{ journal.get('date') }}</td>
-                        
+                        <td rowspan="{{ row_span }}">
+                            {{ journal.get('date') }}
+                        </td>
+                    {% endif %}
+
+                    {% if entry.get('debit_credit') == "debit" %}
+                        <td colspan="2">
+                            {{ entry.get('account_name') }}
+                        </td>
+                    {% else %}
+                        <td colspan="2" style="padding-left: 15px;">
+                            {{ entry.get('account_name') }}
+                        </td>
+                    {% endif %}
+
+                    <td style="text-align: right;">
+                        {% if entry.get('debit_credit') == "debit" %}
+                            {{ format_amount(entry.get('amount')) }}
+                        {% else %}
+                            -
                         {% endif %}
+                    </td>
 
-                        
-                            {% if entry.get('debit_credit') == "debit" %}
-                                <td colspan="2">{{ entry.get('account_name') }}</td>
-                            {% else %}
-                                <td colspan="2" style="padding-left: 15px;">{{ entry.get('account_name') }}</td>
-                            {% endif %}
-                        
-                        <td  style="text-align: right;">
-                            {% if entry.get('debit_credit') == "debit" %}
-                                {{ entry.get('amount') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td  style="text-align: right;">
-                            {% if entry.get('debit_credit') == "credit" %}
-                                {{ entry.get('amount') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    <tr class="text-center">
-                        <td colspan="4"><i>({{ journal.get('description') }})</i></td>
-                    </tr>
-                   
-                {% endfor %}
-                
-                <tr style="font-weight: bold; background-color: #d1d5db;">
-                    <td colspan="4" style="text-align: right;">Total</td>
-                    <td  style="text-align: right;">{{ data.get('totals').get('debit_total') }}</td>
-                    <td  style="text-align: right;">{{ data.get('totals').get('credit_total') }}</td>
+                    <td style="text-align: right;">
+                        {% if entry.get('debit_credit') == "credit" %}
+                            {{ format_amount(entry.get('amount')) }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                 </tr>
-            </tbody>
-        </table>
-    </section>
+                {% endfor %}
+
+                <tr class="text-center">
+                    <td colspan="4">
+                        <i>({{ journal.get('description') }})</i>
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            <tr style="font-weight: bold; background-color: #d1d5db;">
+                <td colspan="4" style="text-align: right;">
+                    Total
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(data.get('totals').get('debit_total')) }}
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(data.get('totals').get('credit_total')) }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
     <footer>
         <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>
     </footer>

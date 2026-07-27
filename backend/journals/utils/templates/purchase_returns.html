@@ -49,62 +49,94 @@
 
 </aside>
 
+<section>
+    <table>
+        <thead>
+            <tr>
+                <th>Return #</th>
+                <th>Purchase #</th>
+                <th>Date</th>
+                <th colspan="2">Items</th>
+                <th>Return Price ({{ organisation.currency }})</th>
+                <th>Quantity</th>
+                <th>Total ({{ organisation.currency }})</th>
+            </tr>
+        </thead>
 
-    <section>
-        <table>
-            <thead>
-                <tr>
-                    <th>Return #</th>
-                    <th>Purchase #</th>
-                    <th>Date</th>
-                    <th colspan="2">Items</th>
-                    <th>Return Price ({{ organisation.currency }})</th>
-                    <th>Quantity</th>
-                    <th>Total ({{ organisation.currency }})</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for return in data.get('purchase_returns') %}
-                {% set col = loop.index %}
-                {% set row_span = return.get('return_entries')|length + 1 %}
+        <tbody>
+            {% for return in data.get('purchase_returns') %}
+            {% set col = loop.index %}
+            {% set row_span = return.get('return_entries')|length + 1 %}
 
-                    {% for entry in return.get('return_entries') %}
-                        
-                        <tr>
-                            {% if loop.index == 1 %}
-                                <td rowspan="{{ row_span }}">{{ col }}</td>
-                                <td rowspan="{{ row_span }}">{{ return.get('details').get('serial_number') }}</td>
-                                <td rowspan="{{ row_span }}">{{ return.get('date') }}</td>
-                            {% endif %}
-                            <td colspan="2">{{ entry.get('stock_name') }}</td>
-                            <td style="text-align: right;">{{ entry.get('return_price') }}</td>
-                            <td style="text-align: right;">{{ entry.get('quantity') }}</td>
-                            <td style="text-align: right;">
-                                {% set total = entry.return_price | float * entry.return_quantity | float %}
-                                {{ total }}
-                            </td>
-                        </tr>
-                    {% endfor %}
+                {% for entry in return.get('return_entries') %}
+                    
                     <tr>
-                                     
-                        <td colspan="3" style="text-align: right; display: flex; gap: 8px;">
-                            <i>({{ return.get('description') }})</i>
-                            <span style="text-decoration: underline;">Total</span>
-                            <span>&nbsp;</span>
-                        </td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_quantity') }}</td>
-                        <td style="text-align: right; text-decoration: underline;">{{ return.get('details').get('total_amount') }}</td>
-                    </tr>
-                {% endfor %}
-                <tr  style="font-weight: bold; background-color: #d1d5db;">
-                    <td colspan="6" style="text-align: right;">Total</td>
-                    <td style="text-align: right;">{{ data.get('totals').get('quantity') }}</td>
-                    <td style="text-align: right;">{{ data.get('totals').get('amount') }}</td>
+                        {% if loop.index == 1 %}
+                            <td rowspan="{{ row_span }}">{{ col }}</td>
+                            <td rowspan="{{ row_span }}">
+                                {{ return.get('details').get('serial_number') }}
+                            </td>
+                            <td rowspan="{{ row_span }}">
+                                {{ return.get('date') }}
+                            </td>
+                        {% endif %}
 
+                        <td colspan="2">
+                            {{ entry.get('stock_name') }}
+                        </td>
+
+                        <td style="text-align: right;">
+                            {{ format_amount(entry.get('return_price')) }}
+                        </td>
+
+                        <td style="text-align: right;">
+                            {{ format_quantity(entry.get('return_quantity')) }}
+                            {{ entry.get('stock_unit_alias') }}
+                        </td>
+
+                        <td style="text-align: right;">
+                            {% set total = entry.return_price | float * entry.return_quantity | float %}
+                            {{ format_amount(total) }}
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                <tr>
+                    <td colspan="3" style="text-align: right;">
+                        <i>({{ return.get('description') }})</i>
+                        <span style="text-decoration: underline;"> Total</span>
+                    </td>
+
+                    <td style="text-align: right; text-decoration: underline;">
+                        {{ format_quantity(return.get('details').get('total_quantity')) }}
+                    </td>
+
+                    <td style="text-align: right; text-decoration: underline;">
+                        {{ format_amount(return.get('details').get('total_amount')) }}
+                    </td>
                 </tr>
-            </tbody>
-        </table>
-    </section>
+
+            {% endfor %}
+
+            <tr style="font-weight: bold; background-color: #d1d5db;">
+                <td colspan="6" style="text-align: right;">
+                    Total
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_quantity(data.get('totals').get('quantity')) }}
+                </td>
+
+                <td style="text-align: right;">
+                    {{ format_amount(data.get('totals').get('amount')) }}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+
 
     <footer>
         <p>&copy; Generated by {{ user.first_name }} {{ user.last_name }} on {{ date }} at {{ time }}</p>
