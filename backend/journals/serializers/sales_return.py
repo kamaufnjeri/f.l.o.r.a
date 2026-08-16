@@ -126,7 +126,7 @@ class SalesReturnSerializer(serializers.ModelSerializer):
             )
 
 
-            sales_return_account_data = journal_entries_manager.create_journal_entry(sales_return_account, total_return, "credit", "sales_return")
+            sales_return_account_data = journal_entries_manager.create_journal_entry(sales_return_account, total_return, "debit", "sales_return")
             sales_return.return_total = decimal.Decimal(total_return)
 
             payment_journal_entries = sales_return_entries_manager.sales_return_journal_entries(
@@ -210,7 +210,7 @@ class DetailedSalesReturnSerializer(SalesReturnSerializer):
 
 
             sales_return_account_data = journal_entries_manager.create_journal_entry(
-                sales_return_account, total_return, "credit", "sales_return"
+                sales_return_account, total_return, "debit", "sales_return"
             )
             sales_return.return_total = decimal.Decimal(total_return)
 

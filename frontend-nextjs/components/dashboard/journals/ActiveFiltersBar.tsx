@@ -42,7 +42,7 @@ export default function ActiveFiltersBar({
   downloadType,
   onOpen,
   resetFilters,
-      noDownload = false,
+  noDownload = false,
 
   modalButtons,
 }: Props) {
@@ -54,28 +54,76 @@ export default function ActiveFiltersBar({
     year: "numeric",
   });
 
-  const formatReportDate = (date?: string) => {
-    if (!date) return `As at ${today}`;
+  const formatReportDate = (
+    date?: string,
+    asAtDate?: string
+  ) => {
+    const formatDate = (value: string) => {
+      const parsed = new Date(value);
 
-    const dateLower = date.toLowerCase();
-    // 1. RANGE (only if NOT today)
-    if (dateLower.includes("to") && dateLower !== 'today') {
-      const normalized = date
-      .replace(/\s*to\s*/gi, " to ")
-      .replace(/\s+/g, " ")
-      .trim();
-      return `From ${normalized}`;
+      if (isNaN(parsed.getTime())) {
+        return value;
+      }
+
+      return parsed.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    };
+
+    // Balance Sheet
+    if (asAtDate) {
+      return `As at ${formatDate(asAtDate)}`;
     }
 
-    // 3. SINGLE VALUE
-    return `For ${replaceDash(dateLower)}`;
+    // No date
+    if (!date) {
+      const isPointInTimeReport =
+        downloadType === "reports/balance-sheet" ||
+        downloadType === "reports/trial-balance";
+        if (isPointInTimeReport) {
+          return `As at ${today}`
+        } else {
+          return `For the period ending ${today}`;
+
+        }
+    }
+
+    const dateLower = date.toLowerCase();
+
+    // Income Statement date range
+    if (dateLower.includes("to") && dateLower !== "today") {
+      const [start, end] = date.split(/\s*to\s*/i);
+
+      return `For the period beginning ${formatDate(start)} and ending ${formatDate(end)}`;
+    }
+
+    
+
+    if (
+      dateLower === "today" ||
+      dateLower === "yesterday" ||
+      dateLower === "this_week" ||
+      dateLower === "this_month"
+    ) {
+      return `For ${replaceDash(dateLower)}`;
+    }
+
+    // Income Statement single date
+    return `For ${formatDate(date)}`;
   };
 
-
-  const reportDate = formatReportDate(filters.date);
-
+  const reportDate = formatReportDate(
+    filters.date,
+    filters.as_at_date
+  );
   const chips = Object.entries(filters).filter(
-    ([key, value]) => key !== "date" && value && value.trim() !== ""
+    ([key, value]) =>
+      key !== "date" &&
+      key !== "as_at_date" &&
+      value &&
+      value.trim() !== ""
   );
 
   const handleDownload = async () => {
@@ -109,7 +157,7 @@ export default function ActiveFiltersBar({
     }
   };
 
-  
+
 
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -123,23 +171,23 @@ export default function ActiveFiltersBar({
         <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
           {title} ({currentOrg?.currency})
         </h2>
-        
+
         <span className="flex flex-row items-center justify-center gap-2">
-           <p className="mt-1 sm:mt-2 text-sm text-gray-500">
-          {reportDate}
-        </p>
+          <p className="mt-1 sm:mt-2 text-sm text-gray-500">
+            {reportDate}
+          </p>
           {filters.date && (
-  <button
-    type="button"
-    onClick={() => removeFilter("date")}
-    aria-label="Remove date filter"
-    className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
-  >
-    <FaX className="text-[10px] md:text-xs" />
-  </button>
-)}
+            <button
+              type="button"
+              onClick={() => removeFilter("date")}
+              aria-label="Remove date filter"
+              className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+            >
+              <FaX className="text-[10px] md:text-xs" />
+            </button>
+          )}
         </span>
-       
+
       </div>
 
       {/* CHIPS */}
@@ -173,10 +221,10 @@ export default function ActiveFiltersBar({
                   <span className="text-gray-900">
                     {normalizeWord(value)}
                   </span>
-                  {key !== 'page' && <button   className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
-     onClick={() => removeFilter(key)}>
-                   <FaX className="text-[10px] md:text-xs" />
-  </button>}
+                  {key !== 'page' && <button className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+                    onClick={() => removeFilter(key)}>
+                    <FaX className="text-[10px] md:text-xs" />
+                  </button>}
                 </div>
               ) : null
             )}
@@ -222,7 +270,7 @@ export default function ActiveFiltersBar({
               >
                 Download PDF
               </button>
-}
+              }
               {/* Open Filters (SECONDARY) */}
               <button
                 onClick={onOpen}
@@ -256,12 +304,12 @@ export default function ActiveFiltersBar({
           >
             Reset all
           </button>
-           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 
-              {/* Download (PRIMARY) */}
-             {!noDownload && <button
-                onClick={handleDownload}
-                className="
+            {/* Download (PRIMARY) */}
+            {!noDownload && <button
+              onClick={handleDownload}
+              className="
                   w-full sm:w-auto
                   rounded-xl
                   bg-primary
@@ -274,14 +322,14 @@ export default function ActiveFiltersBar({
                   hover:bg-primary-dark
                   active:scale-[0.98]
                 "
-              >
-                Download PDF
-              </button>
-}
-              {/* Open Filters (SECONDARY) */}
-              <button
-                onClick={onOpen}
-                className="
+            >
+              Download PDF
+            </button>
+            }
+            {/* Open Filters (SECONDARY) */}
+            <button
+              onClick={onOpen}
+              className="
                   w-full sm:w-auto
                   rounded-xl
                   border border-gray-200
@@ -293,12 +341,12 @@ export default function ActiveFiltersBar({
                   cursor-pointer
                   hover:bg-gray-50
                 "
-              >
-                Open Filters
-              </button>
-            </div>
+            >
+              Open Filters
+            </button>
+          </div>
 
-         
+
         </div>
       )}
     </div>

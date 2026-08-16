@@ -231,7 +231,7 @@
 
                 <tr>
                     <td colspan="3" style="background:#f8fafc;color:#1e3a8a;font-weight:bold;">
-                        Inventory
+                        Closing Inventory
                     </td>
                 </tr>
 
@@ -255,15 +255,18 @@
                 <tr >
 
                     <td style="padding-left:25px;">
-                        Closing Stock - Opening Stock
+                        Total
                     </td>
 
-                    <td >-</td>
+                     <td style="text-align:right;
+    ">
+                        {{ "{:,.2f}".format(data.assets.current.Inventory.inventory) }}
+                    </td>
 
                     <td>-</td>
 
                 </tr>
-                <tr style="background:#fefce8">
+                <!-- <tr style="background:#fefce8">
 
                     <td style="padding-left:25px;">
                         {{ "{:,.2f}".format(data.assets.current.Inventory.closing_stock) }} -                       
@@ -272,14 +275,11 @@
 
                     </td>
 
-                    <td style="text-align:right;
-    ">
-                        {{ "{:,.2f}".format(data.assets.current.Inventory.inventory) }}
-                    </td>
+                   
 
                     <td>-</td>
 
-                </tr>
+                </tr> -->
 
                 
 
@@ -567,7 +567,7 @@
                 <tr>
 
                     <td style="padding-left:25px;">
-                        Current Year Profit
+                        Current Period Profit
                     </td>
 
                     <td style="text-align:right;">

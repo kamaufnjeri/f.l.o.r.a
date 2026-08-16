@@ -6,7 +6,7 @@ import TrialBalanceClient from "@/components/dashboard/trial-balance/TrialBalanc
 type SearchParams = {
   search?: string;
   name?: string;
-  date?: string;
+  as_at_date?: string;
 };
 type Props = {
   params: Promise<{
@@ -23,13 +23,13 @@ export default async function TrialBalancePage({
   const {
     search = "",
     name = "",
-    date = "",
+    as_at_date = "",
   } = await searchParams ?? {};
 
   const response = await getTrialBalance(organisationId, {
     search,
     name,
-    date,
+    as_at_date,
   });
 
   // ❌ ERROR STATE
@@ -51,7 +51,7 @@ export default async function TrialBalancePage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Trial Balance'} goToUrl={'reports/trial-balance'} filters={{ search, name, date }} organisationId={organisationId} />
+      <FiltersSection title={'Trial Balance'} goToUrl={'reports/trial-balance'} filters={{ search, name, as_at_date }} organisationId={organisationId} />
 
       {/* EMPTY STATE */}
       {!trialBalance ? 

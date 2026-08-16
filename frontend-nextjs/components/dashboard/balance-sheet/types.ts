@@ -53,6 +53,10 @@ export interface CapitalSection {
   owner_equity: {
     [key: string]: Account[];
   };
+  opening_stock_equity: {
+    name: string;
+    amount: number;
+  };
 
   retained_earnings: {
     name: string;

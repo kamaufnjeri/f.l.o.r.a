@@ -40,7 +40,7 @@ class DownloadBalanceSheetAPIView(generics.ListAPIView):
                 organisation=organisation
             )
 
-            period = request.query_params.get("date")
+            as_at_date = request.query_params.get("as_at_date")
             filter_data = request.query_params.dict()
 
             title = request.data.get(
@@ -51,7 +51,7 @@ class DownloadBalanceSheetAPIView(generics.ListAPIView):
             data = BalanceSheetUtils(
                 stocks=stocks,
                 accounts=accounts,
-                period=period,
+                as_at_date=as_at_date,
             ).get_balance_sheet()
 
             pdf_generator = GenerateListsPDF(
@@ -122,12 +122,12 @@ class BalanceSheetAPIView(generics.ListAPIView):
                 organisation=organisation
             )
 
-            period = request.query_params.get("date")
+            as_at_date = request.query_params.get("as_at_date")
 
             data = BalanceSheetUtils(
                 stocks=stocks,
                 accounts=accounts,
-                period=period,
+                as_at_date=as_at_date,
             ).get_balance_sheet()
 
             return Response(

@@ -6,57 +6,28 @@ from .stock_utils import StockUtils
 
 class BalanceSheetUtils:
 
-    def __init__(self, stocks, accounts, period=None):
+    def __init__(self, stocks, accounts, as_at_date=None):
         self.stocks = stocks
         self.accounts = accounts
-        self.period = period
+        self.as_at_date = as_at_date
 
-    def get_start_date(self):
-        today = datetime.today().date()
+    def get_as_at_date(self):
+        """
+        Returns the date the balance sheet is prepared as at.
 
-        if self.period:
-            if self.period == "today":
-                return today
+        If no date is supplied, use today.
+        """
 
-            elif self.period == "yesterday":
-                return today - timedelta(days=1)
-
-            elif self.period == "this_week":
-                return today - timedelta(days=today.weekday())
-
-            elif self.period == "this_month":
-                return today.replace(day=1)
-
-            elif "to" in self.period:
+        if self.as_at_date:
+            if isinstance(self.as_at_date, str):
                 return datetime.strptime(
-                    self.period.split("to")[0],
-                    "%Y-%m-%d",
+                    self.as_at_date,
+                    "%Y-%m-%d"
                 ).date()
 
-        return None
+            return self.as_at_date
 
-
-    def get_end_date(self):
-        today = datetime.today().date()
-
-        if self.period:
-            if self.period in (
-                "today",
-                "this_week",
-                "this_month",
-            ):
-                return today
-
-            elif self.period == "yesterday":
-                return today - timedelta(days=1)
-
-            elif "to" in self.period:
-                return datetime.strptime(
-                    self.period.split("to")[1],
-                    "%Y-%m-%d",
-                ).date()
-
-        return today
+        return datetime.today().date()
     
     def get_opening_closing_stock(self):
         opening_stock_total = 0
@@ -64,7 +35,7 @@ class BalanceSheetUtils:
         stocks = []
 
         for stock in self.stocks:
-            util = StockUtils(stock, self.period)
+            util = StockUtils(stock, period=self.as_at_date)
 
             _, _, opening_stock, closing_stock = util.get_closing_balance()
 
@@ -86,7 +57,7 @@ class BalanceSheetUtils:
             "stocks": stocks,
             "closing_stock": closing_stock_total,
             "opening_stock": opening_stock_total,
-            'inventory': closing_stock_total - opening_stock_total
+            'inventory': closing_stock_total
         }
     
     def create_node(self, id, name, children_key):
@@ -113,20 +84,40 @@ class BalanceSheetUtils:
             node["balance_type"] = "credit"
 
         return node
-
+    
     def get_account_balance(self, account):
+       
 
-        util = AccountUtils(account, self.period)
+        util = AccountUtils(account, period=self.as_at_date)
 
-        balance = util.get_account_balance()
+        balance = util.get_balance_as_at(self.as_at_date)
 
         amount = balance["amount"]
+        balance_type = balance["balance_type"]
 
         return {
+            "id": account.id,
+            "name": account.name,
             "amount": amount,
-            "balance_type": balance["balance_type"],
-            "debit": amount if balance["balance_type"] == "debit" else 0,
-            "credit": amount if balance["balance_type"] == "credit" else 0,
+            "balance_type": balance_type,
+            "debit": balance["debit"],
+            "credit": balance["credit"],
+        }
+
+    def get_period_amount(self, account, normal_balance):
+        util = AccountUtils(account, period=self.as_at_date)
+
+        period = util.get_period_amount(normal_balance)
+
+        amount = period["amount"]
+
+        return {
+            "id": account.id,
+            "name": account.name,
+            "amount": amount,
+            "balance_type": normal_balance,
+            "debit": period["debit"],
+            "credit": period["credit"],
         }
     def add_balance(self, node, balance):
 
@@ -209,6 +200,57 @@ class BalanceSheetUtils:
 
         for account in accounts:
 
+            group = account.belongs_to.category.group.name
+            category = account.belongs_to.category.name
+            sub_category = account.belongs_to.name
+            account_name = account.name
+
+            # ===================================================
+            # INCOME STATEMENT ACCOUNTS
+            # Use PERIOD amounts
+            # ===================================================
+
+            if group == "Income":
+
+                if sub_category == "Product Sales":
+                    period = self.get_period_amount(account, "credit")
+                    total_sales += float(period["amount"])
+
+                elif account_name == "Sales Return":
+                    period = self.get_period_amount(account, "debit")
+                    total_sales_returns += float(period["amount"])
+
+                elif sub_category == "Service Income":
+                    period = self.get_period_amount(account, "credit")
+                    total_service_income += float(period["amount"])
+
+                else:
+                    period = self.get_period_amount(account, "credit")
+                    total_other_income += float(period["amount"])
+
+                continue
+
+            elif group == "Expense":
+
+                if account_name == "Purchase":
+                    period = self.get_period_amount(account, "debit")
+                    total_purchases += float(period["amount"])
+
+                elif account_name == "Purchase Return":
+                    period = self.get_period_amount(account, "credit")
+                    total_purchase_returns += float(period["amount"])
+
+                else:
+                    period = self.get_period_amount(account, "debit")
+                    total_expenses += float(period["amount"])
+
+                continue
+
+            # ===================================================
+            # BALANCE SHEET ACCOUNTS
+            # Use CLOSING BALANCE
+            # ===================================================
+
             balance = self.get_account_balance(account)
 
             if balance["amount"] == 0:
@@ -216,54 +258,13 @@ class BalanceSheetUtils:
 
             amount = float(balance["amount"])
 
-            group = account.belongs_to.category.group.name
-            category = account.belongs_to.category.name
-            sub_category = account.belongs_to.name
-            account_name = account.name
-
-            # ===================================================
-            # Income Statement
-            # ===================================================
-
-            if group == "Income":
-
-                if sub_category == "Product Sales":
-                    total_sales += amount
-
-                elif account_name == "Sales Return":
-                    total_sales_returns += amount
-
-                elif sub_category == "Service Income":
-                    total_service_income += amount
-
-                else:
-                    total_other_income += amount
-
-                continue
-
-            elif group == "Expense":
-
-                if account_name == "Purchase":
-                    total_purchases += amount
-
-                elif account_name == "Purchase Return":
-                    total_purchase_returns += amount
-
-                else:
-                    total_expenses += amount
-
-                continue
-
-            # ===================================================
-            # Balance Sheet
-            # ===================================================
-
             node = {
                 "id": account.id,
                 "name": account.name,
-                "amount": balance["amount"],
+                "amount": amount,
                 "balance_type": balance["balance_type"],
             }
+
 
             if group == "Asset":
 
@@ -338,7 +339,7 @@ class BalanceSheetUtils:
 
         assets["current"]["Inventory"] = stock_data
 
-        total_current_assets += inventory
+        total_current_assets += closing_stock
 
         # -------------------------------------------------------
         # Retained Earnings
@@ -350,6 +351,12 @@ class BalanceSheetUtils:
         }
 
         total_capital += net_profit
+        print("======================================")
+        print("OPENING STOCK:", opening_stock)
+        print("CLOSING STOCK:", closing_stock)
+        print("NET PROFIT:", net_profit)
+        print("CAPITAL:", total_capital)
+        print("======================================")
 
         # -------------------------------------------------------
         # Totals

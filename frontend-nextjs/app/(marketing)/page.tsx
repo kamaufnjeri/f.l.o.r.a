@@ -9,7 +9,7 @@ import Testimonials from "../../components/home/Testimonials";
 import TrustSection from "../../components/home/TrustSection";
 
 export const metadata = {
-  title: "Home Flora | Modern Accounting Software",
+  title: "Flora | Financial Ledgers and Operations Report Analysis",
   description:
     "Flora is a modern accounting system for SMEs, accountants, and businesses that need clarity and control.",
 };

@@ -33,14 +33,14 @@ class DownloadTrialBalanceAPIView(generics.ListAPIView):
                 )
             )
 
-            period = request.query_params.get("date")
+            as_at_date = request.query_params.get("as_at_date")
             filter_data = request.query_params.dict()
 
             title = request.data.get("title", "Trial Balance")
 
             data = TrialBalanceUtils(
                 queryset=queryset,
-                period=period,
+                as_at_date=as_at_date,
             ).get_trial_balance()
 
             pdf_generator = GenerateListsPDF(
@@ -105,12 +105,12 @@ class TrialBalanceAPIView(generics.ListAPIView):
                 )
             )
 
-            period = request.query_params.get("date")
+            as_at_date = request.query_params.get("as_at_date")
           
 
             trial_balance = TrialBalanceUtils(
                 queryset=queryset,
-                period=period,
+                as_at_date=as_at_date,
             )
 
             data = trial_balance.get_trial_balance()
@@ -118,6 +118,7 @@ class TrialBalanceAPIView(generics.ListAPIView):
             return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:
+            raise e
             return Response(
                 {
                     "error": "Internal Server Error",

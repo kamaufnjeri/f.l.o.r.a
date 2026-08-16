@@ -129,46 +129,81 @@ class StockUtils:
         return sorted_stock_entries
 
     def get_start_date(self):
-        
-        today = datetime.today().date()
-        if self.period:
-            if self.period == 'today':
+            today = datetime.today().date()
+    
+            if not self.period:
                 return today
-            elif self.period == 'yesterday':
+    
+            if self.period == "today":
+                return today
+    
+            if self.period == "yesterday":
                 return today - timedelta(days=1)
-            elif self.period == 'this_week':
+    
+            if self.period == "this_week":
                 return today - timedelta(days=today.weekday())
-            elif self.period == 'this_month':
+    
+            if self.period == "this_month":
                 return today.replace(day=1)
-            elif isinstance(self.period, str) and 'to' in self.period:
-
-                start_date_str = self.period.split('to')[0]
-                return datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            else:
-                return self.stock.created_at.date()
-        else:
-            return self.stock.created_at.date()
-
+    
+            # Date range
+            if isinstance(self.period, str) and "to" in self.period:
+                try:
+                    start_date_str = self.period.split("to", 1)[0].strip()
+                    return datetime.strptime(
+                        start_date_str,
+                        "%Y-%m-%d"
+                    ).date()
+                except (ValueError, IndexError):
+                    return today
+    
+            # Single custom date
+            try:
+                return datetime.strptime(
+                    self.period.strip(),
+                    "%Y-%m-%d"
+                ).date()
+            except (ValueError, TypeError):
+                return today
+    
     def get_end_date(self):
-       
         today = datetime.today().date()
-        if self.period:
-            if self.period == 'today':
-                return today
-            elif self.period == 'yesterday':
-                return today - timedelta(days=1)
-            elif self.period == 'this_week':
-                return today
-            elif self.period == 'this_month':
-                return today
-            elif 'to' in self.period:
-                end_date_str = self.period.split('to')[1]
-                return datetime.strptime(end_date_str, "%Y-%m-%d").date()
-                
-            else:
-                return today
-        else:
+
+        if not self.period:
             return today
+
+        if self.period == "today":
+            return today
+
+        if self.period == "yesterday":
+            return today - timedelta(days=1)
+
+        if self.period == "this_week":
+            return today
+
+        if self.period == "this_month":
+            return today
+
+        # Date range
+        if isinstance(self.period, str) and "to" in self.period:
+            try:
+                end_date_str = self.period.split("to", 1)[1].strip()
+                return datetime.strptime(
+                    end_date_str,
+                    "%Y-%m-%d"
+                ).date()
+            except (ValueError, IndexError):
+                return today
+
+        # Single custom date
+        try:
+            return datetime.strptime(
+                self.period.strip(),
+                "%Y-%m-%d"
+            ).date()
+        except (ValueError, TypeError):
+            return today
+
 
     def get_stock_entries(self):
        

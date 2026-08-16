@@ -2,6 +2,7 @@ from journals.utils.stock_utils import StockUtils
 from journals.utils.account_utils import AccountUtils
 from datetime import datetime, timedelta
 from collections import defaultdict
+from decimal import Decimal
 
 
 class IncomeStatementUtils:
@@ -85,7 +86,7 @@ class IncomeStatementUtils:
         return {
             "stocks": stocks,
             "closing_stock": closing_stock_total,
-            "opening_stock": opening_stock_total
+            "opening_stock": opening_stock_total,
         }
     def get_account_balance(self, account):
        
@@ -102,9 +103,26 @@ class IncomeStatementUtils:
             "name": account.name,
             "amount": amount,
             "balance_type": balance_type,
-            "debit": amount if balance_type == "debit" else 0,
-            "credit": amount if balance_type == "credit" else 0,
+            "debit": balance["debit"],
+            "credit": balance["credit"],
         }
+
+    def get_period_amount(self, account, normal_balance):
+        util = AccountUtils(account, self.period)
+
+        period = util.get_period_amount(normal_balance)
+
+        amount = period["amount"]
+
+        return {
+            "id": account.id,
+            "name": account.name,
+            "amount": amount,
+            "balance_type": normal_balance,
+            "debit": period["debit"],
+            "credit": period["credit"],
+        }
+
     
 
     def get_income_statement(self):
@@ -156,86 +174,131 @@ class IncomeStatementUtils:
         total_expenses = 0
 
         for account in self.accounts:
-            balance = self.get_account_balance(account)
 
             group = account.belongs_to.category.group.name
             category = account.belongs_to.category.name
             sub_category = account.belongs_to.name
             account_name = account.name.lower()
 
-            amount = float(balance["amount"])
-
-            # ---------------------------
-            # INCOME
-            # ---------------------------
+            # ---------------------------------
+            # INCOME STATEMENT ACCOUNTS
+            # ---------------------------------
 
             if group.lower() == "income":
 
                 if sub_category.lower() == "product sales":
+                    balance = self.get_period_amount(account, "credit")
 
                     sales_accounts.append(balance)
-                    total_sales += amount
+                    total_sales += float(balance["amount"])
 
                 elif account_name == "sales return":
+                    balance = self.get_period_amount(account, "debit")
 
                     sales_return_account = balance
-                    total_sales_returns = amount
+                    total_sales_returns += float(balance["amount"])
 
                 elif sub_category.lower() == "service income":
+                    balance = self.get_period_amount(account, "credit")
 
                     service_income_accounts.append(balance)
-                    total_service_income += amount
+                    total_service_income += float(balance["amount"])
 
                 else:
+                    balance = self.get_period_amount(account, "credit")
 
                     other_income[category]["sub_categories"][sub_category]["accounts"].append(balance)
-                    other_income[category]["total"] += amount
-                    total_other_income += amount
+                    other_income[category]["total"] += float(balance["amount"])
+                    total_other_income += float(balance["amount"])
 
-
-            # ---------------------------
+            # ---------------------------------
             # EXPENSES
-            # ---------------------------
+            # ---------------------------------
 
             elif group.lower() == "expense":
 
                 if account_name == "purchase":
+                    balance = self.get_period_amount(account, "debit")
 
                     purchase_accounts.append(balance)
-                    total_purchases += amount
+                    total_purchases += float(balance["amount"])
 
                 elif account_name == "purchase return":
+                    balance = self.get_period_amount(account, "credit")
 
                     purchase_return_account = balance
-                    total_purchase_returns = amount
+                    total_purchase_returns += float(balance["amount"])
 
                 else:
+                    balance = self.get_period_amount(account, "debit")
 
                     expenses[category]["sub_categories"][sub_category]["accounts"].append(balance)
-                    expenses[category]["total"] += amount
-                    total_expenses += amount
-
+                    expenses[category]["total"] += float(balance["amount"])
+                    total_expenses += float(balance["amount"])
         # ---------------------------
         # CALCULATIONS
         # ---------------------------
 
-        net_sales = total_sales - total_sales_returns
+        net_sales = Decimal(str(total_sales)) - Decimal(str(total_sales_returns))
 
-        net_purchases = total_purchases - total_purchase_returns
+        net_purchases = (
+            Decimal(str(total_purchases))
+            - Decimal(str(total_purchase_returns))
+        )
 
-        goods_available = opening_stock + net_purchases
+        goods_available = (
+            Decimal(str(opening_stock))
+            + net_purchases
+        )
 
-        cost_of_goods_sold = goods_available - closing_stock
+        cost_of_goods_sold = (
+            goods_available
+            - Decimal(str(closing_stock))
+        )
 
-        gross_profit = net_sales - cost_of_goods_sold
+        gross_profit = (
+            net_sales
+            - cost_of_goods_sold
+        )
 
         total_revenue = (
             gross_profit
-            + total_service_income
-            + total_other_income
+            + Decimal(str(total_service_income))
+            + Decimal(str(total_other_income))
         )
 
-        net_profit = total_revenue - total_expenses
+        net_profit = (
+            total_revenue
+            - Decimal(str(total_expenses))
+        )
+        # print("\n========== INCOME STATEMENT CALCULATION ==========")
+        # print("Total Sales:", total_sales)
+        # print("Total Sales Returns:", total_sales_returns)
+        # print("Net Sales:", net_sales)
+
+        # print("\nTotal Purchases:", total_purchases)
+        # print("Total Purchase Returns:", total_purchase_returns)
+        # print("Net Purchases:", net_purchases)
+
+        # print("\nOpening Stock:", opening_stock)
+        # print("Net Purchases:", net_purchases)
+        # print("Goods Available for Sale:", goods_available)
+
+        # print("\nClosing Stock:", closing_stock)
+        # print("Cost of Goods Sold:", cost_of_goods_sold)
+
+        # print("\nNet Sales:", net_sales)
+        # print("Cost of Goods Sold:", cost_of_goods_sold)
+        # print("Gross Profit:", gross_profit)
+
+        # print("\nService Income:", total_service_income)
+        # print("Other Income:", total_other_income)
+        # print("Total Revenue:", total_revenue)
+
+        # print("\nTotal Expenses:", total_expenses)
+        # print("Net Profit:", net_profit)
+
+        # print("==================================================\n")
 
         return {
             "sales": {

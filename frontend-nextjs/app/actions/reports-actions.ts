@@ -5,7 +5,7 @@ import { formatApiError } from "@/lib/utils";
 
 const backendURL = process.env.BACKEND_URL;
 
-export async function getTrialBalance(orgId: string, params: { search?: string; name?: string; date?: string }) {
+export async function getTrialBalance(orgId: string, params: { search?: string; name?: string; as_at_date?: string }) {
   try {
     if (!orgId) {
       return {
@@ -21,7 +21,7 @@ export async function getTrialBalance(orgId: string, params: { search?: string; 
 
     if (params.search) query.set("search", params.search);
     if (params.name) query.set("name", params.name);
-    if (params.date) query.set("date", params.date);
+    if (params.as_at_date) query.set("as_at_date", params.as_at_date);
 
   
     // 📊 FETCH JOURNALS
@@ -132,7 +132,7 @@ export async function getIncomeStatement(orgId: string, params: { date?: string 
 }
 
 
-export async function getBalanceSheet(orgId: string, params: { date?: string }) {
+export async function getBalanceSheet(orgId: string, params: { as_at_date?: string }) {
   try {
     if (!orgId) {
       return {
@@ -146,7 +146,7 @@ export async function getBalanceSheet(orgId: string, params: { date?: string }) 
     const query = new URLSearchParams();
 
 
-    if (params.date) query.set("date", params.date);
+    if (params.as_at_date) query.set("as_at_date", params.as_at_date);
 
   
     // 📊 FETCH JOURNALS

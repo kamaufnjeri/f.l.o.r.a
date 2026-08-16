@@ -139,13 +139,13 @@ export default function BalanceSheetTable({
                 );
               }
             )}
-                        {/* ================================================= */}
+            {/* ================================================= */}
             {/* INVENTORY */}
             {/* ================================================= */}
 
             {data.assets.current.Inventory && (
               <>
-                <SubCategoryHeader title="Inventory" />
+                <SubCategoryHeader title="Closing Stock" />
 
                 {showDetails &&
                   data.assets.current.Inventory.stocks.map((stock) => (
@@ -157,7 +157,7 @@ export default function BalanceSheetTable({
                         <span>{stock.name} → {stock.quantity} @ {stock.rate}</span>
                         <span>={" "}={" "}</span>
                         <span>{formatAmount(stock.amount)}</span>
-                         <Link
+                        <Link
                           href={`/dashboard/${organisationId}/stocks/${stock.id}`}
                           className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50"
                         >
@@ -173,27 +173,26 @@ export default function BalanceSheetTable({
                   ))}
 
                 <AmountRow
-                  title="Closing Stock - Opening Stock"
-                  amount={0}
+                  title="Total"
+                  px='20'
+                  amount={data.assets.current.Inventory.closing_stock}
                   color="gray"
                 />
 
-                <tr className="bg-amber-50">
+                {/* <tr className="bg-amber-50">
 
                   <td className="px-10 py-3 font-medium text-slate-700">
                     {formatAmount(data.assets.current.Inventory.closing_stock)}
-                    {" - ("}
-                    {formatAmount(data.assets.current.Inventory.opening_stock)}
-                    {")"}
+                   
                   </td>
 
                   <td className="px-6 py-3 text-right font-semibold">
-                    {formatAmount(data.assets.current.Inventory.inventory)}
+                    
                   </td>
 
                   <td></td>
 
-                </tr>
+                </tr> */}
               </>
             )}
 
@@ -224,7 +223,7 @@ export default function BalanceSheetTable({
             {/* ================================================= */}
 
             <SubHeader title="Non-Current Liabilities" />
-                        {Object.entries(data.liabilities.non_current).map(
+            {Object.entries(data.liabilities.non_current).map(
               ([subCategory, accounts]) => (
                 <React.Fragment key={subCategory}>
 
@@ -301,7 +300,7 @@ export default function BalanceSheetTable({
             {/* ================================================= */}
 
             <SubHeader title="Capital" />
-                        {Object.entries(data.capital.owner_equity).map(
+            {Object.entries(data.capital.owner_equity).map(
               ([subCategory, accounts]) => (
                 <React.Fragment key={subCategory}>
 
@@ -321,6 +320,8 @@ export default function BalanceSheetTable({
               )
             )}
 
+
+
             {/* ================================================= */}
             {/* RETAINED EARNINGS */}
             {/* ================================================= */}
@@ -329,7 +330,7 @@ export default function BalanceSheetTable({
 
             <AccountRow
               goToUrl="#"
-              name="Current Year Profit"
+              name="Current Period Profit"
               amount={data.capital.retained_earnings.amount}
               hideView
             />
@@ -341,7 +342,7 @@ export default function BalanceSheetTable({
             />
 
             <Spacer />
-          
+
 
 
           </tbody>
@@ -365,44 +366,44 @@ export default function BalanceSheetTable({
               </td>
 
             </tr>
-  {data.totals.balanced ? (
+            {data.totals.balanced ? (
 
-<tr className="bg-green-100 text-green-800 font-bold">
-
-
-  <td
-    colSpan={3}
-    className="px-6 py-3"
-  >
-
-    ✓ Balance Sheet balances
-
-  </td>
+              <tr className="bg-green-100 text-green-800 font-bold">
 
 
-</tr>
+                <td
+                  colSpan={3}
+                  className="px-6 py-3"
+                >
+
+                  ✓ Balance Sheet balances
+
+                </td>
 
 
-) : (
+              </tr>
 
 
-<tr className="bg-red-100 text-red-800 font-bold">
+            ) : (
 
 
-  <td
-    colSpan={3}
-    className="px-6 py-3"
-  >
-
-    ✗ Balance Sheet does not balance
-
-  </td>
+              <tr className="bg-red-100 text-red-800 font-bold">
 
 
-</tr>
+                <td
+                  colSpan={3}
+                  className="px-6 py-3"
+                >
+
+                  ✗ Balance Sheet does not balance
+
+                </td>
 
 
-)}
+              </tr>
+
+
+            )}
           </tfoot>
 
         </table>
@@ -509,10 +510,12 @@ function AccountRow({
 function AmountRow({
   title,
   amount,
+  px = '6',
   color,
 }: {
   title: string;
   amount: number;
+  px?: string;
   color: "gray" | "yellow" | "blue";
 }) {
   const colors = {
@@ -524,7 +527,7 @@ function AmountRow({
   return (
     <tr className={colors[color]}>
 
-      <td className="px-6 py-3 font-semibold text-slate-700">
+      <td className={`px-${px} py-3 font-semibold text-slate-700`}>
         {title}
       </td>
 
@@ -603,15 +606,13 @@ function SubGrandTotalRow({
       </td>
 
       <td
-        className={`${
-          border === "middle" ? "border-t-2 border-black" : ""
-        }`}
+        className={`${border === "middle" ? "border-t-2 border-black" : ""
+          }`}
       ></td>
 
       <td
-        className={`px-6 py-4 text-right text-base font-bold text-green-800 ${
-          border === "last" ? "border-t-2 border-black" : ""
-        }`}
+        className={`px-6 py-4 text-right text-base font-bold text-green-800 ${border === "last" ? "border-t-2 border-black" : ""
+          }`}
       >
         {formatAmount(total)}
       </td>

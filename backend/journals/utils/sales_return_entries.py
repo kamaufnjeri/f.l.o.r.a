@@ -4,6 +4,7 @@ from .journal_entries import JournalEntriesManager
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 import decimal
+from django.db.models import Sum
 
 journal_entry_manager = JournalEntriesManager()
 
@@ -17,46 +18,85 @@ class SalesReturnEntriesManager:
         except (TypeError, ValueError):
             raise ValidationError("Invalid discount percentage provided.")
         return price
-
+    
     @transaction.atomic
-    def create_sales_return_entry(self, entry, sales_return, sales, discount_percentage):
+    def create_sales_return_entry(
+        self,
+        entry,
+        sales_return,
+        sales,
+        discount_percentage
+    ):
         sales_entry_id = entry.get('sales_entry')
+
         try:
-            sales_entry = SalesEntries.objects.get(id=sales_entry_id, sales=sales)
+            sales_entry = SalesEntries.objects.get(
+                id=sales_entry_id,
+                sales=sales
+            )
         except SalesEntries.DoesNotExist:
-            raise ValidationError(f"Sales entry with ID {sales_entry_id} not found.")
-        entry['sales_entry'] = sales_entry
+            raise ValidationError(
+                f"Sales entry with ID {sales_entry_id} not found."
+            )
 
         return_quantity = entry.get('return_quantity')
+
         if return_quantity <= 0:
-            raise ValidationError("Return quantity must be greater than zero.")
-
-        if sales_entry.remaining_quantity >= return_quantity:
-            # Deduct return quantity from remaining quantity
-            sales_entry.remaining_quantity -= return_quantity
-
-            # Calculate the return price
-            return_price = self.apply_discount(decimal.Decimal(sales_entry.sales_price), discount_percentage)
-            stock_total_return_price = return_price * decimal.Decimal(return_quantity)
-
-            # Create the sales return entry
-            sales_return_entry = SalesReturnEntries.objects.create(
-                sales_return=sales_return,
-                cogs=stock_total_return_price,
-                sales_price=sales_entry.sales_price,
-                return_price=return_price,
-                stock=sales_entry.stock,
-                **entry
-            )
-
-            # Save the updated sales entry
-            sales_entry.save()
-
-            return stock_total_return_price, sales_return_entry.id
-        else:
             raise ValidationError(
-                f"Cannot return {return_quantity} items. Only {sales_entry.remaining_quantity} available."
+                "Return quantity must be greater than zero."
             )
+
+        # Actual returns already made against this sale
+        existing_returns = (
+            SalesReturnEntries.objects
+            .filter(sales_entry=sales_entry)
+            .aggregate(total=Sum('return_quantity'))['total'] or 0
+        )
+
+        available_for_return = (
+            sales_entry.sold_quantity - existing_returns
+        )
+
+        if return_quantity > available_for_return:
+            raise ValidationError(
+                f"Cannot return {return_quantity} items. "
+                f"Only {available_for_return} available."
+            )
+
+        return_price = self.apply_discount(
+            decimal.Decimal(sales_entry.sales_price),
+            discount_percentage
+        )
+
+        stock_total_return_price = (
+            return_price * decimal.Decimal(return_quantity)
+        )
+
+        entry['sales_entry'] = sales_entry
+
+        sales_return_entry = SalesReturnEntries.objects.create(
+            sales_return=sales_return,
+            cogs=stock_total_return_price,
+            sales_price=sales_entry.sales_price,
+            return_price=return_price,
+            stock=sales_entry.stock,
+            **entry
+        )
+
+        # Recalculate from actual return records
+        total_returns = (
+            SalesReturnEntries.objects
+            .filter(sales_entry=sales_entry)
+            .aggregate(total=Sum('return_quantity'))['total'] or 0
+        )
+
+        sales_entry.remaining_quantity = (
+            sales_entry.sold_quantity - total_returns
+        )
+
+        sales_entry.save()
+
+        return stock_total_return_price, sales_return_entry.id
 
     def create_sales_return_entries(self, return_entries, sales_return, sales, discount_percentage):
         total_return_price = 0.00
@@ -70,69 +110,193 @@ class SalesReturnEntriesManager:
             total_return_price += float(return_price)
 
         return total_return_price
-    
-    def update_sales_return_entry(self, entry, sales_return, sales, discount_percentage):
+
+    @transaction.atomic
+
+    def update_sales_return_entry(
+        self,
+        entry,
+        sales_return,
+        sales,
+        discount_percentage
+    ):
         sales_entry_id = entry.get('sales_entry')
         sales_return_entry_id = entry.get('id')
+        return_quantity = entry.get('return_quantity')
 
+        if return_quantity is None or return_quantity <= 0:
+            raise serializers.ValidationError(
+                "Return quantity must be greater than zero."
+            )
+
+        # --------------------------------------------------
+        # Get the new sales entry
+        # --------------------------------------------------
         try:
-            new_sales_entry = SalesEntries.objects.get(id=sales_entry_id, sales=sales)
+            new_sales_entry = SalesEntries.objects.get(
+                id=sales_entry_id,
+                sales=sales
+            )
         except SalesEntries.DoesNotExist:
-            raise serializers.ValidationError(f"Sales entry with id {sales_entry_id} not found")
-        
+            raise serializers.ValidationError(
+                f"Sales entry with id {sales_entry_id} not found"
+            )
+
+        # --------------------------------------------------
+        # Get the existing sales return entry
+        # --------------------------------------------------
         try:
             sales_return_entry = SalesReturnEntries.objects.get(
                 id=sales_return_entry_id,
                 sales_return=sales_return
             )
         except SalesReturnEntries.DoesNotExist:
-            raise serializers.ValidationError(f"Sales return entry with id {sales_return_entry_id} not found")
-        
-        return_quantity = entry.get('return_quantity')
+            raise serializers.ValidationError(
+                f"Sales return entry with id "
+                f"{sales_return_entry_id} not found"
+            )
 
         old_sales_entry = sales_return_entry.sales_entry
-        
+
+        # ==================================================
+        # CASE 1:
+        # Return is still attached to the same sale
+        # ==================================================
         if old_sales_entry.id == new_sales_entry.id:
-            quantity_diff = sales_return_entry.return_quantity - return_quantity
-            new_remaining_quantity = new_sales_entry.remaining_quantity + quantity_diff
 
-            if new_remaining_quantity >= 0:
-                new_sales_entry.remaining_quantity = new_remaining_quantity
+            # All other returns belonging to this sale,
+            # excluding the return we are currently editing.
+            other_returns = (
+                SalesReturnEntries.objects
+                .filter(
+                    sales_entry=new_sales_entry
+                )
+                .exclude(
+                    id=sales_return_entry.id
+                )
+                .aggregate(
+                    total=Sum('return_quantity')
+                )['total'] or 0
+            )
 
-            else:
-                raise serializers.ValidationError(f"Remaining quantity can't be negative")
+            # Maximum quantity that can be returned
+            available_quantity = (
+                new_sales_entry.sold_quantity
+                - other_returns
+            )
 
+            if return_quantity > available_quantity:
+                raise serializers.ValidationError(
+                    f"Cannot return {return_quantity} items. "
+                    f"Only {available_quantity} items are available "
+                    f"for return from this sales entry."
+                )
+
+            # Recalculate instead of modifying the old
+            # remaining_quantity value.
+            new_sales_entry.remaining_quantity = (
+                new_sales_entry.sold_quantity
+                - other_returns
+                - return_quantity
+            )
+
+            new_sales_entry.save()
+
+        # ==================================================
+        # CASE 2:
+        # Return is being moved to another sale
+        # ==================================================
         else:
-            new_remaining_quantity = new_sales_entry.remaining_quantity - return_quantity
 
-            if new_remaining_quantity >= 0:
-                old_sales_entry.remaining_quantity += sales_return_entry.return_quantity
-                new_sales_entry.remaining_quantity = new_remaining_quantity
-            else:
-                raise serializers.ValidationError(f"Remaining quantity can't be negative")
+            # ----------------------------------------------
+            # Restore the OLD sales entry
+            # ----------------------------------------------
 
-        stock = new_sales_entry.stock
+            old_other_returns = (
+                SalesReturnEntries.objects
+                .filter(
+                    sales_entry=old_sales_entry
+                )
+                .exclude(
+                    id=sales_return_entry.id
+                )
+                .aggregate(
+                    total=Sum('return_quantity')
+                )['total'] or 0
+            )
 
-        return_price = new_sales_entry.sales_price
-        return_price = self.apply_discount(decimal.Decimal(new_sales_entry.sales_price), discount_percentage)
+            old_sales_entry.remaining_quantity = (
+                old_sales_entry.sold_quantity
+                - old_other_returns
+            )
 
-        stock_total_return_price = return_price * return_quantity
+            # ----------------------------------------------
+            # Check the NEW sales entry
+            # ----------------------------------------------
 
-        sales_price = new_sales_entry.sales_price
+            new_other_returns = (
+                SalesReturnEntries.objects
+                .filter(
+                    sales_entry=new_sales_entry
+                )
+                .exclude(
+                    id=sales_return_entry.id
+                )
+                .aggregate(
+                    total=Sum('return_quantity')
+                )['total'] or 0
+            )
+
+            available_quantity = (
+                new_sales_entry.sold_quantity
+                - new_other_returns
+            )
+
+            if return_quantity > available_quantity:
+                raise serializers.ValidationError(
+                    f"Cannot return {return_quantity} items. "
+                    f"Only {available_quantity} items are available "
+                    f"for return from this sales entry."
+                )
+
+            # Apply the new return to the new sales entry
+            new_sales_entry.remaining_quantity = (
+                new_sales_entry.sold_quantity
+                - new_other_returns
+                - return_quantity
+            )
+
+            old_sales_entry.save()
+            new_sales_entry.save()
+
+        # ==================================================
+        # Update return price
+        # ==================================================
+
+        return_price = self.apply_discount(
+            decimal.Decimal(new_sales_entry.sales_price),
+            discount_percentage
+        )
+
+        stock_total_return_price = (
+            return_price * decimal.Decimal(return_quantity)
+        )
+
+        # ==================================================
+        # Update the SalesReturnEntries record
+        # ==================================================
 
         sales_return_entry.cogs = stock_total_return_price
-        sales_return_entry.sales_price = sales_price
+        sales_return_entry.sales_price = new_sales_entry.sales_price
         sales_return_entry.return_quantity = return_quantity
         sales_return_entry.return_price = return_price
-        sales_return_entry.stock = stock
+        sales_return_entry.stock = new_sales_entry.stock
         sales_return_entry.sales_entry = new_sales_entry
 
-        old_sales_entry.save()
-        new_sales_entry.save()
         sales_return_entry.save()
 
         return stock_total_return_price, sales_return_entry.id
-        
+            
            
     def update_sales_return_entries(self, return_entries, sales_return, sales, discount_percentage):
         total_return_price = 0.00
@@ -252,7 +416,7 @@ class SalesReturnEntriesManager:
                         self.adjust_invoice(total_amount=total_amount, amount_due=amount_due, invoice=invoice)
                         
                         entry_type = entry.get('type')
-                        account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))
+                        account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "credit", entry_type))
 
                         remaining_amount -= amount_to_use
 
@@ -263,7 +427,7 @@ class SalesReturnEntriesManager:
                         pass
                 else:
                     entry_type = entry.get('type')
-                    account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "debit", entry_type))
+                    account_data.append(journal_entry_manager.create_journal_entry(account, amount_to_use, "credit", entry_type))
 
         return account_data, amount_to_use
     

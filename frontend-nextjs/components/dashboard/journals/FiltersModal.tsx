@@ -101,91 +101,99 @@ export default function FiltersModal({
               .replace(/\b\w/g, (c) => c.toUpperCase());
 
             return (
-              <div key={key} className={`space-y-1 ${key === 'date' ? 'md:col-span-2': ''}`}>
+              <div key={key} className={`space-y-1 ${key === 'date' ? 'md:col-span-2' : ''}`}>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {label}
                 </label>
 
-                {/* DATE */}
-                {includesAny(key, ["date", "due_date"]) ? (
+                {/* AS AT DATE */}
+                {includesAny(key, ["as_at_date"]) ? (
+                  <InputField
+                    value={value}
+                    onChange={(v) => setField(key, v)}
+                    name={key}
+                    type="date"
+                    placeholder={`Select ${label.toLowerCase()}`}
+                  />
+                ) : includesAny(key, ["date", "due_date"]) ? (
                   <DateFilter
                     value={value}
                     onChange={(v) => setField(key, v)}
                   />
                 ) : includesAny(key, ["sort"]) ? (
-                  <SortFilter
-                    value={value}
-                    onChange={(v) => setField(key, v)}
-                    name={key}
-                    options={sortOptions}
-                  />
+                <SortFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={sortOptions}
+                />
                 ) : includesAny(key, ['sales', 'service_income']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={salesType}
-                    placeholder='Select Type'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={salesType}
+                  placeholder='Select Type'
+                />
                 ) : includesAny(key, ['purchases']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={purchaseType}
-                    placeholder='Select Type'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={purchaseType}
+                  placeholder='Select Type'
+                />
                 ) : includesAny(key, ['due_days']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={dueDaysOptions}
-                    placeholder='Select Due Days'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={dueDaysOptions}
+                  placeholder='Select Due Days'
+                />
                 ) : includesAny(key, ['type']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={paymentTypes}
-                    placeholder='Select Type'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={paymentTypes}
+                  placeholder='Select Type'
+                />
                 ) : includesAny(key, ['status']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={statusOptions}
-                    placeholder='Select Status'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={statusOptions}
+                  placeholder='Select Status'
+                />
                 ) : includesAny(key, ['action']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={auditActionOptions}
-                    placeholder='Select Action'
-                  />
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={auditActionOptions}
+                  placeholder='Select Action'
+                />
                 ) : includesAny(key, ['model_name']) ? (
-                  <SelectFilter 
-                    value={value} 
-                    onChange={(v) => setField(key, v)} 
-                    name={key}
-                    options={auditModelOptions}
-                    placeholder='Select Model'
-                  />
-                ) : (
-                   <InputField
-                    value={value}
-                    onChange={(v) => setField(key, v)}
-                    name={key}
-                    placeholder={`Enter ${label.toLowerCase()}`}
+                <SelectFilter
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  options={auditModelOptions}
+                  placeholder='Select Model'
+                />
+                ) :(
+                <InputField
+                  value={value}
+                  onChange={(v) => setField(key, v)}
+                  name={key}
+                  placeholder={`Enter ${label.toLowerCase()}`}
 
-                    />
+                />
                   // <input
                   //   value={value}
-                  //   onChange={(e) =>
+                  //   onChange={(e) => 
                   //     setField(key, e.target.value)
                   //   }
                   //   placeholder={`Enter ${label.toLowerCase()}`}

@@ -1,3 +1,5 @@
+from datetime import datetime
+from django.db.models import Sum, Q
 from rest_framework import serializers
 from django.db import transaction
 from journals.models import Stock, PurchaseEntries, SalesEntries, FloraUser, Organisation, PurchaseReturnEntries, SalesReturnEntries
@@ -24,15 +26,56 @@ class StockSerializer(serializers.ModelSerializer):
 
     
     def get_total_quantity(self, obj):
-        purchase_entries = PurchaseEntries.objects.filter(
-            stock=obj,
-            remaining_quantity__gt=0
-        ).order_by('purchase__date')
-        sales_entries = SalesEntries.objects.filter(
-            stock=obj,
-            remaining_quantity__gt=0
+        today = datetime.today().date()
+
+        # Opening stock + all purchases up to today
+        purchases = (
+            PurchaseEntries.objects
+            .filter(stock=obj)
+            .filter(
+                Q(purchase__isnull=True) |
+                Q(purchase__date__lte=today)
+            )
+            .aggregate(total=Sum('purchased_quantity'))['total'] or 0
         )
-        total_quantity = sum(entry.remaining_quantity for entry in purchase_entries) - sum(entry.remaining_quantity for entry in sales_entries)
+
+        # Purchase returns up to today
+        purchase_returns = (
+            PurchaseReturnEntries.objects
+            .filter(
+                stock=obj,
+                purchase_return__date__lte=today
+            )
+            .aggregate(total=Sum('return_quantity'))['total'] or 0
+        )
+
+        # Sales up to today
+        sales = (
+            SalesEntries.objects
+            .filter(
+                stock=obj,
+                sales__date__lte=today
+            )
+            .aggregate(total=Sum('sold_quantity'))['total'] or 0
+        )
+
+        # Sales returns up to today
+        sales_returns = (
+            SalesReturnEntries.objects
+            .filter(
+                stock=obj,
+                sales_return__date__lte=today
+            )
+            .aggregate(total=Sum('return_quantity'))['total'] or 0
+        )
+
+        # Final stock quantity
+        total_quantity = (
+            purchases
+            - purchase_returns
+            - sales
+            + sales_returns
+        )
 
         return total_quantity
     

@@ -6,7 +6,7 @@ import BalanceSheetClient from "@/components/dashboard/balance-sheet/BalanceShee
 
 type SearchParams = {
   
-  date?: string;
+  as_at_date?: string;
 };
 type Props = {
   params: Promise<{
@@ -20,9 +20,9 @@ export default async function BalanceSheetPage({
   searchParams,
 }: Props) {
   const organisationId = (await params).organisationId;
-  const { date = "" } = await searchParams ?? {};
+  const { as_at_date = "" } = await searchParams ?? {};
 
-  const response = await getBalanceSheet(organisationId, {date});
+  const response = await getBalanceSheet(organisationId, {as_at_date});
 
   // ❌ ERROR STATE
   if (!response.success) {
@@ -43,7 +43,7 @@ export default async function BalanceSheetPage({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 p-4">
       {/* FILTERS */}
-      <FiltersSection title={'Balance Sheet'} goToUrl={'reports/balance-sheet'} filters={{ date }} organisationId={organisationId} />
+      <FiltersSection title={'Balance Sheet'} goToUrl={'reports/balance-sheet'} filters={{ as_at_date }} organisationId={organisationId} />
 
       {/* EMPTY STATE */}
       {!balanceSheet ? 

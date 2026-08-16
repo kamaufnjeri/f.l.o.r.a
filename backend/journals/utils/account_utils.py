@@ -44,7 +44,30 @@ class AccountUtils:
 
             }
 
-                
+    def get_period_amount(self, normal_balance):
+        start_date = self.get_start_date()
+        end_date = self.get_end_date() + timedelta(days=1)
+
+        _, debit_total, credit_total = self.get_account_entries(
+            after_date=start_date,
+            before_date=end_date
+        )
+
+        if normal_balance == "credit":
+            amount = credit_total - debit_total
+        elif normal_balance == "debit":
+            amount = debit_total - credit_total
+        else:
+            raise ValueError(
+                "normal_balance must be either 'debit' or 'credit'"
+            )
+
+        return {
+            "amount": amount,
+            "debit": debit_total,
+            "credit": credit_total,
+            "balance_type": normal_balance,
+        }
 
 
     def get_closing_balance(self):
@@ -121,45 +144,79 @@ class AccountUtils:
 
 
     def get_start_date(self):
-        
         today = datetime.today().date()
-        if self.period:
-            if self.period == 'today':
-                return today
-            elif self.period == 'yesterday':
-                return today - timedelta(days=1)
-            elif self.period == 'this_week':
-                return today - timedelta(days=today.weekday())
-            elif self.period == 'this_month':
-                return today.replace(day=1)
-            elif isinstance(self.period, str) and 'to' in self.period:
 
-                start_date_str = self.period.split('to')[0]
-                return datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            else:
-                return self.account.created_at.date()
-        else:
-            return self.account.created_at.date()
+        if not self.period:
+            return today
+
+        if self.period == "today":
+            return today
+
+        if self.period == "yesterday":
+            return today - timedelta(days=1)
+
+        if self.period == "this_week":
+            return today - timedelta(days=today.weekday())
+
+        if self.period == "this_month":
+            return today.replace(day=1)
+
+        # Date range
+        if isinstance(self.period, str) and "to" in self.period:
+            try:
+                start_date_str = self.period.split("to", 1)[0].strip()
+                return datetime.strptime(
+                    start_date_str,
+                    "%Y-%m-%d"
+                ).date()
+            except (ValueError, IndexError):
+                return today
+
+        # Single custom date
+        try:
+            return datetime.strptime(
+                self.period.strip(),
+                "%Y-%m-%d"
+            ).date()
+        except (ValueError, TypeError):
+            return today
 
     def get_end_date(self):
-       
         today = datetime.today().date()
-        if self.period:
-            if self.period == 'today':
+
+        if not self.period:
+            return today
+
+        if self.period == "today":
+            return today
+
+        if self.period == "yesterday":
+            return today - timedelta(days=1)
+
+        if self.period == "this_week":
+            return today
+
+        if self.period == "this_month":
+            return today
+
+        # Date range
+        if isinstance(self.period, str) and "to" in self.period:
+            try:
+                end_date_str = self.period.split("to", 1)[1].strip()
+                return datetime.strptime(
+                    end_date_str,
+                    "%Y-%m-%d"
+                ).date()
+            except (ValueError, IndexError):
                 return today
-            elif self.period == 'yesterday':
-                return today - timedelta(days=1)
-            elif self.period == 'this_week':
-                return today
-            elif self.period == 'this_month':
-                return today
-            elif 'to' in self.period:
-                end_date_str = self.period.split('to')[1]
-                return datetime.strptime(end_date_str, "%Y-%m-%d").date()
-                
-            else:
-                return today
-        else:
+
+        # Single custom date
+        try:
+            return datetime.strptime(
+                self.period.strip(),
+                "%Y-%m-%d"
+            ).date()
+        except (ValueError, TypeError):
             return today
 
     def get_sorted_journal_entries(self):
@@ -222,6 +279,7 @@ class AccountUtils:
         start_date = self.get_start_date()
         end_date = self.get_end_date() + timedelta(days=1)
 
+
         _, debit_total, credit_total = self.get_account_entries(
             after_date=start_date,
             before_date=end_date,
@@ -235,13 +293,80 @@ class AccountUtils:
             else:
                 credit_total += opening["amount"]
 
+        print(self.account.name, 's', start_date, 'e', end_date, 'debit', debit_total, credit_total)
+
+
+        if debit_total >= credit_total:
+           return {
+                "amount": debit_total - credit_total,
+                "balance_type": "debit",
+                "debit": debit_total,
+                "credit": credit_total,
+            }
+        return {
+            "amount": credit_total - debit_total,
+            "balance_type": "credit",
+            "debit": debit_total,
+            "credit": credit_total,
+        }
+
+
+    def get_balance_as_at(self, as_at_date):
+        """
+        Returns the account's cumulative balance as at a specific date.
+        """
+
+        # Convert string -> date
+        if isinstance(as_at_date, str):
+            try:
+                as_at_date = datetime.strptime(
+                    as_at_date.strip(),
+                    "%Y-%m-%d"
+                ).date()
+            except (ValueError, TypeError):
+                return {
+                    "amount": 0,
+                    "balance_type": "debit",
+                    "debit": 0,
+                    "credit": 0,
+                }
+
+        end_date = as_at_date + timedelta(days=1)
+
+        _, debit_total, credit_total = self.get_account_entries(
+            before_date=end_date
+        )
+
+        # Add configured opening balance
+        if self.account.opening_balance is not None:
+            opening_balance = float(self.account.opening_balance)
+
+            if self.account.opening_balance_type == "debit":
+                debit_total += opening_balance
+            else:
+                credit_total += opening_balance
+
+        print(
+            self.account.name,
+            "as at",
+            as_at_date,
+            "debit",
+            debit_total,
+            "credit",
+            credit_total,
+        )
+
         if debit_total >= credit_total:
             return {
                 "amount": debit_total - credit_total,
                 "balance_type": "debit",
+                "debit": debit_total,
+                "credit": credit_total,
             }
 
         return {
             "amount": credit_total - debit_total,
             "balance_type": "credit",
+            "debit": debit_total,
+            "credit": credit_total,
         }

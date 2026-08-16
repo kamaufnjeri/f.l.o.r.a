@@ -1,7 +1,8 @@
 from journals.models import Stock, PurchaseEntries
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
-
+from django.db.models import Sum
+from journals.models import PurchaseReturnEntries
 
 class PurchaseEntriesManager:
     def get_stock(self, entry_data):
@@ -35,37 +36,37 @@ class PurchaseEntriesManager:
             purchase=purchase,
             id=entry.get('id')
         )
+
         purchase_quantity = entry.get('purchased_quantity')
         purchase_price = entry.get('purchase_price')
 
-        from journals.serializers import StockSerializer
+        # Get actual purchase returns from the database
+        returned_quantity = (
+            PurchaseReturnEntries.objects
+            .filter(purchase_entry=purchase_entry)
+            .aggregate(total=Sum('return_quantity'))
+            ['total'] or 0
+        )
 
-        stock_serializer = StockSerializer(stock).data
-        print('stock', stock_serializer)
+        if returned_quantity > purchase_quantity:
+            raise serializers.ValidationError(
+                f"Purchased quantity ({purchase_quantity}) "
+                f"cannot be less than returned quantity ({returned_quantity})."
+            )
 
-
-        new_stock_balance = int(stock_serializer.get('total_quantity')) - (purchase_entry.purchased_quantity - purchase_quantity)
-
-        if new_stock_balance < 0:
-            raise serializers.ValidationError("Remaining quantity can't be a negative value")
-        
-        entry['stock'] = stock
-        
-        purchase_cogs = purchase_price * purchase_quantity
-       
-        
-        returned_quantity = purchase_entry.purchased_quantity - purchase_entry.remaining_quantity
         remaining_quantity = purchase_quantity - returned_quantity
 
-        if returned_quantity < 0:
-            raise serializers.ValidationError("Updated quantity can't be less than returned quantity")
+        purchase_cogs = purchase_price * purchase_quantity
+
+        purchase_entry.stock = stock
         purchase_entry.remaining_quantity = remaining_quantity
         purchase_entry.purchased_quantity = purchase_quantity
-        purchase_entry.cogs = purchase_cogs
         purchase_entry.purchase_price = purchase_price
+        purchase_entry.cogs = purchase_cogs
+
         purchase_entry.save()
+
         return purchase_cogs, purchase_entry.id
-        
 
     def create_purchase_entries(self, purchase_entries_data, purchase):
         cogs = 0.00

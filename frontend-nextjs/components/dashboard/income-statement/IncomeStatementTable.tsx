@@ -14,7 +14,7 @@ type Props = {
 };
 
 export default function IncomeStatementTable({
-    organisationId,
+  organisationId,
   data,
   showDetails,
   setShowDetails
@@ -38,17 +38,17 @@ cursor-pointer
 ">
 
 
-                <input
+                  <input
                     type="checkbox"
                     checked={showDetails}
                     onChange={(e) => setShowDetails(e.target.checked)}
-                />
+                  />
 
 
-                Show Details
+                  Show Details
 
 
-            </label>
+                </label>
 
               </th>
 
@@ -121,7 +121,7 @@ cursor-pointer
               data.purchases.accounts.map((account) => (
                 <AccountRow
                   goToUrl={`/dashboard/${organisationId}/accounts/${account.id}`}
-                  
+
                   key={account.id}
                   name={account.name}
                   amount={account.amount}
@@ -155,7 +155,7 @@ cursor-pointer
               data.closing_stock.stocks.map((stock) => (
                 <AccountRow
                   goToUrl={`/dashboard/${organisationId}/stocks/${stock.id}`}
-                  
+
                   key={stock.id}
                   name={`${stock.name} -> ${stock.quantity} @ ${stock.rate}`}
                   amount={stock.amount}
@@ -179,7 +179,7 @@ cursor-pointer
               title="Gross Profit"
               total={data.gross_profit}
             />
-                        <Spacer />
+            <Spacer />
 
             {/* ========================================================= */}
             {/* SERVICE INCOME */}
@@ -227,8 +227,8 @@ cursor-pointer
                             {showDetails &&
                               subCategory.accounts.map((account) => (
                                 <AccountRow
-                                goToUrl={`/dashboard/${organisationId}/accounts/${account.id}`}
-                                  
+                                  goToUrl={`/dashboard/${organisationId}/accounts/${account.id}`}
+
                                   key={account.id}
                                   name={account.name}
                                   amount={account.amount}
@@ -252,7 +252,7 @@ cursor-pointer
                 <TotalRow
                   title="Total"
                   total={data.other_income.total}
-                  
+
                 />
 
                 <Spacer />
@@ -269,7 +269,7 @@ cursor-pointer
             />
 
             <Spacer />
-                        {/* ========================================================= */}
+            {/* ========================================================= */}
             {/* OPERATING EXPENSES */}
             {/* ========================================================= */}
 
@@ -289,7 +289,7 @@ cursor-pointer
                               subCategory.accounts.map((account) => (
                                 <AccountRow
                                   goToUrl={`/dashboard/${organisationId}/accounts/${account.id}`}
-                                  
+
                                   key={account.id}
                                   name={account.name}
                                   amount={account.amount}
@@ -338,7 +338,15 @@ cursor-pointer
               <td></td>
 
               <td className="border-y-2 border-black px-6 py-5 text-right">
-                {data.net_profit}
+                {data.net_profit < 0
+                  ? `(${Math.abs(data.net_profit).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })})`
+                  : data.net_profit.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
               </td>
 
             </tr>
@@ -387,11 +395,11 @@ function Spacer() {
 }
 
 function AccountRow({
-    goToUrl,
+  goToUrl,
   name,
   amount,
 }: {
-    goToUrl: string;
+  goToUrl: string;
   name: string;
   amount: number;
 }) {
@@ -399,9 +407,9 @@ function AccountRow({
     <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <td className="px-10 py-2 text-gray-700 italic flex flex-wrap items-center justify-between gap-4">
         <span>{name}</span>
-         <Link
-              href={goToUrl}
-              className="
+        <Link
+          href={goToUrl}
+          className="
                 inline-flex
                 items-center
                 gap-2
@@ -411,12 +419,12 @@ function AccountRow({
                 text-indigo-600
                 hover:bg-indigo-50
               "
-            >
-              <FiEye />
+        >
+          <FiEye />
 
-              View
+          View
 
-            </Link>
+        </Link>
 
       </td>
 
@@ -471,7 +479,7 @@ function AmountRow({
 function TotalRow({
   title,
   total,
-  less=false
+  less = false
 }: {
   title: string;
   total: number;
@@ -486,7 +494,7 @@ function TotalRow({
       <td className="border-t-2 border-black"></td>
 
       <td className=" px-6 py-3 text-right font-bold text-emerald-700 ">
-        {less ? `(${formatAmount(total)})`: formatAmount(total)}
+        {less ? `(${formatAmount(total)})` : formatAmount(total)}
       </td>
     </tr>
   );

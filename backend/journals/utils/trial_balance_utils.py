@@ -1,3 +1,4 @@
+from datetime import datetime
 from .account_utils import AccountUtils
 
 
@@ -11,9 +12,27 @@ class TrialBalanceUtils:
                     └── Account
     """
 
-    def __init__(self, queryset, period=None):
+    def __init__(self, queryset, as_at_date=None):
         self.queryset = queryset
-        self.period = period
+        self.as_at_date = as_at_date
+    
+    def get_as_at_date(self):
+        """
+        Returns the date the balance sheet is prepared as at.
+
+        If no date is supplied, use today.
+        """
+
+        if self.as_at_date:
+            if isinstance(self.as_at_date, str):
+                return datetime.strptime(
+                    self.as_at_date,
+                    "%Y-%m-%d"
+                ).date()
+
+            return self.as_at_date
+
+        return datetime.today().date()
 
     def create_node(self, id, name, children_key):
         """
@@ -86,9 +105,9 @@ class TrialBalanceUtils:
         balance_type.
         """
 
-        util = AccountUtils(account, self.period)
+        util = AccountUtils(account, period=self.as_at_date)
 
-        balance = util.get_account_balance()
+        balance = util.get_balance_as_at(self.as_at_date)
 
         amount = balance["amount"]
         balance_type = balance["balance_type"]

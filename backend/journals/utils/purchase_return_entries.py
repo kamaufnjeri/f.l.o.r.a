@@ -4,6 +4,7 @@ from .journal_entries import JournalEntriesManager
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 import decimal
+from django.db.models import Sum
 
 journal_entry_manager = JournalEntriesManager()
 
@@ -17,47 +18,88 @@ class PurchaseReturnEntriesManager:
         except (TypeError, ValueError):
             raise ValidationError("Invalid discount percentage provided.")
         return price
-
+    
     @transaction.atomic
-    def create_purchase_return_entry(self, entry, purchase_return, purchase, discount_percentage):
+    def create_purchase_return_entry(
+        self,
+        entry,
+        purchase_return,
+        purchase,
+        discount_percentage
+    ):
         purchase_entry_id = entry.get('purchase_entry')
+
         try:
-            purchase_entry = PurchaseEntries.objects.get(id=purchase_entry_id, purchase=purchase)
+            purchase_entry = PurchaseEntries.objects.get(
+                id=purchase_entry_id,
+                purchase=purchase
+            )
         except PurchaseEntries.DoesNotExist:
-            raise ValidationError(f"Purchase entry with ID {purchase_entry_id} not found.")
-        entry['purchase_entry'] = purchase_entry
+            raise ValidationError(
+                f"Purchase entry with ID {purchase_entry_id} not found."
+            )
 
         return_quantity = entry.get('return_quantity')
+
         if return_quantity <= 0:
-            raise ValidationError("Return quantity must be greater than zero.")
-
-        if purchase_entry.remaining_quantity >= return_quantity:
-            # Deduct return quantity from remaining quantity
-            purchase_entry.remaining_quantity -= return_quantity
-
-            # Calculate the return price
-            return_price = self.apply_discount(decimal.Decimal(purchase_entry.purchase_price), discount_percentage)
-            stock_total_return_price = return_price * decimal.Decimal(return_quantity)
-
-            # Create the purchase return entry
-            purchase_return_entry = PurchaseReturnEntries.objects.create(
-                purchase_return=purchase_return,
-                cogs=stock_total_return_price,
-                purchase_price=purchase_entry.purchase_price,
-                return_price=return_price,
-                stock=purchase_entry.stock,
-                **entry
-            )
-
-            # Save the updated purchase entry
-            purchase_entry.save()
-
-            return stock_total_return_price, purchase_return_entry.id
-        else:
             raise ValidationError(
-                f"Cannot return {return_quantity} items. Only {purchase_entry.remaining_quantity} available."
+                "Return quantity must be greater than zero."
             )
 
+        # Calculate returns that already exist
+        existing_returns = (
+            PurchaseReturnEntries.objects
+            .filter(purchase_entry=purchase_entry)
+            .aggregate(total=Sum('return_quantity'))
+            ['total'] or 0
+        )
+
+        available_quantity = (
+            purchase_entry.purchased_quantity - existing_returns
+        )
+
+        if return_quantity > available_quantity:
+            raise ValidationError(
+                f"Cannot return {return_quantity} items. "
+                f"Only {available_quantity} available."
+            )
+
+        return_price = self.apply_discount(
+            decimal.Decimal(purchase_entry.purchase_price),
+            discount_percentage
+        )
+
+        stock_total_return_price = (
+            return_price * decimal.Decimal(return_quantity)
+        )
+
+        entry['purchase_entry'] = purchase_entry
+
+        purchase_return_entry = PurchaseReturnEntries.objects.create(
+            purchase_return=purchase_return,
+            cogs=stock_total_return_price,
+            purchase_price=purchase_entry.purchase_price,
+            return_price=return_price,
+            stock=purchase_entry.stock,
+            **entry
+        )
+
+        # Recalculate instead of increment/decrement
+        total_returns = (
+            PurchaseReturnEntries.objects
+            .filter(purchase_entry=purchase_entry)
+            .aggregate(total=Sum('return_quantity'))
+            ['total'] or 0
+        )
+
+        purchase_entry.remaining_quantity = (
+            purchase_entry.purchased_quantity - total_returns
+        )
+
+        purchase_entry.save()
+
+        return stock_total_return_price, purchase_return_entry.id
+    
     def create_purchase_return_entries(self, return_entries, purchase_return, purchase, discount_percentage):
         total_return_price = 0.00
         for entry in return_entries:
@@ -70,69 +112,150 @@ class PurchaseReturnEntriesManager:
             total_return_price += float(return_price)
 
         return total_return_price
-    
-    def update_purchase_return_entry(self, entry, purchase_return, purchase, discount_percentage):
+
+    @transaction.atomic
+    def update_purchase_return_entry(
+        self,
+        entry,
+        purchase_return,
+        purchase,
+        discount_percentage
+    ):
         purchase_entry_id = entry.get('purchase_entry')
         purchase_return_entry_id = entry.get('id')
+        return_quantity = entry.get('return_quantity')
+
+        if return_quantity <= 0:
+            raise ValidationError(
+                "Return quantity must be greater than zero."
+            )
 
         try:
-            new_purchase_entry = PurchaseEntries.objects.get(id=purchase_entry_id, purchase=purchase)
+            new_purchase_entry = PurchaseEntries.objects.get(
+                id=purchase_entry_id,
+                purchase=purchase
+            )
         except PurchaseEntries.DoesNotExist:
-            raise serializers.ValidationError(f"Purchase entry with id {purchase_entry_id} not found")
-        
+            raise ValidationError(
+                f"Purchase entry with id {purchase_entry_id} not found"
+            )
+
         try:
             purchase_return_entry = PurchaseReturnEntries.objects.get(
                 id=purchase_return_entry_id,
                 purchase_return=purchase_return
             )
         except PurchaseReturnEntries.DoesNotExist:
-            raise serializers.ValidationError(f"Purchase return entry with id {purchase_return_entry_id} not found")
-        
-        return_quantity = entry.get('return_quantity')
+            raise ValidationError(
+                f"Purchase return entry with id {purchase_return_entry_id} not found"
+            )
 
         old_purchase_entry = purchase_return_entry.purchase_entry
-        
-        if old_purchase_entry.id == new_purchase_entry.id:
-            quantity_diff = purchase_return_entry.return_quantity - return_quantity
-            new_remaining_quantity = new_purchase_entry.remaining_quantity + quantity_diff
 
-            if new_remaining_quantity >= 0:
-                new_purchase_entry.remaining_quantity = new_remaining_quantity
+        # --------------------------------------------------
+        # If moving the return to another purchase entry
+        # --------------------------------------------------
 
-            else:
-                raise serializers.ValidationError(f"Remaining quantity can't be negative")
+        if old_purchase_entry.id != new_purchase_entry.id:
+
+            # Restore old purchase entry by removing its old return
+            old_returns = (
+                PurchaseReturnEntries.objects
+                .filter(purchase_entry=old_purchase_entry)
+                .exclude(id=purchase_return_entry.id)
+                .aggregate(total=Sum('return_quantity'))
+                ['total'] or 0
+            )
+
+            old_purchase_entry.remaining_quantity = (
+                old_purchase_entry.purchased_quantity - old_returns
+            )
+
+            # Check new purchase entry
+            new_returns = (
+                PurchaseReturnEntries.objects
+                .filter(purchase_entry=new_purchase_entry)
+                .exclude(id=purchase_return_entry.id)
+                .aggregate(total=Sum('return_quantity'))
+                ['total'] or 0
+            )
+
+            available_quantity = (
+                new_purchase_entry.purchased_quantity - new_returns
+            )
+
+            if return_quantity > available_quantity:
+                raise ValidationError(
+                    f"Cannot return {return_quantity} items. "
+                    f"Only {available_quantity} available."
+                )
+
+            new_purchase_entry.remaining_quantity = (
+                new_purchase_entry.purchased_quantity
+                - new_returns
+                - return_quantity
+            )
+
+            old_purchase_entry.save()
+            new_purchase_entry.save()
+
+        # --------------------------------------------------
+        # Same purchase entry
+        # --------------------------------------------------
 
         else:
-            new_remaining_quantity = new_purchase_entry.remaining_quantity - return_quantity
 
-            if new_remaining_quantity >= 0:
-                old_purchase_entry.remaining_quantity += purchase_return_entry.return_quantity
-                new_purchase_entry.remaining_quantity = new_remaining_quantity
-            else:
-                raise serializers.ValidationError(f"Remaining quantity can't be negative")
+            other_returns = (
+                PurchaseReturnEntries.objects
+                .filter(purchase_entry=new_purchase_entry)
+                .exclude(id=purchase_return_entry.id)
+                .aggregate(total=Sum('return_quantity'))
+                ['total'] or 0
+            )
 
-        stock = new_purchase_entry.stock
+            available_quantity = (
+                new_purchase_entry.purchased_quantity
+                - other_returns
+            )
 
-        return_price = new_purchase_entry.purchase_price
-        return_price = self.apply_discount(decimal.Decimal(new_purchase_entry.purchase_price), discount_percentage)
+            if return_quantity > available_quantity:
+                raise ValidationError(
+                    f"Cannot return {return_quantity} items. "
+                    f"Only {available_quantity} available."
+                )
 
-        stock_total_return_price = return_price * return_quantity
+            new_purchase_entry.remaining_quantity = (
+                new_purchase_entry.purchased_quantity
+                - other_returns
+                - return_quantity
+            )
 
-        purchase_price = new_purchase_entry.purchase_price
+            new_purchase_entry.save()
 
-        purchase_return_entry.cogs = stock_total_return_price
-        purchase_return_entry.purchase_price = purchase_price
+        # --------------------------------------------------
+        # Update return entry
+        # --------------------------------------------------
+
+        return_price = self.apply_discount(
+            decimal.Decimal(new_purchase_entry.purchase_price),
+            discount_percentage
+        )
+
+        stock_total_return_price = (
+            return_price * decimal.Decimal(return_quantity)
+        )
+
         purchase_return_entry.return_quantity = return_quantity
         purchase_return_entry.return_price = return_price
-        purchase_return_entry.stock = stock
+        purchase_return_entry.purchase_price = new_purchase_entry.purchase_price
+        purchase_return_entry.cogs = stock_total_return_price
+        purchase_return_entry.stock = new_purchase_entry.stock
         purchase_return_entry.purchase_entry = new_purchase_entry
 
-        old_purchase_entry.save()
-        new_purchase_entry.save()
         purchase_return_entry.save()
 
         return stock_total_return_price, purchase_return_entry.id
-        
+            
            
     def update_purchase_return_entries(self, return_entries, purchase_return, purchase, discount_percentage):
         total_return_price = 0.00
