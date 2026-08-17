@@ -22,8 +22,10 @@ export default async function DashboardPage({
   const organisationId = (await params).organisationId;
   const { date = "" } = await searchParams ?? {};
 
-  const response = await getDashboard(organisationId, {date});
-
+  const response = await getDashboard(
+    organisationId,
+    { date: date === "all" ? "" : date }
+  );
   // ❌ ERROR STATE
   if (!response.success) {
     return (

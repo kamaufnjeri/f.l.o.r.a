@@ -1,12 +1,9 @@
 // app/(dashboard)/layout.tsx
 
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { fetchSelectOptions } from "../actions/select-actions";
-import Sidebar from "@/components/dashboard/layout/Sidebar";
 import HydrateApp from "@/components/dashboard/providers/HydrateApp";
-import ModalRenderer from "@/components/dashboard/layout/ModalRenderer";
 import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +11,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/sign-in");
+  }
 
 
   const selectOptionsResult = await fetchSelectOptions(

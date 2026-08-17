@@ -108,7 +108,6 @@ export const sortOptions: OptionType[] = [
 ];
 
 export const dateOptions: OptionType[] = [
-  { name: "All", value: "all" },
   { name: "Today", value: "today" },
   { name: "Yesterday", value: "yesterday" },
   { name: "This Week", value: "this_week" },

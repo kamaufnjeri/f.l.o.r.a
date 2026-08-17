@@ -320,6 +320,19 @@ export default function BalanceSheetTable({
               )
             )}
 
+            {data.capital.opening_stock_equity && (
+              <>
+                <SubHeader title="Opening Stock Equity" />
+
+                <AccountRow
+                  goToUrl="#"
+                  name="Opening Stock Balance (Adjustment)"
+                  amount={data.capital.opening_stock_equity.amount}
+                  hideView
+                />
+              </>
+            )}
+
 
 
             {/* ================================================= */}

@@ -115,10 +115,19 @@ export async function fetchMe() {
       cache: "no-store",
     });
 
+    if (res.status === 401) {
+      return {
+        success: false,
+        user: null,
+        unauthorized: true,
+      };
+    }
+
     if (!res.ok) {
       return {
         success: false,
         user: null,
+        unauthorized: false,
       };
     }
 
@@ -127,12 +136,15 @@ export async function fetchMe() {
     return {
       success: true,
       user,
+      unauthorized: false,
     };
   } catch (error) {
-    console.log("Error", error);
+    console.error("fetchMe error:", error);
+
     return {
       success: false,
       user: null,
+      unauthorized: false,
     };
   }
 }

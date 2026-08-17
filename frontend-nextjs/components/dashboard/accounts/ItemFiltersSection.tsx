@@ -27,8 +27,8 @@ export default function ItemFiltersSection({
   const [open, setOpen] = useState(false);
   const { currentOrg } = useAuthStore();
   const router = useRouter();
-  
-  
+
+
 
   const applyFilters = () => {
     router.push(
@@ -41,8 +41,8 @@ export default function ItemFiltersSection({
     router.push(`/dashboard/${organisationId}/${goToUrl}`);
     setOpen(false);
   };
- 
-  
+
+
 
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -51,62 +51,73 @@ export default function ItemFiltersSection({
   });
 
   const formatReportDate = (date?: string) => {
-    if (!date) return `As at ${today}`;
+    if (!date) return `For the period ending ${today}`;
 
-    const dateLower = date.toLowerCase();
-    // 1. RANGE (only if NOT today)
+    const dateLower = date.toLowerCase().trim();
+
+    // RANGE
     if (dateLower.includes("to") && dateLower !== 'today') {
-      const normalized = date
-      .replace(/\s*to\s*/gi, " to ")
-      .replace(/\s+/g, " ")
-      .trim();
-      return `From ${normalized}`;
+      const [start, end] = dateLower.split("to").map((d) => d.trim());
+
+      return `For the period ${replaceDash(start)} to ${replaceDash(end)}`;
     }
 
-    // 3. SINGLE VALUE
-    return `For ${replaceDash(dateLower)}`;
+    // RELATIVE PERIODS
+    if (
+      dateLower === "today" ||
+      dateLower === "this_week" ||
+      dateLower === "this_month" ||
+      dateLower === "yesterday"
+    ) {
+      return `For ${replaceDash(dateLower)}`;
+    }
+
+
+    // SINGLE CUSTOM DATE
+    return `For the period ending ${replaceDash(dateLower)}`;
   };
+
 
 
   const reportDate = formatReportDate(defaultDate);
 
 
   return (
-  <>
-    <div className="space-y-4 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <>
+      <div className="space-y-4 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-      {/* HEADER */}
-      <div className="p-4 text-center bg-gradient-to-b from-gray-50 to-white">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
-          {currentOrg?.org_name || "Organisation"}
-        </p>
+        {/* HEADER */}
+        <div className="p-4 text-center bg-gradient-to-b from-gray-50 to-white">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
+            {currentOrg?.org_name || "Organisation"}
+          </p>
 
-        <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
-          {title} ({currentOrg?.currency})
-        </h2>
+          <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
+            {title} ({currentOrg?.currency})
+          </h2>
 
-        <span className="flex flex-row items-center justify-center gap-2">
-                   <p className="mt-1 sm:mt-2 text-sm text-gray-500">
-                  {reportDate}
-                </p>
-                  {defaultDate && (
-          <button
-            type="button"
-            onClick={() => resetFilters()}
-            aria-label="Remove date filter"
-            className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
-          >
-            <FaX className="text-[10px] md:text-xs" />
-          </button>
-        )}
-                </span>
-      </div>
+          <span className="flex flex-row items-center justify-center gap-2">
+            <p className="mt-1 sm:mt-2 text-sm text-gray-500">
+              {reportDate}
+            </p>
+            {defaultDate && (
+              <button
+                type="button"
+                onClick={() => resetFilters()}
+                aria-label="Remove date filter"
+                className="flex cursor-pointer h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-colors"
+              >
+                <FaX className="text-[10px] md:text-xs" />
+              </button>
+            )}
+          </span>
+        </div>
 
-      
 
-        
 
-           
+
+
+
         <div className="border-t px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50">
 
           <button
@@ -132,17 +143,17 @@ export default function ItemFiltersSection({
           >
             Open Filters
           </button>
-        
+
+        </div>
+
       </div>
-     
-    </div>
-    {open && <ItemFiltersModal 
-      date={date}
-      title={title}
-      setDate={setDate}
-      resetFilters={resetFilters}
-      applyFilters={applyFilters}
-      onClose={() => setOpen(false)}
+      {open && <ItemFiltersModal
+        date={date}
+        title={title}
+        setDate={setDate}
+        resetFilters={resetFilters}
+        applyFilters={applyFilters}
+        onClose={() => setOpen(false)}
       />}
     </>
   );
