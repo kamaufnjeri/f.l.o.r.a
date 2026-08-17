@@ -10,15 +10,13 @@ class AccountUtils:
     def get_opening_balance(self):
         start_date = self.get_start_date()
 
+        # No start date means there is no opening balance to calculate
+        if start_date is None:
+            return None
+
         _, debit_total, credit_total = self.get_account_entries(before_date=start_date)
 
 
-        if self.account.opening_balance and self.account.opening_balance > 0:
-            if self.account.opening_balance_type == 'debit':
-                debit_total +=  float(self.account.opening_balance)
-            else:
-                credit_total +=  float(self.account.opening_balance)
-        
         if debit_total > 0 or credit_total > 0:
             return self.get_balance_type(debit_total, credit_total, 'Opening balance', start_date)
         return None
@@ -93,8 +91,8 @@ class AccountUtils:
         
 
     def get_account_entries(self, before_date=None, after_date=None):
-
-        journal_entries = self.account.journal_entries.exclude(type="opening_balance")
+      
+        journal_entries = self.account.journal_entries
         if before_date:
             journal_entries = journal_entries.filter(
                 (Q(journal__date__lt=before_date) & Q(journal__date__isnull=False)) |
@@ -140,14 +138,11 @@ class AccountUtils:
         return entries, debit_totals, credit_totals
 
 
-   
-
-
     def get_start_date(self):
         today = datetime.today().date()
 
         if not self.period:
-            return today
+            return None
 
         if self.period == "today":
             return today
@@ -170,7 +165,7 @@ class AccountUtils:
                     "%Y-%m-%d"
                 ).date()
             except (ValueError, IndexError):
-                return today
+                return None
 
         # Single custom date
         try:
@@ -179,7 +174,7 @@ class AccountUtils:
                 "%Y-%m-%d"
             ).date()
         except (ValueError, TypeError):
-            return today
+            return None
 
     def get_end_date(self):
         today = datetime.today().date()
@@ -293,8 +288,6 @@ class AccountUtils:
             else:
                 credit_total += opening["amount"]
 
-        print(self.account.name, 's', start_date, 'e', end_date, 'debit', debit_total, credit_total)
-
 
         if debit_total >= credit_total:
            return {
@@ -317,6 +310,8 @@ class AccountUtils:
         """
 
         # Convert string -> date
+        if not as_at_date:
+            as_at_date = datetime.today().date()
         if isinstance(as_at_date, str):
             try:
                 as_at_date = datetime.strptime(
@@ -337,14 +332,6 @@ class AccountUtils:
             before_date=end_date
         )
 
-        # Add configured opening balance
-        if self.account.opening_balance is not None:
-            opening_balance = float(self.account.opening_balance)
-
-            if self.account.opening_balance_type == "debit":
-                debit_total += opening_balance
-            else:
-                credit_total += opening_balance
 
         print(
             self.account.name,

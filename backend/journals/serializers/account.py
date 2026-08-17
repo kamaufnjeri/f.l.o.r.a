@@ -145,17 +145,12 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
     def get_account_balance(self, obj):
-        journal_entries = JournalEntries.objects.filter(account=obj).exclude(type='opening_balance')
+        journal_entries = JournalEntries.objects.filter(account=obj)
 
         
         debit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'debit')
         credit_total = sum(entry.amount for entry in journal_entries if entry.debit_credit == 'credit')
-        if obj.opening_balance and obj.opening_balance_type:
-            if obj.opening_balance_type == 'debit':
-                debit_total += obj.opening_balance
-            else:
-                credit_total += obj.opening_balance
-        
+       
         if obj.belongs_to and obj.belongs_to.category and obj.belongs_to.category.group:
             if obj.belongs_to.category.group.name.lower() in ('asset', 'expense'):
 

@@ -246,14 +246,61 @@ class DashboardUtils:
                 "opening_stock": opening_stock_total,
                 'inventory': closing_stock_total - opening_stock_total
             }
-        
+
+    # ==================================================
+    # ACCOUNT BALANCE
+    # ==================================================
+
+    def get_account_balance(self, account):
+
+        util = AccountUtils(
+            account,
+            self.period
+        )
+
+        balance = util.get_account_balance()
+
+        amount = balance["amount"]
+        balance_type = balance["balance_type"]
+
+        return {
+            "id": account.id,
+            "name": account.name,
+            "amount": amount,
+            "balance_type": balance_type,
+            "debit": balance["debit"],
+            "credit": balance["credit"],
+        }
+
+    # ==================================================
+    # PERIOD AMOUNT
+    # ==================================================
+
+    def get_period_amount(self, account, normal_balance):
+
+        util = AccountUtils(
+            account,
+            self.period
+        )
+
+        period = util.get_period_amount(normal_balance)
+
+        amount = period["amount"]
+
+        return {
+            "id": account.id,
+            "name": account.name,
+            "amount": amount,
+            "balance_type": normal_balance,
+            "debit": period["debit"],
+            "credit": period["credit"],
+        }
 
     def get_dashboard(self):
 
         cash = 0
         receivable = 0
         payable = 0
-
 
         total_sales = 0
         total_sales_returns = 0
@@ -263,10 +310,7 @@ class DashboardUtils:
 
         total_service_income = 0
         total_other_income = 0
-
         total_expenses = 0
-
-
 
         accounts = (
             self.accounts
@@ -277,191 +321,114 @@ class DashboardUtils:
             )
         )
 
-
         for account in accounts:
 
+            group = account.belongs_to.category.group.name
+            category = account.belongs_to.category.name
+            sub_category = account.belongs_to.name
+            account_name = account.name.lower()
 
-            balance = AccountUtils(
-                account,
-                self.period
-            ).get_account_balance()
-
-
-            amount = float(balance["amount"])
-
-
-            if amount == 0:
-                continue
-
-
-
-            group = (
-                account
-                .belongs_to
-                .category
-                .group
-                .name
-            )
-
-
-            category = (
-                account
-                .belongs_to
-                .category
-                .name
-            )
-
-
-            sub_category = (
-                account
-                .belongs_to
-                .name
-            )
-
-
-            name = account.name
-
-
-
-            # ============================
+            # =================================================
             # INCOME
-            # ============================
+            # Same logic as IncomeStatementUtils
+            # =================================================
 
-            if group == "Income":
+            if group.lower() == "income":
 
+                if sub_category.lower() == "product sales":
 
-                if sub_category == "Product Sales":
+                    balance = self.get_period_amount(account, "credit")
+                    total_sales += float(balance["amount"])
 
-                    total_sales += amount
+                elif account_name == "sales return":
 
+                    balance = self.get_period_amount(account, "debit")
+                    total_sales_returns += float(balance["amount"])
 
-                elif name == "Sales Return":
+                elif sub_category.lower() == "service income":
 
-                    total_sales_returns += amount
-
-
-                elif sub_category == "Service Income":
-
-                    total_service_income += amount
-
-
-                else:
-
-                    total_other_income += amount
-
-
-
-                continue
-
-
-
-            # ============================
-            # EXPENSE
-            # ============================
-
-            elif group == "Expense":
-
-
-                if name == "Purchase":
-
-                    total_purchases += amount
-
-
-                elif name == "Purchase Return":
-
-                    total_purchase_returns += amount
-
+                    balance = self.get_period_amount(account, "credit")
+                    total_service_income += float(balance["amount"])
 
                 else:
 
-                    total_expenses += amount
+                    balance = self.get_period_amount(account, "credit")
+                    total_other_income += float(balance["amount"])
 
+            elif group.lower() == "expense":
 
+                if account_name == "purchase":
 
-                continue
+                    balance = self.get_period_amount(account, "debit")
+                    total_purchases += float(balance["amount"])
 
+                elif account_name == "purchase return":
 
+                    balance = self.get_period_amount(account, "credit")
+                    total_purchase_returns += float(balance["amount"])
 
+                else:
 
-            # ============================
-            # BALANCE DATA
-            # ============================
+                    balance = self.get_period_amount(account, "debit")
+                    total_expenses += float(balance["amount"])
 
+            elif group.lower() == "asset":
 
-            elif group == "Asset":
+                balance = self.get_account_balance(account)
+                amount = float(balance["amount"])
 
-
-                if sub_category == "Cash and Cash Equivalents":
-
+                if sub_category.lower() == "cash and cash equivalents":
                     cash += amount
 
-
-
-                elif sub_category == "Accounts Receivable":
-
+                elif sub_category.lower() == "accounts receivable":
                     receivable += amount
 
+            elif group.lower() == "liability":
 
+                balance = self.get_account_balance(account)
+                amount = float(balance["amount"])
 
-
-            elif group == "Liability":
-
-
-                if sub_category == "Accounts Payable":
-
+                if sub_category.lower() == "accounts payable":
                     payable += amount
-
-
 
         # =================================================
         # INVENTORY
         # =================================================
 
-
         inventory = self.get_opening_closing_stock()
 
-
-
         opening_stock = inventory["opening_stock"]
-
         closing_stock = inventory["closing_stock"]
-
-
 
         # =================================================
         # PROFIT
+        # Same calculation as IncomeStatementUtils
         # =================================================
-
 
         net_sales = (
             total_sales -
             total_sales_returns
         )
 
-
         net_purchases = (
             total_purchases -
             total_purchase_returns
         )
-
 
         goods_available = (
             opening_stock +
             net_purchases
         )
 
-
         cost_of_goods_sold = (
             goods_available -
             closing_stock
         )
 
-
         gross_profit = (
             net_sales -
             cost_of_goods_sold
         )
-
 
         total_income = (
             gross_profit +
@@ -469,16 +436,16 @@ class DashboardUtils:
             total_other_income
         )
 
-
         net_profit = (
             total_income -
             total_expenses
         )
 
-
+        # =================================================
+        # RESPONSE
+        # =================================================
 
         return {
-
 
             "summary": {
 
@@ -488,50 +455,56 @@ class DashboardUtils:
 
                 "payables": payable,
 
-
                 "inventory": inventory,
-
 
                 "profit": net_profit,
 
             },
 
-
             "income_expense": {
-
 
                 "sales": total_sales,
 
                 "sales_returns": total_sales_returns,
 
+                "net_sales": net_sales,
 
                 "purchases": total_purchases,
 
                 "purchase_returns": total_purchase_returns,
 
+                "net_purchases": net_purchases,
+
+                "opening_stock": opening_stock,
+
+                "closing_stock": closing_stock,
+
+                "goods_available_for_sale": goods_available,
+
+                "cost_of_goods_sold": cost_of_goods_sold,
 
                 "gross_profit": gross_profit,
-                "total_income": total_income,
 
+                "total_service_income": total_service_income,
 
                 "total_other_income": total_other_income,
-                "total_service_income": total_service_income,
-                "expenses": total_expenses,
 
+                "total_income": total_income,
+
+                "expenses": total_expenses,
 
                 "profit": net_profit,
 
             },
 
-
             "recent_transactions":
                 self.get_recent_transactions(),
-
 
             "quick_stats":
                 self.get_quick_stats(),
 
         }
+
     def get_quick_stats(self):
 
         return {

@@ -30,36 +30,59 @@ class BalanceSheetUtils:
         return datetime.today().date()
     
     def get_opening_closing_stock(self):
+
         opening_stock_total = 0
         closing_stock_total = 0
+
         stocks = []
 
         for stock in self.stocks:
-            util = StockUtils(stock, period=self.as_at_date)
 
-            _, _, opening_stock, closing_stock = util.get_closing_balance()
+            util = StockUtils(
+                stock,
+                period=self.as_at_date
+            )
 
+            stock_balance = util.get_balance_as_at(
+                self.as_at_date
+            )
+
+            opening_stock = stock_balance["opening_stock"]
+            closing_stock = stock_balance["closing_stock"]
+
+            # ---------------------------------------------
+            # Opening stock
+            # ---------------------------------------------
 
             if opening_stock:
-                opening_stock_total += float(opening_stock["amount"])
+                opening_stock_total += float(
+                    opening_stock["amount"]
+                )
+
+            # ---------------------------------------------
+            # Closing stock
+            # ---------------------------------------------
+
             if closing_stock:
+
                 stocks.append({
                     "id": stock.id,
                     "name": stock.name,
-                    "rate": closing_stock['rate'],
+                    "rate": closing_stock["rate"],
                     "quantity": closing_stock["quantity"],
-                    'amount': closing_stock["amount"],
+                    "amount": closing_stock["amount"],
                 })
-                closing_stock_total += float(closing_stock["amount"])
 
-            
+                closing_stock_total += float(
+                    closing_stock["amount"]
+                )
+
         return {
             "stocks": stocks,
-            "closing_stock": closing_stock_total,
             "opening_stock": opening_stock_total,
-            'inventory': closing_stock_total
+            "closing_stock": closing_stock_total,
+            "inventory": closing_stock_total,
         }
-    
     def create_node(self, id, name, children_key):
         return {
             "id": id,
@@ -345,6 +368,12 @@ class BalanceSheetUtils:
         # Retained Earnings
         # -------------------------------------------------------
 
+        if opening_stock > 0:
+            capital["opening_stock_equity"] = {
+                "name": "Opening Stock Equity",
+                "amount": opening_stock,
+            }
+            total_capital += opening_stock
         capital["retained_earnings"] = {
             "name": "Current Year Profit",
             "amount": net_profit,
@@ -391,6 +420,7 @@ class BalanceSheetUtils:
 
             "capital": {
                 "owner_equity": capital["owner_equity"],
+                "opening_stock_equity": capital['opening_stock_equity'],
                 "retained_earnings": capital["retained_earnings"],
                 "total": total_capital,
             },

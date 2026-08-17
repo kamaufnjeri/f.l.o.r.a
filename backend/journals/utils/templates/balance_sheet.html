@@ -252,13 +252,13 @@
                 </tr>
 
                 {% endfor %}
-                <tr >
+                <tr>
 
                     <td style="padding-left:25px;">
                         Total
                     </td>
 
-                     <td style="text-align:right;
+                    <td style="text-align:right;
     ">
                         {{ "{:,.2f}".format(data.assets.current.Inventory.inventory) }}
                     </td>
@@ -281,13 +281,13 @@
 
                 </tr> -->
 
-                
+
 
                 {% endif %}
 
                 <tr style="background:#ecfdf5;font-weight:bold;">
 
-                    <td >
+                    <td>
                         Total Current Assets (B)
                     </td>
 
@@ -308,7 +308,7 @@
                         font-size:14px;
                     ">
 
-                    <td >
+                    <td>
                         Total Assets (A + B)
                     </td>
 
@@ -388,7 +388,7 @@
 
                 <tr style="background:#ecfdf5;font-weight:bold;">
 
-                    <td >
+                    <td>
                         Total Non-Current Liabilities (C)
                     </td>
 
@@ -452,7 +452,7 @@
 
                 <tr style="background:#ecfdf5;font-weight:bold;">
 
-                    <td >
+                    <td>
                         Total Current Liabilities (D)
                     </td>
 
@@ -468,7 +468,7 @@
                 </tr>
 
 
-                <tr  style="
+                <tr style="
                         background:#58bb7c;
                         color:white;
                         font-weight:bold;
@@ -550,7 +550,33 @@
 
                 {% endfor %}
 
-               
+
+                =================================================
+                <!-- OPENING STOCK EQUITY -->
+                <!-- ================================================= -->
+
+                {% if data.capital.opening_stock_equity %}
+
+                <tr style="background:#e2e8f0;color:#334155;font-weight:bold;">
+                    <td colspan="3">
+                        Opening Stock Equity
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding-left:25px;">
+                        Opening Stock Balance (Adjustment)
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ "{:,.2f}".format(data.capital.opening_stock_equity.amount) }}
+                    </td>
+
+                    <td>-</td>
+                </tr>
+
+                {% endif %}
+
 
                 <!-- ================================================= -->
                 <!-- RETAINED EARNINGS -->
@@ -578,9 +604,9 @@
 
                 </tr>
 
-                
-                 
-                <tr  style="
+
+
+                <tr style="
                         background:#58bb7c;
                         color:white;
                         font-weight:bold;
@@ -606,7 +632,7 @@
                 <tr>
                     <td colspan="3" style="height:20px;"></td>
                 </tr>
-                
+
 
                 <tr style="
                         background:#166534;
@@ -615,7 +641,7 @@
                         font-size:14px;
                     ">
 
-                    <td >
+                    <td>
                         Total Liabilities &amp; Capital (E + F)
                     </td>
 
@@ -681,7 +707,7 @@ font-weight:bold;
                 {% endif %}
 
 
-                
+
 
             </tbody>
 

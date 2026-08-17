@@ -7,29 +7,91 @@ class StockUtils:
         self.stock = stock
         self.period = period
 
+    def get_initial_stock_entries(self):
+        opening_stocks_entries = PurchaseEntries.objects.filter(
+            purchase__isnull=True,
+            stock=self.stock
+        )
+
+        from journals.serializers import DetailedPurchaseEntriesSerializer
+
+        return DetailedPurchaseEntriesSerializer(
+            opening_stocks_entries,
+            many=True
+        ).data
+
     def get_opening_balance(self):
-       
+
         start_date = self.get_start_date()
 
-        opening_stocks_entries = PurchaseEntries.objects.filter(purchase__isnull=True, stock=self.stock)
-        from journals.serializers import DetailedPurchaseEntriesSerializer
-        
-        entries_serializer_data = DetailedPurchaseEntriesSerializer(opening_stocks_entries, many=True).data
-        purchases_before, _ = self.get_purchase_entries(before_date=start_date)
-        
-        purchases_before.extend(entries_serializer_data)
-        sales_before, _ = self.get_sales_entries(before_date=start_date)
-        purchase_returns_before, _ = self.get_purchase_returns_entries(before_date=start_date)
-        sales_returns_before, _ = self.get_sales_return_entries(before_date=start_date)
-        purchases_before_quantity, purchases_return_before_quantity, average_cost = self.get_average_cost(purchases_before, purchase_returns_before)
-        opening_stock = purchases_before_quantity \
-                            - sum(entry.get('details').get('quantity') for entry in sales_before) \
-                            + sum(entry.get('details').get('quantity') for entry in sales_returns_before) \
-                            - purchases_return_before_quantity
+        # Initial stock created when the stock item was created
+        initial_stock_entries = self.get_initial_stock_entries()
+
+        # ---------------------------------------------------------
+        # NO PERIOD / NO START DATE
+        # ---------------------------------------------------------
+        # There is no "opening before the period".
+        # Only return the initial stock.
+        # ---------------------------------------------------------
+        if not start_date:
+
+            if not initial_stock_entries:
+                return None, None
+
+            purchases_before = initial_stock_entries
+            purchase_returns_before = []
+            sales_before = []
+            sales_returns_before = []
+
+        # ---------------------------------------------------------
+        # PERIOD EXISTS
+        # ---------------------------------------------------------
+        else:
+
+            purchases_before, _ = self.get_purchase_entries(
+                before_date=start_date
+            )
+
+            # Add initial stock exactly once
+            purchases_before.extend(initial_stock_entries)
+
+            sales_before, _ = self.get_sales_entries(
+                before_date=start_date
+            )
+
+            purchase_returns_before, _ = self.get_purchase_returns_entries(
+                before_date=start_date
+            )
+
+            sales_returns_before, _ = self.get_sales_return_entries(
+                before_date=start_date
+            )
+
+        purchases_before_quantity, purchases_return_before_quantity, average_cost = \
+            self.get_average_cost(
+                purchases_before,
+                purchase_returns_before
+            )
+
+        opening_stock = (
+            purchases_before_quantity
+            - sum(
+                entry.get('details', {}).get('quantity', 0)
+                for entry in sales_before
+            )
+            + sum(
+                entry.get('details', {}).get('quantity', 0)
+                for entry in sales_returns_before
+            )
+            - purchases_return_before_quantity
+        )
 
         if average_cost > 0 and opening_stock > 0:
-        
-            opening_stock_total = float(opening_stock) * float(average_cost)
+
+            opening_stock_total = (
+                float(opening_stock) * float(average_cost)
+            )
+
             opening_entries = {
                 'details': {
                     'date': start_date,
@@ -37,15 +99,20 @@ class StockUtils:
                     'quantity': opening_stock,
                     'rate': round(average_cost, 2),
                     'total': round(opening_stock_total, 2),
-                    'description': 'Opening stock before the start of the period'
+                    'description': (
+                        'Opening stock before the start of the period'
+                    )
                 }
             }
+
             opening_stock_data = {
                 'name': 'Opening Stock',
                 'quantity': opening_stock,
                 'amount': round(opening_stock_total, 2),
             }
+
             return opening_entries, opening_stock_data
+
         return None, None
 
     def get_average_cost(self, purchases, purchase_returns):
@@ -132,7 +199,7 @@ class StockUtils:
             today = datetime.today().date()
     
             if not self.period:
-                return today
+                return None
     
             if self.period == "today":
                 return today
@@ -155,7 +222,7 @@ class StockUtils:
                         "%Y-%m-%d"
                     ).date()
                 except (ValueError, IndexError):
-                    return today
+                    return None
     
             # Single custom date
             try:
@@ -164,7 +231,7 @@ class StockUtils:
                     "%Y-%m-%d"
                 ).date()
             except (ValueError, TypeError):
-                return today
+                return None
     
     def get_end_date(self):
         today = datetime.today().date()
@@ -222,20 +289,39 @@ class StockUtils:
         return entries_list, totals_list
 
     def get_purchase_entries(self, before_date=None, after_date=None):
-        purchase_entries = self.stock.purchase_entries.all()
+        # Normal purchases ONLY.
+        # Initial stock has purchase=NULL and must be handled separately.
+        purchase_entries = self.stock.purchase_entries.filter(
+            purchase__isnull=False
+        )
 
         if before_date:
-            purchase_entries = purchase_entries.filter(purchase__date__lt=before_date)
+            purchase_entries = purchase_entries.filter(
+                purchase__date__lt=before_date
+            )
+
         if after_date:
-            purchase_entries = purchase_entries.filter(purchase__date__gte=after_date)
+            purchase_entries = purchase_entries.filter(
+                purchase__date__gte=after_date
+            )
 
         from journals.serializers import DetailedPurchaseEntriesSerializer
 
-        entries_serializer_data = DetailedPurchaseEntriesSerializer(purchase_entries, many=True).data
+        entries_serializer_data = DetailedPurchaseEntriesSerializer(
+            purchase_entries,
+            many=True
+        ).data
 
-        total_quantity = sum(float(entry.get('details').get('quantity', 0)) for entry in entries_serializer_data)
-        total_amount = sum(float(entry.get('details').get('total', 0)) for entry in entries_serializer_data)
-       
+        total_quantity = sum(
+            float(entry.get('details', {}).get('quantity', 0))
+            for entry in entries_serializer_data
+        )
+
+        total_amount = sum(
+            float(entry.get('details', {}).get('total', 0))
+            for entry in entries_serializer_data
+        )
+
         purchase_totals = {
             'name': 'Purchases',
             'quantity': total_quantity,
@@ -330,4 +416,158 @@ class StockUtils:
         return {
             'entries': sorted_stock_entries,
             "totals": total_lists
+        }
+
+    def get_balance_as_at(self, as_at_date=None):
+        """
+        Returns opening and closing stock as at a specific date.
+
+        For a single balance-sheet date:
+
+            Opening stock = initial stock
+            Closing stock = stock balance at as_at_date
+
+        Closing balance includes:
+            initial stock
+            + purchases up to date
+            - purchase returns up to date
+            - sales up to date
+            + sales returns up to date
+        """
+
+        if not as_at_date:
+            as_at_date = datetime.today().date()
+
+        if isinstance(as_at_date, str):
+            as_at_date = datetime.strptime(
+                as_at_date.strip(),
+                "%Y-%m-%d"
+            ).date()
+
+        end_date = as_at_date + timedelta(days=1)
+
+        # =========================================================
+        # INITIAL STOCK
+        # =========================================================
+
+        initial_stock_entries = list(
+            self.get_initial_stock_entries()
+        )
+
+        initial_quantity = sum(
+            float(entry.get("details", {}).get("quantity", 0))
+            for entry in initial_stock_entries
+        )
+
+        initial_cost = sum(
+            float(entry.get("details", {}).get("total", 0))
+            for entry in initial_stock_entries
+        )
+
+        initial_rate = (
+            initial_cost / initial_quantity
+            if initial_quantity > 0
+            else 0
+        )
+
+        opening_stock = {
+            "name": "Opening Stock",
+            "rate": round(initial_rate, 2),
+            "quantity": initial_quantity,
+            "amount": round(initial_cost, 2),
+        }
+
+        # =========================================================
+        # PURCHASES UP TO AS-AT DATE
+        # =========================================================
+
+        purchases, _ = self.get_purchase_entries(
+            before_date=end_date
+        )
+
+        purchases = list(purchases)
+
+        # Initial stock is separate from normal purchases
+        purchases.extend(initial_stock_entries)
+
+        # =========================================================
+        # SALES
+        # =========================================================
+
+        sales, _ = self.get_sales_entries(
+            before_date=end_date
+        )
+
+        # =========================================================
+        # PURCHASE RETURNS
+        # =========================================================
+
+        purchase_returns, _ = self.get_purchase_returns_entries(
+            before_date=end_date
+        )
+
+        # =========================================================
+        # SALES RETURNS
+        # =========================================================
+
+        sales_returns, _ = self.get_sales_return_entries(
+            before_date=end_date
+        )
+
+        # =========================================================
+        # WEIGHTED AVERAGE COST
+        # =========================================================
+
+        purchases_total, purchase_returns_total, average_cost = (
+            self.get_average_cost(
+                purchases,
+                purchase_returns
+            )
+        )
+
+        # =========================================================
+        # QUANTITY MOVEMENTS
+        # =========================================================
+
+        sales_quantity = sum(
+            float(entry.get("details", {}).get("quantity", 0))
+            for entry in sales
+        )
+
+        sales_returns_quantity = sum(
+            float(entry.get("details", {}).get("quantity", 0))
+            for entry in sales_returns
+        )
+
+        # =========================================================
+        # CLOSING QUANTITY
+        # =========================================================
+
+        closing_quantity = (
+            purchases_total
+            - purchase_returns_total
+            - sales_quantity
+            + sales_returns_quantity
+        )
+
+        closing_quantity = max(float(closing_quantity), 0)
+
+        closing_amount = (
+            closing_quantity * float(average_cost)
+        )
+
+        closing_stock = {
+            "name": "Closing Stock",
+            "rate": round(float(average_cost), 2),
+            "quantity": closing_quantity,
+            "amount": round(closing_amount, 2),
+        }
+
+        # =========================================================
+        # RETURN BOTH
+        # =========================================================
+
+        return {
+            "opening_stock": opening_stock,
+            "closing_stock": closing_stock,
         }
